@@ -34,9 +34,10 @@
   </div>
 
   <script>
+    // --- ⚠️ 設定區 (請務必確認正確) ---
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxHkA5LmIqBVuMEkaT1IcOarqMuEtw7HBX-BplhvOiDw_XCGiksPQotRb0qwftm2Lub/exec"; 
     const AZURE_KEY = "3QzfGss1SpstM7DNIKKYtYDHEwCwB6rLhpKoqM1LGRI7QZjE4VptJQQJ99CCACYeBjFXJ3w3AAAaACOGvCso";
-    const AZURE_REGION = "eastus";
+    const AZURE_REGION = "eastus"; // 偵探提醒：若您的 Azure 資源是在香港，請改為 eastasia
 
     const params = new URLSearchParams(window.location.search);
     const STUDENT_ID = params.get('id') || "S001";
@@ -49,7 +50,7 @@
         document.getElementById('info-text').innerText = "麥克風已就緒！";
         document.getElementById('start-btn').style.display = 'inline-block';
       } catch (e) {
-        alert("無法開啟麥克風，請檢查權限設定。");
+        alert("無法開啟麥克風。請確認：\n1. 是用 Safari 開啟\n2. 點擊了 AA 允許麥克風");
       }
     };
 
@@ -61,7 +62,8 @@
         .then(data => {
           words = data.words;
           renderWord();
-        });
+        })
+        .catch(err => alert("抓取題庫失敗：" + err));
     };
 
     function renderWord() {
@@ -83,7 +85,7 @@
       mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
       mediaRecorder.start();
       rb.classList.add('active');
-      document.getElementById('status').innerText = "聆聽中...";
+      document.getElementById('status').innerText = "正在錄音...";
     };
 
     rb.onpointerup = () => {
@@ -95,41 +97,63 @@
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(chunks, { type: 'audio/webm' });
         const reader = new FileReader();
-        reader.readAsDataURL(audioBlob);
+        reader.readAsArrayBuffer(audioBlob); // 改用 ArrayBuffer 提高穩定性
         reader.onloadend = async () => {
-          const base64 = reader.result.split(',')[1];
-          const score = await evaluateAzure(base64, words[idx]);
-          document.getElementById('feedback').innerText = "得分：" + Math.round(score);
-          total += score; idx++;
-          setTimeout(renderWord, 1200);
+          try {
+            const score = await evaluateAzure(reader.result, words[idx]);
+            document.getElementById('feedback').innerText = "得分：" + Math.round(score);
+            total += score; idx++;
+            setTimeout(renderWord, 1200);
+          } catch (e) {
+            alert("評分過程出錯：" + e);
+            document.getElementById('status').innerText = "請重錄一次";
+          }
         };
       };
     };
 
-    async function evaluateAzure(base64, text) {
+    async function evaluateAzure(arrayBuffer, text) {
       const url = `https://${AZURE_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US`;
-      const pronParams = { "ReferenceText": text, "GradingSystem": "HundredMark", "Granularity": "Phoneme", "Dimension": "Comprehensive" };
+      const pronParams = { 
+        "ReferenceText": text, 
+        "GradingSystem": "HundredMark", 
+        "Granularity": "Phoneme", 
+        "Dimension": "Comprehensive" 
+      };
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Ocp-Apim-Subscription-Key': AZURE_KEY,
           'Pronunciation-Assessment': btoa(JSON.stringify(pronParams)),
-          'Content-Type': 'audio/webm; codecs=opus'
+          'Content-Type': 'audio/webm; codecs=opus',
+          'Accept': 'application/json'
         },
-        body: atob(base64).split('').map(c => c.charCodeAt(0))
+        body: arrayBuffer
       });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Azure 報錯 (${response.status}): ${errText}`);
+      }
+
       const resData = await response.json();
-      return resData.RecognitionStatus === "Success" ? resData.NBest[0].PronunciationAssessment.AccuracyScore : 0;
+      if (resData.RecognitionStatus === "Success") {
+        return resData.NBest[0].PronunciationAssessment.AccuracyScore;
+      } else {
+        throw new Error("AI 聽不懂，請錄清楚一點。狀態：" + resData.RecognitionStatus);
+      }
     }
 
     function finishChallenge() {
       const avg = Math.round(total / words.length);
-      document.getElementById('studio').innerHTML = "<h3>挑戰完成！正在結算點數...</h3>";
+      document.getElementById('studio').innerHTML = "<h3>挑戰完成！</h3><p>平均分數：" + avg + "</p><p>正在存入點數...</p>";
       fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}`)
         .then(() => {
-          alert("🎉 點數已自動存入！即將跳回首頁。");
+          alert("🎉 挑戰完成！即將回到點數首頁。");
           window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
-        });
+        })
+        .catch(err => alert("存點失敗：" + err));
     }
   </script>
 </body>
