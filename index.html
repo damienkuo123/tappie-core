@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>瑪麗安口說挑戰室</title>
   <style>
     :root { --primary-blue: #1e90ff; --marian-yellow: #ffa502; --marian-red: #ff4757; }
-    body { font-family: -apple-system, sans-serif; text-align: center; padding: 20px; background: #f0f2f5; touch-action: none; }
-    .card { background: white; padding: 30px; border-radius: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); max-width: 400px; margin: 0 auto; }
-    
+    body { font-family: -apple-system, sans-serif; text-align: center; padding: 20px; background: #f0f2f5; touch-action: none; margin: 0; }
+    .card { background: white; padding: 30px; border-radius: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); max-width: 400px; margin: 20px auto; }
     #record-btn { 
       background: var(--marian-red); width: 120px; height: 120px; border-radius: 50%; 
       border: 8px solid white; font-size: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
@@ -16,7 +15,6 @@
     }
     #record-btn.active { transform: scale(0.9); background: #333; animation: pulse 1s infinite; }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(255, 71, 87, 0.4); } 100% { box-shadow: 0 0 0 20px rgba(255, 71, 87, 0); } }
-    
     .btn-start { background: var(--primary-blue); color: white; padding: 20px 40px; border-radius: 18px; font-size: 20px; font-weight: bold; border: none; cursor: pointer; }
     #feedback { font-size: 28px; font-weight: bold; color: #2ed573; margin-top: 15px; min-height: 40px; }
     #status { color: #666; margin-top: 10px; font-size: 14px; }
@@ -27,7 +25,7 @@
   <div class="card">
     <div id="setup-zone">
       <h2 style="color:var(--primary-blue);">瑪麗安口說挑戰</h2>
-      <p id="info-text">正在偵測麥克風...</p>
+      <p id="info-text">正在準備麥克風...</p>
       <button class="btn-start" id="start-btn" style="display:none;">進入挑戰！</button>
     </div>
 
@@ -41,7 +39,7 @@
   </div>
 
   <script>
-    // ⚠️ 這裡請填入您最新的 GAS 部署網址
+    // ⚠️ 確保這裡是您最新的 GAS 部署網址
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxHkA5LmIqBVuMEkaT1IcOarqMuEtw7HBX-BplhvOiDw_XCGiksPQotRb0qwftm2Lub/exec"; 
 
     const params = new URLSearchParams(window.location.search);
@@ -49,18 +47,16 @@
 
     let stream, mediaRecorder, chunks = [], words = [], idx = 0, total = 0, startTime;
 
-    // 啟動麥克風
     window.onload = async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         document.getElementById('info-text').innerText = "麥克風已就緒";
         document.getElementById('start-btn').style.display = 'inline-block';
       } catch (e) {
-        alert("找不到麥克風，請確保已允許瀏覽器使用麥克風權限。");
+        alert("找不到麥克風，請確保已允許瀏覽器權限。");
       }
     };
 
-    // 點擊開始挑戰
     document.getElementById('start-btn').onclick = () => {
       document.getElementById('setup-zone').style.display = 'none';
       document.getElementById('studio').style.display = 'block';
@@ -72,10 +68,9 @@
             words = data.words;
             renderWord();
           } else {
-            alert("題庫暫時找不到資料喔！");
+            alert("目前找不到題目資料。");
           }
-        })
-        .catch(err => alert("連線失敗，請確認 GAS 網址是否正確。"));
+        });
     };
 
     function renderWord() {
@@ -92,7 +87,6 @@
 
     const rb = document.getElementById('record-btn');
 
-    // 錄音開始
     rb.onpointerdown = (e) => {
       e.preventDefault();
       startTime = Date.now();
@@ -101,10 +95,9 @@
       mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
       mediaRecorder.start();
       rb.classList.add('active');
-      document.getElementById('status').innerText = "錄音中...";
+      document.getElementById('status').innerText = "正在錄音...";
     };
 
-    // 錄音結束
     const stopRecording = () => {
       if (!mediaRecorder || mediaRecorder.state !== "recording") return;
       
@@ -113,18 +106,17 @@
       rb.classList.remove('active');
 
       if (duration < 800) {
-        alert("唸太短了，錄音失敗，請錄久一點點。");
+        alert("錄音太短，請重新錄製。");
         return;
       }
 
-      document.getElementById('status').innerText = "Gemini 老師打分中...";
+      document.getElementById('status').innerText = "Gemini 評分中...";
       
       mediaRecorder.onstop = () => {
         const reader = new FileReader();
         reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
         reader.onloadend = () => {
           const base64 = reader.result.split(',')[1];
-          // 把參數傳入網址，Body 只傳音訊
           const api = `${GAS_URL}?action=evaluate_speech&id=${STUDENT_ID}&word=${encodeURIComponent(words[idx])}`;
           
           fetch(api, { method: 'POST', body: base64 })
@@ -136,10 +128,11 @@
               idx++;
               setTimeout(renderWord, 1500);
             } else {
-              alert("AI 無法給分，可能錄音不清楚或 API 設定問題。");
+              alert("AI 打分失敗，請大聲一點再試。");
               document.getElementById('status').innerText = "請再試一次";
             }
-          });
+          })
+          .catch(() => alert("通訊失敗，請檢查網路。"));
         };
       };
     };
@@ -150,10 +143,9 @@
     function finishChallenge() {
       const avg = Math.round(total / words.length);
       document.getElementById('studio').innerHTML = "<h3>挑戰完成！</h3><p>平均分數：" + avg + "</p>";
-      
       fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}`)
         .then(() => {
-          alert("🎉 挑戰完成！即將回到首頁。");
+          alert("🎉 挑戰完成！即將回首頁。");
           window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
         });
     }
