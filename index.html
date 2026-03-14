@@ -6,151 +6,201 @@
   <title>瑪麗安口說挑戰室</title>
   <style>
     :root { --primary-blue: #1e90ff; --marian-yellow: #ffa502; --marian-red: #ff4757; }
-    body { font-family: -apple-system, sans-serif; text-align: center; padding: 20px; background: #f0f2f5; touch-action: none; margin: 0; }
-    .card { background: white; padding: 30px; border-radius: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); max-width: 400px; margin: 20px auto; }
+    body { font-family: -apple-system, sans-serif; text-align: center; padding: 20px; background: #f0f2f5; margin: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .card { background: white; padding: 30px; border-radius: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); max-width: 400px; margin: 10px auto; }
+    
+    /* 麥克風按鈕 - 禁止選取 */
     #record-btn { 
-      background: var(--marian-red); width: 120px; height: 120px; border-radius: 50%; 
-      border: 8px solid white; font-size: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
-      margin: 30px auto; touch-action: none; display: none; cursor: pointer;
+      background: var(--marian-red); width: 110px; height: 110px; border-radius: 50%; 
+      border: 8px solid white; font-size: 45px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+      margin: 20px auto; cursor: pointer; display: none;
+      user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
     }
     #record-btn.active { transform: scale(0.9); background: #333; animation: pulse 1s infinite; }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(255, 71, 87, 0.4); } 100% { box-shadow: 0 0 0 20px rgba(255, 71, 87, 0); } }
-    .btn-start { background: var(--primary-blue); color: white; padding: 20px 40px; border-radius: 18px; font-size: 20px; font-weight: bold; border: none; cursor: pointer; }
-    #feedback { font-size: 28px; font-weight: bold; color: #2ed573; margin-top: 15px; min-height: 40px; }
-    #status { color: #666; margin-top: 10px; font-size: 14px; }
+    
+    .btn { padding: 12px 25px; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; color: white; margin: 5px; }
+    .btn-nav { background: #747d8c; }
+    .btn-finish { background: var(--marian-yellow); width: 100%; font-size: 20px; padding: 18px; margin-top: 20px; }
+    
+    /* 進度條 */
+    .progress-bar { width: 100%; background: #ddd; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+    .progress-fill { background: var(--primary-blue); height: 100%; width: 0%; transition: 0.3s; }
+    
+    /* 總結表格 */
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+    .score-badge { float: right; font-weight: bold; color: var(--primary-blue); }
+    .btn-re { background: var(--marian-red); font-size: 12px; padding: 5px 10px; border-radius: 5px; color: white; border: none; }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <div id="setup-zone">
-      <h2 style="color:var(--primary-blue);">瑪麗安口說挑戰</h2>
-      <p id="info-text">正在準備麥克風...</p>
-      <button class="btn-start" id="start-btn" style="display:none;">進入挑戰！</button>
-    </div>
+<div class="card">
+  <div id="progress-container" class="progress-bar" style="display:none;"><div id="progress-fill" class="progress-fill"></div></div>
 
-    <div id="studio" style="display:none;">
-      <p style="color:var(--primary-blue); font-weight:bold;">🎙️ 第 <span id="idx">1</span> 題</p>
-      <h1 id="word" style="font-size: 48px; color:#0d47a1; margin: 20px 0;">載入中...</h1>
-      <button type="button" id="record-btn">🎤</button>
-      <p id="status">準備好後，長按麥克風唸單字</p>
-      <div id="feedback"></div>
+  <div id="setup-zone">
+    <h2 style="color:var(--primary-blue);">瑪麗安口說挑戰</h2>
+    <p id="info-text">正在準備麥克風...</p>
+    <button class="btn" style="background:var(--primary-blue); font-size: 20px; padding: 15px 30px;" id="start-btn" style="display:none;">開始挑戰</button>
+  </div>
+
+  <div id="studio" style="display:none;">
+    <p style="color:var(--primary-blue); font-weight:bold;">🎙️ 第 <span id="idx-display">1</span> 題</p>
+    <h1 id="word-display" style="font-size: 42px; color:#0d47a1; margin: 15px 0;">載入中...</h1>
+    <button type="button" id="record-btn" oncontextmenu="return false;">🎤</button>
+    <p id="status">按住錄音，放開打分</p>
+    <div id="feedback" style="font-size: 24px; font-weight: bold; color: #2ed573; margin-top: 10px;"></div>
+    
+    <div style="margin-top: 25px;">
+      <button class="btn btn-nav" id="prev-btn">上一題</button>
+      <button class="btn btn-nav" id="next-btn">下一題</button>
     </div>
   </div>
 
-  <script>
-    // ⚠️ 確保這裡是您最新的 GAS 部署網址
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbziI4_b3WDoy4em5kXL75lDT4kx6ZwFTSVTBOWzaLCqcDQgk-e0t5JPERXs8jzOx9NJ/exec"; 
+  <div id="summary" style="display:none;">
+    <h2 style="color:var(--primary-blue);">學習總結</h2>
+    <div style="font-size: 48px; font-weight: 800; color:var(--marian-red);" id="total-avg">0</div>
+    <p id="reward-hint" style="font-weight: bold; color:var(--marian-yellow);"></p>
+    <table id="word-list"></table>
+    <button class="btn btn-finish" id="submit-btn">完成挑戰並領獎</button>
+  </div>
+</div>
 
-    const params = new URLSearchParams(window.location.search);
-    const STUDENT_ID = params.get('id') || "S001";
+<script>
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbziI4_b3WDoy4em5kXL75lDT4kx6ZwFTSVTBOWzaLCqcDQgk-e0t5JPERXs8jzOx9NJ/exec"; 
+  const STUDENT_ID = new URLSearchParams(window.location.search).get('id') || "S001";
 
-    let stream, mediaRecorder, chunks = [], words = [], idx = 0, total = 0, startTime;
+  let stream, mediaRecorder, chunks = [], words = [], scores = [], currentIndex = 0, isReReading = false;
 
-    window.onload = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        document.getElementById('info-text').innerText = "麥克風已就緒";
-        document.getElementById('start-btn').style.display = 'inline-block';
-      } catch (e) {
-        alert("找不到麥克風，請確保已允許瀏覽器權限。");
-      }
-    };
+  window.onload = async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      document.getElementById('info-text').innerText = "準備好了！";
+      document.getElementById('start-btn').style.display = 'inline-block';
+    } catch (e) { alert("請允許麥克風權限"); }
+  };
 
-    document.getElementById('start-btn').onclick = () => {
-      document.getElementById('setup-zone').style.display = 'none';
-      document.getElementById('studio').style.display = 'block';
-      
-      fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.words && data.words.length > 0) {
-            words = data.words;
-            renderWord();
-          } else {
-            alert("目前找不到題目資料。");
-          }
-        });
-    };
+  document.getElementById('start-btn').onclick = () => {
+    fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data`)
+      .then(res => res.json()).then(data => {
+        words = data.words;
+        scores = new Array(words.length).fill(null);
+        document.getElementById('setup-zone').style.display = 'none';
+        document.getElementById('progress-container').style.display = 'block';
+        document.getElementById('studio').style.display = 'block';
+        renderWord();
+      });
+  };
 
-    function renderWord() {
-      if (idx < words.length) {
-        document.getElementById('idx').innerText = idx + 1;
-        document.getElementById('word').innerText = words[idx];
-        document.getElementById('record-btn').style.display = 'block';
-        document.getElementById('feedback').innerText = "";
-        document.getElementById('status').innerText = "按住錄音，放開評分";
-      } else {
-        finishChallenge();
-      }
-    }
+  function renderWord() {
+    document.getElementById('idx-display').innerText = currentIndex + 1;
+    document.getElementById('word-display').innerText = words[currentIndex];
+    document.getElementById('feedback').innerText = scores[currentIndex] !== null ? "上次得分：" + scores[currentIndex] : "";
+    document.getElementById('record-btn').style.display = 'block';
+    
+    const fill = ((currentIndex + 1) / words.length) * 100;
+    document.getElementById('progress-fill').style.width = fill + "%";
+    
+    document.getElementById('prev-btn').disabled = currentIndex === 0;
+    document.getElementById('next-btn').innerText = currentIndex === words.length - 1 ? "查看結算" : "下一題";
+  }
 
-    const rb = document.getElementById('record-btn');
+  // 錄音邏輯
+  const rb = document.getElementById('record-btn');
+  let startTime;
+  rb.onpointerdown = (e) => {
+    e.preventDefault();
+    startTime = Date.now();
+    chunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
+    mediaRecorder.start();
+    rb.classList.add('active');
+    document.getElementById('status').innerText = "錄音中...";
+  };
 
-    rb.onpointerdown = (e) => {
-      e.preventDefault();
-      startTime = Date.now();
-      chunks = [];
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
-      mediaRecorder.start();
-      rb.classList.add('active');
-      document.getElementById('status').innerText = "正在錄音...";
-    };
+  rb.onpointerup = () => {
+    if (!mediaRecorder || mediaRecorder.state !== "recording") return;
+    const duration = Date.now() - startTime;
+    mediaRecorder.stop();
+    rb.classList.remove('active');
 
-    const stopRecording = () => {
-      if (!mediaRecorder || mediaRecorder.state !== "recording") return;
-      
-      const duration = Date.now() - startTime;
-      mediaRecorder.stop();
-      rb.classList.remove('active');
+    if (duration < 1000) return alert("唸長一點喔！");
 
-      if (duration < 800) {
-        alert("錄音太短，請重新錄製。");
-        return;
-      }
-
-      document.getElementById('status').innerText = "Gemini 評分中...";
-      
-      mediaRecorder.onstop = () => {
-        const reader = new FileReader();
-        reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
-        reader.onloadend = () => {
-          const base64 = reader.result.split(',')[1];
-          const api = `${GAS_URL}?action=evaluate_speech&id=${STUDENT_ID}&word=${encodeURIComponent(words[idx])}`;
-          
-          fetch(api, { method: 'POST', body: base64 })
-          .then(res => res.json())
-          .then(data => {
-            if (data.score > 0) {
-              document.getElementById('feedback').innerText = "得分：" + data.score;
-              total += data.score;
-              idx++;
-              setTimeout(renderWord, 1500);
-            } else {
-              // 關鍵：如果 0 分，顯示 AI 的抱怨
-              const reason = data.msg || "聽不清楚，請唸大聲一點";
-              alert("AI 老師說：" + reason);
-              document.getElementById('status').innerText = "請再試一次";
+    document.getElementById('status').innerText = "老師打分中...";
+    mediaRecorder.onstop = () => {
+      const reader = new FileReader();
+      reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
+      reader.onloadend = () => {
+        const base64 = reader.result.split(',')[1];
+        fetch(`${GAS_URL}?action=evaluate_speech&word=${encodeURIComponent(words[currentIndex])}`, { method: 'POST', body: base64 })
+          .then(res => res.json()).then(data => {
+            scores[currentIndex] = data.score;
+            document.getElementById('feedback').innerText = "得分：" + data.score;
+            document.getElementById('status').innerText = "按住錄音，放開打分";
+            if (isReReading) {
+              setTimeout(showSummary, 1200);
+              isReReading = false;
             }
-          })
-          .catch(err => alert("通訊失敗：" + err));
-        };
+          });
       };
     };
+  };
 
-    rb.onpointerup = stopRecording;
-    rb.onpointerleave = stopRecording;
+  document.getElementById('prev-btn').onclick = () => { if(currentIndex > 0){ currentIndex--; renderWord(); } };
+  document.getElementById('next-btn').onclick = () => {
+    if (currentIndex < words.length - 1) { currentIndex++; renderWord(); } 
+    else { showSummary(); }
+  };
 
-    function finishChallenge() {
-      const avg = Math.round(total / words.length);
-      document.getElementById('studio').innerHTML = "<h3>挑戰完成！</h3><p>平均分數：" + avg + "</p>";
-      fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}`)
-        .then(() => {
-          alert("🎉 挑戰完成！即將回首頁。");
-          window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
-        });
-    }
-  </script>
+  function showSummary() {
+    document.getElementById('studio').style.display = 'none';
+    document.getElementById('summary').style.display = 'block';
+    
+    let sum = 0, count = 0;
+    const list = document.getElementById('word-list');
+    list.innerHTML = "";
+    
+    words.forEach((w, i) => {
+      let s = scores[i] || 0;
+      sum += s; count++;
+      list.innerHTML += `<tr>
+        <td>${w}<br><button class="btn-re" onclick="reRead(${i})">重唸</button></td>
+        <td><span class="score-badge">${s} 分</span></td>
+      </tr>`;
+    });
+
+    const avg = Math.round(sum / count);
+    document.getElementById('total-avg').innerText = avg;
+    
+    let reward = 0;
+    if (avg >= 90) reward = 50;
+    else if (avg >= 80) reward = 30;
+    else if (avg >= 70) reward = 10;
+    
+    document.getElementById('reward-hint').innerText = reward > 0 ? `🎁 本次可獲得點數：${reward}` : "需達 70 分才有點數喔！";
+  }
+
+  function reRead(i) {
+    currentIndex = i;
+    isReReading = true;
+    document.getElementById('summary').style.display = 'none';
+    document.getElementById('studio').style.display = 'block';
+    renderWord();
+  }
+
+  document.getElementById('submit-btn').onclick = () => {
+    const avg = parseInt(document.getElementById('total-avg').innerText);
+    document.getElementById('submit-btn').innerText = "處理中...";
+    document.getElementById('submit-btn').disabled = true;
+    
+    fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}`)
+      .then(() => {
+        alert("🎉 挑戰完成！");
+        window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
+      });
+  };
+</script>
 </body>
 </html>
