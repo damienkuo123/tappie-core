@@ -3,58 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-  <title>瑪麗安口說挑戰室</title>
+  <title>瑪麗安口說挑戰室 (Gemini版)</title>
   <style>
-    :root { --primary-blue: #1e90ff; --marian-yellow: #ffa502; --marian-red: #ff4757; }
-    body { font-family: -apple-system, sans-serif; text-align: center; padding: 20px; background: #f0f2f5; touch-action: none; }
+    :root { --primary-blue: #1e90ff; --marian-red: #ff4757; }
+    body { font-family: -apple-system, sans-serif; text-align: center; padding: 20px; background: #f0f2f5; }
     .card { background: white; padding: 30px; border-radius: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); max-width: 400px; margin: 0 auto; }
-    #record-btn { background: var(--marian-red); width: 120px; height: 120px; border-radius: 50%; border: 8px solid white; font-size: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin: 30px auto; touch-action: none; display: none; }
+    #record-btn { background: var(--marian-red); width: 120px; height: 120px; border-radius: 50%; border: 8px solid white; font-size: 50px; margin: 30px auto; display: none; touch-action: none; }
     #record-btn.active { transform: scale(0.9); background: #333; animation: pulse 1s infinite; }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(255, 71, 87, 0.4); } 100% { box-shadow: 0 0 0 20px rgba(255, 71, 87, 0); } }
-    .btn-start { background: var(--primary-blue); color: white; padding: 20px 40px; border-radius: 18px; font-size: 20px; font-weight: bold; border: none; cursor: pointer; }
-    #feedback { font-size: 24px; font-weight: bold; color: #2ed573; margin-top: 15px; }
+    .btn-start { background: var(--primary-blue); color: white; padding: 20px 40px; border-radius: 18px; font-weight: bold; border: none; }
   </style>
 </head>
 <body>
 
   <div class="card">
     <div id="setup-zone">
-      <h2 style="color:var(--primary-blue);">歡迎來到口說挑戰！</h2>
-      <p id="info-text">正在準備麥克風...</p>
-      <button class="btn-start" id="start-btn" style="display:none;">我準備好了！</button>
+      <h2>歡迎來到 Gemini 挑戰室</h2>
+      <button class="btn-start" id="start-btn" style="display:none;">啟動麥克風</button>
     </div>
 
     <div id="studio" style="display:none;">
-      <p style="color:var(--primary-blue); font-weight:bold;">🎙️ 第 <span id="idx">1</span>/10 題</p>
-      <h1 id="word" style="font-size: 48px; color:#0d47a1; margin: 20px 0;">載入中...</h1>
+      <p>🎙️ 第 <span id="idx">1</span> 題</p>
+      <h1 id="word" style="font-size: 48px; color:#0d47a1;">載入中...</h1>
       <button type="button" id="record-btn">🎤</button>
       <p id="status">按住錄音，放開評分</p>
-      <div id="feedback"></div>
+      <div id="feedback" style="font-size: 24px; font-weight: bold; color: #2ed573;"></div>
     </div>
   </div>
 
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxHkA5LmIqBVuMEkaT1IcOarqMuEtw7HBX-BplhvOiDw_XCGiksPQotRb0qwftm2Lub/exec"; 
-    
-    // 1. 使用您的長金鑰
-    const AZURE_KEY = "7GrGGySZJ7wxugw35x4xgYx5IzIP9pd6eZL2Pqy5GOo8FhEoJhyTJQQJ99CCAC3pKaRXJ3w3AAAYACOGiIOL";
-    
-    // 2. 這是 East Asia 區域唯一合法的語音 REST API 地址
-    const STT_URL = "https://eastasia.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US";
-
+    const GAS_URL = "您的GAS部署網址"; // 記得要用最新的部署網址
     const params = new URLSearchParams(window.location.search);
     const STUDENT_ID = params.get('id') || "S001";
 
     let stream, mediaRecorder, chunks = [], words = [], idx = 0, total = 0;
 
     window.onload = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        document.getElementById('info-text').innerText = "麥克風已就緒！";
-        document.getElementById('start-btn').style.display = 'inline-block';
-      } catch (e) {
-        alert("無法開啟麥克風。");
-      }
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      document.getElementById('start-btn').style.display = 'inline-block';
     };
 
     document.getElementById('start-btn').onclick = () => {
@@ -62,10 +48,7 @@
       document.getElementById('studio').style.display = 'block';
       fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data`)
         .then(res => res.json())
-        .then(data => {
-          words = data.words || ["Hello"];
-          renderWord();
-        });
+        .then(data => { words = data.words; renderWord(); });
     };
 
     function renderWord() {
@@ -74,7 +57,6 @@
         document.getElementById('word').innerText = words[idx];
         document.getElementById('record-btn').style.display = 'block';
         document.getElementById('feedback').innerText = "";
-        document.getElementById('status').innerText = "按住錄音，放開評分";
       } else {
         finishChallenge();
       }
@@ -87,72 +69,37 @@
       mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
       mediaRecorder.start();
       rb.classList.add('active');
-      document.getElementById('status').innerText = "正在錄音...";
     };
 
     rb.onpointerup = () => {
-      if (!mediaRecorder || mediaRecorder.state !== "recording") return;
       mediaRecorder.stop();
       rb.classList.remove('active');
-      document.getElementById('status').innerText = "AI 評分中...";
-      
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+      document.getElementById('status').innerText = "Gemini 老師評分中...";
+      mediaRecorder.onstop = () => {
         const reader = new FileReader();
-        reader.readAsArrayBuffer(audioBlob);
-        reader.onloadend = async () => {
-          try {
-            const score = await evaluateAzure(reader.result, words[idx]);
-            document.getElementById('feedback').innerText = "得分：" + Math.round(score);
-            total += score; idx++;
+        reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
+        reader.onloadend = () => {
+          const base64 = reader.result.split(',')[1];
+          // 把音訊丟回 GAS 讓 GAS 去問 Gemini
+          fetch(`${GAS_URL}?id=${STUDENT_ID}&action=evaluate_speech&word=${words[idx]}`, {
+            method: 'POST',
+            body: base64
+          })
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('feedback').innerText = "得分：" + data.score;
+            total += data.score; idx++;
             setTimeout(renderWord, 1200);
-          } catch (e) {
-            alert(e.message);
-            document.getElementById('status').innerText = "請再試一次";
-          }
+          });
         };
       };
     };
 
-    async function evaluateAzure(arrayBuffer, text) {
-      const pronParams = { 
-        "ReferenceText": text, 
-        "GradingSystem": "HundredMark", 
-        "Granularity": "Phoneme", 
-        "Dimension": "Comprehensive" 
-      };
-
-      const response = await fetch(STT_URL, {
-        method: 'POST',
-        headers: {
-          'Ocp-Apim-Subscription-Key': AZURE_KEY,
-          'Pronunciation-Assessment': btoa(unescape(encodeURIComponent(JSON.stringify(pronParams)))),
-          'Content-Type': 'audio/webm; codecs=opus',
-          'Accept': 'application/json'
-        },
-        body: arrayBuffer
-      });
-
-      if (!response.ok) {
-        const status = response.status;
-        const errBody = await response.text();
-        // 401: 金鑰不對, 404: 網址不對, 403: 權限/區域不對
-        throw new Error(`微軟拒絕了請求 (${status})\n${errBody}`);
-      }
-
-      const resData = await response.json();
-      if (resData.RecognitionStatus === "Success" && resData.NBest && resData.NBest.length > 0) {
-        return resData.NBest[0].PronunciationAssessment.AccuracyScore;
-      }
-      throw new Error("AI 無法評分，請唸清楚一點。");
-    }
-
     function finishChallenge() {
       const avg = Math.round(total / words.length);
-      document.getElementById('studio').innerHTML = "<h3>挑戰完成！</h3>";
       fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}`)
         .then(() => {
-          alert("🎉 挑戰完成！");
+          alert("挑戰完成！回點數頁。");
           window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
         });
     }
