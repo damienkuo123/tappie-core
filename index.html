@@ -34,14 +34,14 @@
   </div>
 
   <script>
-    // --- 🛠️ 瑪麗安偵探營：全家桶資源專用版 ---
+    // --- ⚠️ 最終修正設定 ---
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxHkA5LmIqBVuMEkaT1IcOarqMuEtw7HBX-BplhvOiDw_XCGiksPQotRb0qwftm2Lub/exec"; 
     
-    // 長金鑰
+    // 您的長金鑰
     const AZURE_KEY = "7GrGGySZJ7wxugw35x4xgYx5IzIP9pd6eZL2Pqy5GOo8FhEoJhyTJQQJ99CCAC3pKaRXJ3w3AAAYACOGiIOL";
     
-    // 端點網址：全家桶資源專用
-    const ENDPOINT = "https://eastasia.api.cognitive.microsoft.com";
+    // 您的端點 (自動修剪結尾斜線以防 404)
+    const AZURE_ENDPOINT = "https://eastasia.api.cognitive.microsoft.com";
 
     const params = new URLSearchParams(window.location.search);
     const STUDENT_ID = params.get('id') || "S001";
@@ -108,7 +108,7 @@
             total += score; idx++;
             setTimeout(renderWord, 1200);
           } catch (e) {
-            alert("系統提示：" + e.message);
+            alert(e.message);
             document.getElementById('status').innerText = "請再試一次";
           }
         };
@@ -116,8 +116,9 @@
     };
 
     async function evaluateAzure(arrayBuffer, text) {
-      // 這是全家桶型資源在處理語音時的「正確路徑組合」
-      const url = `${ENDPOINT}/speech/recognition/conversation/cognitiveservices/v1?language=en-US`;
+      // 核心修正：自動確保網址中間只有一個斜線，解決 404 問題
+      const baseUrl = AZURE_ENDPOINT.replace(/\/$/, ""); 
+      const url = `${baseUrl}/speech/recognition/conversation/cognitiveservices/v1?language=en-US`;
       
       const pronParams = { 
         "ReferenceText": text, 
@@ -130,7 +131,6 @@
         method: 'POST',
         headers: {
           'Ocp-Apim-Subscription-Key': AZURE_KEY,
-          // 使用強化的編碼，防止特殊字元報錯
           'Pronunciation-Assessment': btoa(unescape(encodeURIComponent(JSON.stringify(pronParams)))),
           'Content-Type': 'audio/webm; codecs=opus',
           'Accept': 'application/json'
@@ -139,27 +139,24 @@
       });
 
       if (!response.ok) {
+        const status = response.status;
         const errText = await response.text();
-        // 這裡會抓到具體的拒絕原因
-        throw new Error(`微軟拒絕請求 (${response.status}): ${errText}`);
+        throw new Error(`微軟拒絕請求 (${status}): ${errText}`);
       }
 
       const resData = await response.json();
-      
-      // 檢查回傳資料結構
       if (resData.RecognitionStatus === "Success" && resData.NBest && resData.NBest.length > 0) {
         return resData.NBest[0].PronunciationAssessment.AccuracyScore;
-      } else {
-        throw new Error("AI 聽不清楚，請唸大聲一點。");
       }
+      throw new Error("AI 無法給分，請錄清楚一點。");
     }
 
     function finishChallenge() {
       const avg = Math.round(total / words.length);
-      document.getElementById('studio').innerHTML = "<h3>挑戰完成！正在存入點數...</h3>";
+      document.getElementById('studio').innerHTML = "<h3>挑戰完成！</h3>";
       fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}`)
         .then(() => {
-          alert("🎉 挑戰完成！即將回到點數首頁。");
+          alert("🎉 挑戰完成！");
           window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
         });
     }
