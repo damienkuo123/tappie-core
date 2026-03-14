@@ -34,14 +34,13 @@
   </div>
 
   <script>
-    // --- ⚠️ 最終修正設定 ---
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxHkA5LmIqBVuMEkaT1IcOarqMuEtw7HBX-BplhvOiDw_XCGiksPQotRb0qwftm2Lub/exec"; 
     
-    // 您的長金鑰
+    // 1. 使用您的長金鑰
     const AZURE_KEY = "7GrGGySZJ7wxugw35x4xgYx5IzIP9pd6eZL2Pqy5GOo8FhEoJhyTJQQJ99CCAC3pKaRXJ3w3AAAYACOGiIOL";
     
-    // 您的端點 (自動修剪結尾斜線以防 404)
-    const AZURE_ENDPOINT = "https://eastasia.api.cognitive.microsoft.com";
+    // 2. 這是 East Asia 區域唯一合法的語音 REST API 地址
+    const STT_URL = "https://eastasia.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US";
 
     const params = new URLSearchParams(window.location.search);
     const STUDENT_ID = params.get('id') || "S001";
@@ -116,10 +115,6 @@
     };
 
     async function evaluateAzure(arrayBuffer, text) {
-      // 核心修正：自動確保網址中間只有一個斜線，解決 404 問題
-      const baseUrl = AZURE_ENDPOINT.replace(/\/$/, ""); 
-      const url = `${baseUrl}/speech/recognition/conversation/cognitiveservices/v1?language=en-US`;
-      
       const pronParams = { 
         "ReferenceText": text, 
         "GradingSystem": "HundredMark", 
@@ -127,7 +122,7 @@
         "Dimension": "Comprehensive" 
       };
 
-      const response = await fetch(url, {
+      const response = await fetch(STT_URL, {
         method: 'POST',
         headers: {
           'Ocp-Apim-Subscription-Key': AZURE_KEY,
@@ -140,15 +135,16 @@
 
       if (!response.ok) {
         const status = response.status;
-        const errText = await response.text();
-        throw new Error(`微軟拒絕請求 (${status}): ${errText}`);
+        const errBody = await response.text();
+        // 401: 金鑰不對, 404: 網址不對, 403: 權限/區域不對
+        throw new Error(`微軟拒絕了請求 (${status})\n${errBody}`);
       }
 
       const resData = await response.json();
       if (resData.RecognitionStatus === "Success" && resData.NBest && resData.NBest.length > 0) {
         return resData.NBest[0].PronunciationAssessment.AccuracyScore;
       }
-      throw new Error("AI 無法給分，請錄清楚一點。");
+      throw new Error("AI 無法評分，請唸清楚一點。");
     }
 
     function finishChallenge() {
