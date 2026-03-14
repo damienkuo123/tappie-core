@@ -122,17 +122,19 @@
           fetch(api, { method: 'POST', body: base64 })
           .then(res => res.json())
           .then(data => {
-            if (data.score !== undefined) {
+            if (data.score > 0) {
               document.getElementById('feedback').innerText = "得分：" + data.score;
               total += data.score;
               idx++;
               setTimeout(renderWord, 1500);
             } else {
-              alert("AI 打分失敗，請大聲一點再試。");
+              // 關鍵：如果 0 分，顯示 AI 的抱怨
+              const reason = data.msg || "聽不清楚，請唸大聲一點";
+              alert("AI 老師說：" + reason);
               document.getElementById('status').innerText = "請再試一次";
             }
           })
-          .catch(() => alert("通訊失敗，請檢查網路。"));
+          .catch(err => alert("通訊失敗：" + err));
         };
       };
     };
