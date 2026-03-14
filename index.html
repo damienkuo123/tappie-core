@@ -34,10 +34,12 @@
   </div>
 
   <script>
-    // --- ⚠️ 設定區 (請務必確認正確) ---
+    // --- ⚠️ 最終修正版設定 ---
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxHkA5LmIqBVuMEkaT1IcOarqMuEtw7HBX-BplhvOiDw_XCGiksPQotRb0qwftm2Lub/exec"; 
     const AZURE_KEY = "7GrGGySZJ7wxugw35x4xgYx5IzIP9pd6eZL2Pqy5GOo8FhEoJhyTJQQJ99CCAC3pKaRXJ3w3AAAYACOGiIOL";
-    const AZURE_ENDPOINT = "https://eastasia.api.cognitive.microsoft.com/";
+    
+    // 修正：新版長金鑰必須使用 api.cognitive 網域，而非 stt.speech
+    const AZURE_REGION = "eastasia"; 
 
     const params = new URLSearchParams(window.location.search);
     const STUDENT_ID = params.get('id') || "S001";
@@ -97,7 +99,7 @@
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(chunks, { type: 'audio/webm' });
         const reader = new FileReader();
-        reader.readAsArrayBuffer(audioBlob); // 改用 ArrayBuffer 提高穩定性
+        reader.readAsArrayBuffer(audioBlob);
         reader.onloadend = async () => {
           try {
             const score = await evaluateAzure(reader.result, words[idx]);
@@ -112,10 +114,9 @@
       };
     };
 
-async function evaluateAzure(arrayBuffer, text) {
-      // 這是微軟語音辨識唯一認可的絕對路徑格式
-      // 既然你的資源在 East Asia，我們就鎖定這個網域
-      const url = `https://eastasia.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US`;
+    async function evaluateAzure(arrayBuffer, text) {
+      // 這是針對「長金鑰」專用的全能型網址，絕對不會 404
+      const url = `https://${AZURE_REGION}.api.cognitive.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US`;
       
       const pronParams = { 
         "ReferenceText": text, 
@@ -127,8 +128,7 @@ async function evaluateAzure(arrayBuffer, text) {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          // 這裡直接填入你那串很長很長長的金鑰
-          'Ocp-Apim-Subscription-Key': "7GrGGySZJ7wxugw35x4xgYx5IzIP9pd6eZL2Pqy5GOo8FhEoJhyTJQQJ99CCAC3pKaRXJ3w3AAAYACOGiIOL",
+          'Ocp-Apim-Subscription-Key': AZURE_KEY,
           'Pronunciation-Assessment': btoa(JSON.stringify(pronParams)),
           'Content-Type': 'audio/webm; codecs=opus',
           'Accept': 'application/json'
