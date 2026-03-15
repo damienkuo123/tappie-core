@@ -72,32 +72,102 @@
   const MODE = params.get('mode') || "challenge";
 
   let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
+  let audioContext, analyser, dataArray, source;
+  let maxVolume = 0; // 🕵️ 偵探新增：紀錄本次錄音的最大音量
 
   window.onload = async () => {
     if(MODE === 'review') document.getElementById('title-text').innerText = "📖 自由練習模式";
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // 🕵️ 偵探新增：初始化音量檢測器
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+      source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+      analyser.fftSize = 256;
+      dataArray = new Uint8Array(analyser.frequencyBinCount);
+
       document.getElementById('info-text').innerText = "麥克風已就緒";
       document.getElementById('start-btn').style.display = 'inline-block';
     } catch (e) { alert("請開啟麥克風權限"); }
   };
 
-  document.getElementById('start-btn').onclick = () => {
-    document.getElementById('info-text').innerText = "正在載入題目...";
-    fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`)
-      .then(res => res.json()).then(data => {
-        // 偵錯日誌：讓你知道後台傳了什麼
-        console.log("後台資料回傳:", data);
-        if (!data.words || data.words.length === 0) {
-          alert("後台回傳題目為空，請檢查 Word_Bank 是否有正確填寫中英單字。");
-          return;
-        }
-        quizData = data.words;
-        scores = new Array(quizData.length).fill(null);
-        document.getElementById('total-display').innerText = quizData.length;
-        document.getElementById('setup-zone').style.display = 'none';
-        document.getElementById('progress-container').style.display = 'block';
-        document.getElementById('studio').style.display = 'block';
+  const rb = document.getElementById('record-btn');
+  let gradingInterval;
+
+  rb.onpointerdown = (e) => {
+    e.preventDefault();
+    document.getElementById('feedback').innerHTML = "";
+    maxVolume = 0; // 重置音量計
+    chunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
+    mediaRecorder.start();
+    rb.classList.add('active');
+    document.getElementById('status').innerText = "正在錄音...";
+    document.getElementById('status').style.color = "var(--marian-red)";
+
+    // 🕵️ 偵探新增：錄音時持續監測音量
+    const checkVolume = () => {
+      if (mediaRecorder.state === "recording") {
+        analyser.getByteFrequencyData(dataArray);
+        let values = 0;
+        for (let i = 0; i < dataArray.length; i++) values += dataArray[i];
+        let average = values / dataArray.length;
+        if (average > maxVolume) maxVolume = average; // 紀錄最高瞬間音量
+        requestAnimationFrame(checkVolume);
+      }
+    };
+    checkVolume();
+  };
+
+  rb.onpointerup = () => {
+    if (!mediaRecorder || mediaRecorder.state !== "recording") return;
+    mediaRecorder.stop();
+    rb.classList.remove('active');
+    
+    // 🕵️ 偵探守門員：如果音量低於 5 (滿分是 255)，直接判定為沒聲音
+    console.log("本次錄音最高音量:", maxVolume);
+    if (maxVolume < 8) { 
+      document.getElementById('status').innerText = "太安靜了，請大聲一點喔！";
+      document.getElementById('status').style.color = "var(--marian-red)";
+      return; 
+    }
+
+    let dots = 0;
+    document.getElementById('status').style.color = "var(--primary-blue)";
+    gradingInterval = setInterval(() => {
+      dots = (dots + 1) % 4;
+      document.getElementById('status').innerText = "老師評分中" + ".".repeat(dots);
+    }, 400);
+
+    mediaRecorder.onstop = () => {
+      const reader = new FileReader();
+      reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
+      reader.onloadend = () => {
+        const base64 = reader.result.split(',')[1];
+        fetch(`${GAS_URL}?action=evaluate_speech&word=${encodeURIComponent(quizData[currentIndex].en)}`, { method: 'POST', body: base64 })
+          .then(res => res.json()).then(data => {
+            clearInterval(gradingInterval);
+            scores[currentIndex] = data.score;
+            if(!window.feedbacks) window.feedbacks = [];
+            window.feedbacks[currentIndex] = data.feedback;
+            document.getElementById('feedback').innerHTML = `得分：${data.score}<br><span style="font-size:16px; color:#555; font-weight:normal;">${data.feedback}</span>`;
+            document.getElementById('status').innerText = "按住錄音，放開打分";
+            document.getElementById('status').style.color = "#636e72";
+          })
+          .catch(() => {
+            clearInterval(gradingInterval);
+            document.getElementById('status').innerText = "評分失敗，請重新錄音";
+          });
+      };
+    };
+  };
+
+  // ... (其餘 renderWord, showSummary 等函數保持不變) ...
+</script>
+  
         renderWord();
       })
       .catch(err => {
