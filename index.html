@@ -25,17 +25,34 @@
     .btn-re { background: var(--marian-red); font-size: 13px; padding: 6px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold; }
     #zh-display { font-size: 20px; color: #7f8c8d; margin: -10px 0 20px 0; font-weight: bold; }
 
-    /* ⚔️ 偵探：史詩戰場 CSS 外掛 (絕不影響上方原版樣式) */
-    #battle-arena { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #2c3e50 0%, #050505 100%); z-index: 2000; color: white; display: flex; flex-direction: column; align-items: center; }
-    .round-dot { width: 16px; height: 16px; border-radius: 50%; background: #333; border: 2px solid #555; display: inline-block; }
-    .dot-me { background: var(--marian-green); border-color: #fff; box-shadow: 0 0 10px var(--marian-green); }
-    .dot-op { background: var(--marian-red); border-color: #fff; box-shadow: 0 0 10px var(--marian-red); }
+    /* ========================================================= */
+    /* ⚔️ 偵探外掛：史詩戰場 CSS (獨立隔離，彈性排版絕對不擠！) */
+    /* ========================================================= */
+    body.battle-active { background: #000; padding: 0; margin: 0; overflow: hidden; }
     
-    #battle-record-btn { width: 110px; height: 110px; border-radius: 50%; border: 6px solid white; background: var(--primary-blue); font-size: 40px; color: white; cursor: pointer; outline: none; transition: 0.2s; margin: 0 auto; display: inline-block;}
+    #battle-arena { 
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+      background: radial-gradient(circle, #2c3e50 0%, #050505 100%); 
+      z-index: 2000; color: white; 
+      display: none; flex-direction: column; justify-content: space-between; 
+      padding: 4vh 15px; box-sizing: border-box; 
+    }
+    
+    .arena-section { display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .opponent-zone { flex: 1; justify-content: flex-start; }
+    .stage-zone { flex: 2; justify-content: center; }
+    .player-zone { flex: 1.5; justify-content: flex-end; }
+    
+    .arena-p-name { font-weight: bold; color: var(--gold); font-size: 26px; text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 5px; }
+    .round-dot { width: 16px; height: 16px; border-radius: 50%; background: #333; border: 2px solid #555; display: inline-block; }
+    .dot-me { background: var(--marian-green); border-color: #fff; box-shadow: 0 0 12px var(--marian-green); }
+    .dot-op { background: var(--marian-red); border-color: #fff; box-shadow: 0 0 12px var(--marian-red); }
+    
+    #battle-controls { visibility: hidden; height: 140px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; margin-top: 10px; }
+    #battle-record-btn { width: 90px; height: 90px; border-radius: 50%; border: 6px solid white; background: var(--primary-blue); font-size: 40px; color: white; cursor: pointer; outline: none; transition: 0.2s; }
     #battle-record-btn.active { transform: scale(0.9); background: #333; box-shadow: 0 0 20px var(--primary-blue); }
 
-    /* 衝擊感勝負彈窗 */
-    #impact-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; flex-direction: column; justify-content: center; align-items: center; color: white; animation: fadeIn 0.3s ease-out; }
+    #impact-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 3000; flex-direction: column; justify-content: center; align-items: center; color: white; animation: fadeIn 0.3s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
   </style>
 </head>
@@ -77,29 +94,30 @@
   </div>
 </div>
 
-<div id="battle-arena" style="display:none; position:relative;">
-  <div style="position:absolute; top:20px; width:100%; text-align:center;">
-    <div style="font-size:14px; color:#aaa; font-weight:bold; letter-spacing:2px;">OPPONENT</div>
-    <div id="op-name" style="font-size:28px; font-weight:900; color:var(--marian-red); margin-bottom:5px; text-shadow:0 0 10px rgba(214,48,49,0.5);">等待中...</div>
+<div id="battle-arena">
+  
+  <div class="arena-section opponent-zone">
+    <div style="font-size:12px; color:#aaa; font-weight:bold; letter-spacing:2px;">OPPONENT</div>
+    <div id="op-name" class="arena-p-name" style="color:var(--marian-red); text-shadow: 0 0 10px rgba(214,48,49,0.5);">等待中...</div>
     <div id="op-rounds" style="display:flex; justify-content:center; gap:8px;"></div>
   </div>
 
-  <div id="battle-stage" style="margin-top: 160px; text-align:center; width:100%;">
-    <div id="round-num" style="color:#aaa; font-size: 18px; font-weight:bold; letter-spacing:2px;">ROUND 1 / 7</div>
-    <h1 id="target-word" style="font-size:56px; margin:20px 0; text-shadow:0 0 25px rgba(255,255,255,0.8);">連線戰場...</h1>
-    <div id="battle-timer" style="font-size:64px; font-weight:900; color:var(--gold); text-shadow:0 0 20px rgba(255,215,0,0.5);"></div>
-    <p id="battle-info" style="color:#888; font-size: 18px; margin-top:10px;">準備大開殺戒！</p>
+  <div class="arena-section stage-zone">
+    <div id="round-num" style="color:#aaa; font-size: 16px; font-weight:bold; letter-spacing:2px;">ROUND 1 / 7</div>
+    <h1 id="target-word" style="font-size:11vw; margin:10px 0; text-shadow:0 0 25px rgba(255,255,255,0.8);">連線戰場...</h1>
+    <div id="battle-timer" style="font-size:15vw; font-weight:900; color:var(--gold); text-shadow:0 0 20px rgba(255,215,0,0.5); min-height:80px;"></div>
+    <p id="battle-info" style="color:#888; font-size: 16px; margin-top:5px; min-height:24px;">準備大開殺戒！</p>
   </div>
 
-  <div style="position:absolute; bottom:190px; width:100%; text-align:center;">
+  <div class="arena-section player-zone">
     <div id="my-rounds" style="display:flex; justify-content:center; gap:8px; margin-bottom:5px;"></div>
-    <div id="my-name" style="font-size:28px; font-weight:900; color:var(--marian-green); text-shadow:0 0 10px rgba(39,174,96,0.5);">YOU</div>
-    <div style="font-size:14px; color:#aaa; font-weight:bold; letter-spacing:2px;">PLAYER</div>
-  </div>
-
-  <div id="battle-controls" style="position:absolute; bottom:40px; width:100%; text-align:center; display:none;">
-    <button id="battle-record-btn" oncontextmenu="return false;">🎤</button>
-    <p style="color:#ccc; margin-top:15px; font-weight:bold;">按住錄音，放開開火</p>
+    <div id="my-name" class="arena-p-name" style="color:var(--marian-green); text-shadow: 0 0 10px rgba(39,174,96,0.5);">YOU</div>
+    <div style="font-size:12px; color:#aaa; font-weight:bold; letter-spacing:2px;">PLAYER</div>
+    
+    <div id="battle-controls">
+      <button id="battle-record-btn" oncontextmenu="return false;">🎤</button>
+      <p style="color:#ccc; margin-top:10px; font-weight:bold; font-size:14px;">按住錄音，放開開火</p>
+    </div>
   </div>
 </div>
 
@@ -115,21 +133,20 @@
 </div>
 
 <script>
-  // 🔗 換成最新專屬 GAS 網址
+  // 🔗 偵探更新：替換為您的新版對戰專用 GAS 網址
   const GAS_URL = "https://script.google.com/macros/s/AKfycbyWm-WnRO5h3dliEPR36Cq1hCf5DgM4GIgJqXVUREclhtYOHjxq9DptApmQPkU5p5Ys/exec"; 
   const params = new URLSearchParams(window.location.search);
   const STUDENT_ID = params.get('id') || "S001";
   const TARGET_UNIT = params.get('unit') || "";
   const MODE = params.get('mode') || "challenge";
-  
-  // ⚔️ 偵探：獲取對戰專用房號
-  const ROOM_ID = params.get('roomId');
 
   let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
   let audioContext, analyser, dataArray, source, gradingInterval;
   let maxVolume = 0;
 
-  // 🚦 偵探：路由分流控制
+  // =========================================================
+  // 🛡️ 偵探修正：原版 window.onload (新增對戰模式劫持)
+  // =========================================================
   window.onload = async () => {
     if(MODE === 'review') document.getElementById('title-text').innerText = "📖 自由練習模式";
     try {
@@ -141,22 +158,24 @@
       analyser.fftSize = 256;
       dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-      // 如果有對戰參數，切換到戰鬥引擎！
+      // 🕵️ 偵探外掛介入點：如果網址帶有對戰參數，啟動戰鬥引擎！
+      const ROOM_ID = params.get('roomId');
       if (MODE === 'battle' && ROOM_ID) {
         document.getElementById('main-card').style.display = 'none';
-        document.getElementById('battle-arena').style.display = 'block';
-        fetchBattleDataAndStart();
+        document.body.classList.add('battle-active'); // 鎖定背景滾動
+        document.getElementById('battle-arena').style.display = 'flex';
+        fetchBattleDataAndStart(ROOM_ID);
       } else {
-        // 否則走原本的練習挑戰流
+        // 否則，完全按照您原本的方式走
         document.getElementById('info-text').innerText = "麥克風已就緒";
         document.getElementById('start-btn').style.display = 'inline-block';
       }
     } catch (e) { alert("請開啟麥克風權限"); }
   };
 
-  // ========================================================
-  // 🔒 以下是您「完全一字不改」的舊有原版練習功能
-  // ========================================================
+  // =========================================================
+  // 🔒 以下是您的「純淨版原版練習代碼」，我保證一字未改！
+  // =========================================================
   document.getElementById('start-btn').onclick = () => {
     document.getElementById('info-text').innerText = "正在載入題目...";
     fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`)
@@ -335,28 +354,28 @@
       });
   };
 
-  // ========================================================
-  // ⚔️ 偵探外掛：新增在下方的戰鬥室引擎模組
-  // ========================================================
+  // =========================================================
+  // ⚔️ 偵探外掛引擎：對戰室模組 (被呼叫時才會執行)
+  // =========================================================
   let battleQuizArr = [], currentBattleRound = 0, currentLimitTimer;
   let myTotalWins = 0, opTotalWins = 0;
 
   function normalizeStr(val) { if (val === null || val === undefined) return ""; return String(val).replace(/(%20|\s)+/ig, "").toUpperCase(); }
 
-  function fetchBattleDataAndStart() {
-    fetch(`${GAS_URL}?action=get_battle_status&roomId=${ROOM_ID}`)
+  function fetchBattleDataAndStart(roomId) {
+    fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}`)
       .then(res => res.json())
       .then(data => {
         if(data.status === "NotFound") { alert("房間已失效"); window.location.href = `${GAS_URL}?id=${STUDENT_ID}`; return; }
         battleQuizArr = data.quiz;
-        initArena();
+        initArena(roomId);
       }).catch(err => alert("戰場連接失敗"));
   }
 
-  function initArena() {
+  function initArena(roomId) {
     currentBattleRound = 0;
-    updateArenaUI(true);
-    startRoundCountdown();
+    updateArenaUI(roomId, true);
+    startRoundCountdown(roomId);
   }
 
   function renderDots(wins, isMe) {
@@ -369,8 +388,8 @@
     return html;
   }
 
-  function updateArenaUI(isInit = false) {
-    fetch(`${GAS_URL}?action=get_battle_status&roomId=${ROOM_ID}`)
+  function updateArenaUI(roomId, isInit = false) {
+    fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}`)
       .then(res => res.json()).then(data => {
         const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
         const myNameStr = isMeHost ? data.hostName : (data.guestName || "對手");
@@ -420,7 +439,7 @@
     overlay.style.display = 'flex';
   }
 
-  function startRoundCountdown() {
+  function startRoundCountdown(roomId) {
     if (currentBattleRound >= 7) { 
       document.getElementById('target-word').innerText = "結算中...";
       document.getElementById('battle-info').innerText = "等待伺服器同步...";
@@ -435,7 +454,7 @@
     document.getElementById('round-num').innerText = `ROUND ${currentBattleRound + 1} / 7`;
     document.getElementById('target-word').innerText = "READY?";
     document.getElementById('battle-timer').innerText = "";
-    document.getElementById('battle-controls').style.display = 'none';
+    document.getElementById('battle-controls').style.visibility = 'hidden';
     
     const timer = setInterval(() => {
       document.getElementById('battle-timer').innerText = count;
@@ -444,13 +463,13 @@
         clearInterval(timer);
         document.getElementById('target-word').innerText = battleQuizArr[currentBattleRound].en;
         document.getElementById('battle-timer').innerText = "FIGHT!";
-        document.getElementById('battle-controls').style.display = 'block';
-        startRecordingSession();
+        document.getElementById('battle-controls').style.visibility = 'visible';
+        startRecordingSession(roomId);
       }
     }, 1000);
   }
 
-  function startRecordingSession() {
+  function startRecordingSession(roomId) {
     let limit = 10;
     document.getElementById('battle-info').innerText = "限時 10 秒發動攻擊！";
     currentLimitTimer = setInterval(() => {
@@ -458,7 +477,7 @@
       if (limit <= 0) { 
         clearInterval(currentLimitTimer);
         if (mediaRecorder && mediaRecorder.state === "recording") { mediaRecorder.stop(); document.getElementById('battle-record-btn').classList.remove('active'); } 
-        else { submitBattleScore(0); }
+        else { submitBattleScore(roomId, 0); }
       }
     }, 1000);
   }
@@ -490,7 +509,8 @@
       mediaRecorder.stop();
       battleRb.classList.remove('active');
       
-      if (maxVolume < 30) { document.getElementById('battle-info').innerText = "太小聲，攻擊無效(0分)！"; submitBattleScore(0); return; }
+      const roomId = params.get('roomId');
+      if (maxVolume < 30) { document.getElementById('battle-info').innerText = "太小聲，攻擊無效(0分)！"; submitBattleScore(roomId, 0); return; }
 
       document.getElementById('battle-info').innerText = "子彈飛行中 (評分中)...";
       mediaRecorder.onstop = () => {
@@ -499,21 +519,21 @@
         reader.onloadend = () => {
           const base64 = reader.result.split(',')[1];
           fetch(`${GAS_URL}?action=evaluate_speech_battle&word=${encodeURIComponent(battleQuizArr[currentBattleRound].en)}`, { method: 'POST', body: base64 })
-            .then(res => res.json()).then(data => submitBattleScore(data.score))
-            .catch(() => submitBattleScore(0));
+            .then(res => res.json()).then(data => submitBattleScore(roomId, data.score))
+            .catch(() => submitBattleScore(roomId, 0));
         };
       };
     };
   }
 
-  function submitBattleScore(score) {
+  function submitBattleScore(roomId, score) {
     document.getElementById('battle-info').innerText = `您的火力：${score}！等待對手...`;
-    document.getElementById('battle-controls').style.display = 'none';
+    document.getElementById('battle-controls').style.visibility = 'hidden';
     
-    fetch(`${GAS_URL}?action=submit_battle_score&id=${STUDENT_ID}&roomId=${ROOM_ID}&score=${score}`)
+    fetch(`${GAS_URL}?action=submit_battle_score&id=${STUDENT_ID}&roomId=${roomId}&score=${score}`)
       .then(() => {
         const waitTimer = setInterval(() => {
-          fetch(`${GAS_URL}?action=get_battle_status&roomId=${ROOM_ID}`)
+          fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}`)
             .then(res => res.json()).then(data => {
               if (data.hostScores.length > currentBattleRound && data.guestScores.length > currentBattleRound) {
                 clearInterval(waitTimer);
@@ -525,9 +545,9 @@
                 
                 setTimeout(() => {
                   document.getElementById('impact-overlay').style.display = 'none';
-                  updateArenaUI(); 
+                  updateArenaUI(roomId); 
                   currentBattleRound++;
-                  startRoundCountdown(); 
+                  startRoundCountdown(roomId); 
                 }, 3500); 
               }
             });
