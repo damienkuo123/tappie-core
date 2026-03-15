@@ -9,17 +9,24 @@
     body { font-family: -apple-system, sans-serif; text-align: center; padding: 20px; background: #eaeff2; margin: 0; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
     .card { background: white; padding: 25px; border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); max-width: 400px; margin: 10px auto; border: 1px solid #ddd; }
     
-    /* 麥克風按鈕 - 強化陰影避免與背景混淆 */
+    /* 麥克風按鈕 */
     #record-btn { 
       background: var(--marian-red); width: 110px; height: 110px; border-radius: 50%; 
-      border: 6px solid white; font-size: 45px; box-shadow: 0 6px 15px rgba(214, 48, 49, 0.4); 
-      margin: 20px auto; cursor: pointer; display: none; outline: none;
+      border: 8px solid white; font-size: 45px; box-shadow: 0 6px 15px rgba(214, 48, 49, 0.4); 
+      margin: 10px auto; cursor: pointer; display: none; outline: none;
       user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
     }
     #record-btn.active { transform: scale(0.95); background: #333; animation: pulse 1s infinite; }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(214, 48, 49, 0.4); } 100% { box-shadow: 0 0 0 20px rgba(214, 48, 49, 0); } }
     
-    /* 導覽按鈕 - 增加深色對比 */
+    /* 播放按鈕樣式 */
+    .btn-play {
+      background: var(--primary-blue); width: 45px; height: 45px; border-radius: 50%;
+      border: none; color: white; font-size: 20px; cursor: pointer; margin-left: 10px;
+      vertical-align: middle; box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+    .btn-play:active { transform: scale(0.9); background: #004499; }
+
     .btn { padding: 12px 25px; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; color: white; margin: 5px; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
     .btn-nav { background: #4b6584; border-bottom: 4px solid #2c3e50; }
     .btn-nav:disabled { background: #ccc; border-bottom: none; }
@@ -49,7 +56,12 @@
 
   <div id="studio" style="display:none;">
     <p style="color:var(--primary-blue); font-weight:bold;">第 <span id="idx-display">1</span> / <span id="total-display">0</span> 題</p>
-    <h1 id="word-display" style="font-size: 46px; color:#0d47a1; margin: 15px 0; text-shadow: 1px 1px 0 #fff;">載入中...</h1>
+    
+    <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
+      <h1 id="word-display" style="font-size: 46px; color:#0d47a1; margin: 0; text-shadow: 1px 1px 0 #fff;">載入中...</h1>
+      <button id="play-btn" class="btn-play">🔊</button>
+    </div>
+
     <button type="button" id="record-btn" oncontextmenu="return false;">🎤</button>
     <p id="status" style="font-weight:bold; color:#636e72;">按住錄音，放開打分</p>
     <div id="feedback" style="font-size: 26px; font-weight: 800; color: var(--marian-green); margin-top: 10px;"></div>
@@ -74,7 +86,6 @@
 </div>
 
 <script>
-  // 修正點：補回您的正確 GAS 網址
   const GAS_URL = "https://script.google.com/macros/s/AKfycbziI4_b3WDoy4em5kXL75lDT4kx6ZwFTSVTBOWzaLCqcDQgk-e0t5JPERXs8jzOx9NJ/exec"; 
   const STUDENT_ID = new URLSearchParams(window.location.search).get('id') || "S001";
 
@@ -82,7 +93,6 @@
 
   window.onload = async () => {
     try {
-      // 請求權限
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       document.getElementById('info-text').innerText = "麥克風已就緒";
       document.getElementById('start-btn').style.display = 'inline-block';
@@ -92,7 +102,6 @@
     }
   };
 
-  // 點擊開始挑戰
   document.getElementById('start-btn').onclick = () => {
     document.getElementById('info-text').innerText = "正在載入題目...";
     fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data`)
@@ -122,7 +131,6 @@
     const fill = ((currentIndex + 1) / words.length) * 100;
     document.getElementById('progress-fill').style.width = fill + "%";
     
-    // 如果是在重唸模式
     if (isReReading) {
       document.getElementById('prev-btn').style.display = 'none';
       document.getElementById('next-btn').style.display = 'none';
@@ -136,10 +144,28 @@
     }
   }
 
+  // --- TTS 標準發音播放功能 ---
+  document.getElementById('play-btn').onclick = () => {
+    const text = words[currentIndex];
+    if (!text) return;
+    
+    // 停止目前正在播放的聲音
+    window.speechSynthesis.cancel();
+    
+    const msg = new SpeechSynthesisUtterance(text);
+    
+    // 嘗試設定為美式發音
+    const voices = window.speechSynthesis.getVoices();
+    const usVoice = voices.find(v => v.lang === 'en-US' || v.lang === 'en_US');
+    if (usVoice) msg.voice = usVoice;
+    
+    msg.lang = 'en-US';
+    msg.rate = 0.9; // 稍微放慢一點點方便學習
+    window.speechSynthesis.speak(msg);
+  };
+
   const rb = document.getElementById('record-btn');
   let startTime;
-  
-  // 開始錄音
   rb.onpointerdown = (e) => {
     e.preventDefault();
     startTime = Date.now();
@@ -151,13 +177,11 @@
     document.getElementById('status').innerText = "正在錄音...";
   };
 
-  // 結束錄音並評分
   rb.onpointerup = () => {
     if (!mediaRecorder || mediaRecorder.state !== "recording") return;
     mediaRecorder.stop();
     rb.classList.remove('active');
     document.getElementById('status').innerText = "老師評分中...";
-    
     mediaRecorder.onstop = () => {
       const reader = new FileReader();
       reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
@@ -168,7 +192,6 @@
             scores[currentIndex] = data.score;
             document.getElementById('feedback').innerText = "得分：" + data.score;
             document.getElementById('status').innerText = "按住錄音，放開打分";
-            // 修正：移除自動跳轉邏輯，讓學生手動點擊返回
           });
       };
     };
@@ -180,7 +203,6 @@
     else { showSummary(); }
   };
 
-  // 返回結算頁按鈕邏輯
   document.getElementById('back-summary-btn').onclick = () => {
     isReReading = false;
     showSummary();
@@ -206,7 +228,6 @@
     const rewardHint = document.getElementById('reward-hint');
     const lockMsg = document.getElementById('lock-msg');
 
-    // 70 分門檻邏輯
     if (avg >= 70) {
       submitBtn.disabled = false;
       submitBtn.style.backgroundColor = "#27ae60";
