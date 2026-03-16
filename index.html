@@ -384,12 +384,33 @@
     if(currentLimitTimer) clearInterval(currentLimitTimer);
     if(waitOpTimer) clearInterval(waitOpTimer);
     
-    if (currentBattleRound >= 7) { 
+    // 🛡️ 偵探修正：上限改為 10 題
+    if (currentBattleRound >= 10) { 
       setTimeout(() => {
         showImpactOverlay(myTotalWins, opTotalWins, true);
         setTimeout(() => window.location.href = `${GAS_URL}?id=${STUDENT_ID}`, 5000);
       }, 1000); return; 
     }
+    
+    let count = 3; roundSubmitted = false;
+    // 🛡️ 偵探修正：UI 顯示改為 10 局
+    document.getElementById('round-num').innerText = `第 ${currentBattleRound + 1} 局 / 共 10 局`;
+    document.getElementById('target-word').innerText = "READY?";
+    document.getElementById('battle-timer').innerText = "";
+    document.getElementById('battle-controls').style.visibility = 'hidden';
+    
+    readyTimer = setInterval(() => {
+      document.getElementById('battle-timer').innerText = count;
+      count--;
+      if (count < 0) {
+        clearInterval(readyTimer);
+        document.getElementById('target-word').innerText = battleQuizArr[currentBattleRound].en;
+        document.getElementById('battle-timer').innerText = "";
+        document.getElementById('battle-controls').style.visibility = 'visible';
+        startRecordingBattle(roomId);
+      }
+    }, 1000);
+  }
     
     let count = 3; roundSubmitted = false;
     document.getElementById('round-num').innerText = `第 ${currentBattleRound + 1} 局 / 共 7 局`;
@@ -464,36 +485,34 @@
     if(isChecking) return; isChecking = true;
     fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
-        // 過濾掉 -1 報到訊號
         const hS = data.hostScores.filter(s => s !== -1);
         const gS = data.guestScores.filter(s => s !== -1);
 
-        // 判斷當前這局雙方是否都已出分
         if (hS.length > currentBattleRound && gS.length > currentBattleRound) {
           clearInterval(waitOpTimer);
           const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
-          const myScore = isMeHost ? hS[currentBattleRound] : gS[currentBattleRound];
-          const opScore = isMeHost ? gS[currentBattleRound] : hS[currentBattleRound];
+          const myS = isMeHost ? hS[currentBattleRound] : gS[currentBattleRound];
+          const opS = isMeHost ? gS[currentBattleRound] : hS[currentBattleRound];
           
-          // 計算目前的總勝場
+          // 重新計算累積勝場
           myTotalWins = 0; opTotalWins = 0;
           for(let i=0; i <= currentBattleRound; i++) {
              if(hS[i] > gS[i]) isMeHost ? myTotalWins++ : opTotalWins++;
              else if(gS[i] > hS[i]) isMeHost ? opTotalWins++ : myTotalWins++;
           }
 
-          // 🚀 關鍵判斷：有人拿到 5 分，或是 10 題打完 (currentBattleRound 從 0 開始)
+          // 🚀 五分制早收判定：有人 5 分或打滿 10 題
           const isFinal = (myTotalWins >= 5 || opTotalWins >= 5 || currentBattleRound >= 9);
           
-          showImpactOverlay(myScore, opScore, isFinal);
+          showImpactOverlay(myS, opS, isFinal);
           
           setTimeout(() => {
             document.getElementById('impact-overlay').style.display = 'none';
-            // 更新 UI 上的燈號
             document.getElementById('my-rounds').innerHTML = renderDots(myTotalWins, true);
             document.getElementById('op-rounds').innerHTML = renderDots(opTotalWins, false);
             
             if (isFinal) {
+              // 贏了就滾回主頁領獎
               setTimeout(() => window.location.href = `${GAS_URL}?id=${STUDENT_ID}`, 2500);
             } else {
               currentBattleRound++; 
