@@ -268,19 +268,60 @@
   document.getElementById('back-summary-btn').onclick = () => { isReReading = false; showSummary(); };
 
   function showSummary() {
-    document.getElementById('studio').style.display = 'none'; document.getElementById('summary').style.display = 'block';
-    let sum = 0; const list = document.getElementById('word-list'); list.innerHTML = "";
+    document.getElementById('studio').style.display = 'none';
+    document.getElementById('summary').style.display = 'block';
+    let sum = 0, count = 0;
+    const list = document.getElementById('word-list');
+    list.innerHTML = "";
+
     quizData.forEach((item, i) => {
-      let s = scores[i] || 0; sum += s;
-      list.innerHTML += `<tr><td><b>${item.en}</b><br><small>${item.zh}</small><br><button class="btn-re" onclick="reRead(${i})">🔄</button></td><td>${s} 分</td></tr>`;
+      let s = scores[i] || 0;
+      let f = (window.feedbacks && window.feedbacks[i]) ? window.feedbacks[i] : "尚未錄音";
+      sum += s; count++;
+      // 🛡️ 恢復清單中的詳細回饋與顏色
+      list.innerHTML += `<tr><td><b style="color:#0d47a1">${item.en}</b><br><span style="color:#7f8c8d; font-size:14px">${item.zh}</span><br><p style="margin:5px 0; font-size:13px; color:#e67e22;">💡 ${f}</p><button class="btn-re" onclick="reRead(${i})">🔄 重唸</button></td><td><span class="score-badge">${s} 分</span></td></tr>`;
     });
-    const avg = Math.round(sum / quizData.length); document.getElementById('total-avg').innerText = avg;
+
+    const avg = Math.round(sum / count);
+    document.getElementById('total-avg').innerText = avg;
+
     const submitBtn = document.getElementById('submit-btn');
-    if (MODE === 'review') { submitBtn.disabled = false; submitBtn.innerText = "完成練習"; } 
-    else { submitBtn.disabled = avg < 70; }
+    const lockMsg = document.getElementById('lock-msg');
+    const rewardHint = document.getElementById('reward-hint');
+
+    if (MODE === 'review') {
+      submitBtn.disabled = false;
+      submitBtn.style.backgroundColor = "var(--marian-green)";
+      submitBtn.innerText = "完成練習";
+      document.getElementById('score-zone').style.display = "none";
+      rewardHint.innerText = "練習模式不計入點數";
+      lockMsg.innerText = "";
+    } else {
+      document.getElementById('score-zone').style.display = "block";
+      if (avg >= 70) {
+        submitBtn.disabled = false;
+        submitBtn.style.backgroundColor = "#27ae60"; // 恢復及格綠
+        lockMsg.innerText = "";
+        let reward = avg >= 90 ? 50 : (avg >= 80 ? 30 : 10);
+        rewardHint.innerText = `🎁 可獲得：${reward} 點`; // 恢復點數預告
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.style.backgroundColor = "#636e72"; // 恢復不及格灰
+        lockMsg.innerText = "❌ 平均需達 70 分才能領獎"; // 恢復警告
+        rewardHint.innerText = "";
+      }
+    }
   }
   function reRead(i) { currentIndex = i; isReReading = true; document.getElementById('summary').style.display = 'none'; document.getElementById('studio').style.display = 'block'; renderWord(); }
-  document.getElementById('submit-btn').onclick = () => { fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${document.getElementById('total-avg').innerText}&mode=${MODE}`).then(() => { alert("完成！"); window.location.href = `${GAS_URL}?id=${STUDENT_ID}`; }); };
+  document.getElementById('submit-btn').onclick = () => {
+    const avg = parseInt(document.getElementById('total-avg').innerText);
+    fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}&mode=${MODE}`)
+      .then(() => { 
+        // 🛡️ 恢復原本溫暖的提示文字
+        alert(MODE === 'review' ? "👍 練習辛苦了！" : "🎉 挑戰完成！"); 
+        window.location.href = `${GAS_URL}?id=${STUDENT_ID}`; 
+      });
+  };
 
   // =======================================================
   // ⚔️ 對戰室外掛引擎
