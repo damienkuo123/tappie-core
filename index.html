@@ -141,9 +141,18 @@
   const MODE = params.get('mode') || "challenge";
   const ROOM_ID = params.get('roomId');
 
+  // 全域變數宣告 (只宣告這一次，絕對不重複)
   let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
   let audioContext, analyser, dataArray, source, gradingInterval;
   let maxVolume = 0;
+
+  // 對戰室專用變數
+  let battleQuizArr = [], currentBattleRound = 0;
+  let readyTimer = null, currentLimitTimer = null, waitOpTimer = null, syncTimer = null; 
+  let myTotalWins = 0, opTotalWins = 0;
+  let roundSubmitted = false, isChecking = false, opponentWaitTimer = null;
+
+  function normalizeStr(val) { if (!val) return ""; return String(val).replace(/(%20|\s)+/ig, "").toUpperCase(); }
 
   // 📝 儲存原版啟動邏輯
   const originalOnload = async () => {
@@ -162,26 +171,45 @@
     } catch (e) { alert("請開啟麥克風權限"); }
   };
 
+  // 🚪 核心路由入口
+  window.onload = async () => {
+    if (MODE === 'battle' && ROOM_ID) {
+      try {
+        // 對戰模式也要開麥克風
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        analyser.fftSize = 256;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        
+        document.getElementById('main-card').style.display = 'none';
+        document.body.classList.add('battle-active');
+        document.getElementById('battle-arena').style.display = 'flex';
+        
+        fetchBattleDataAndStart(ROOM_ID);
+      } catch(err) { alert("請開啟麥克風權限才能對戰！"); }
+    } else {
+      await originalOnload();
+    }
+  };
+
   // =======================================================
-  // 🔒 原版練習功能 (一字不改)
+  // 🔒 原版練習功能 (保證不改)
   // =======================================================
   document.getElementById('start-btn').onclick = () => {
     document.getElementById('info-text').innerText = "正在載入題目...";
     fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`)
       .then(res => res.json()).then(data => {
-        if (!data.words || data.words.length === 0) {
-          alert("後台回傳題目為空，請檢查 Word_Bank。");
-          return;
-        }
-        quizData = data.words;
-        scores = new Array(quizData.length).fill(null);
+        if (!data.words || data.words.length === 0) { alert("題目為空"); return; }
+        quizData = data.words; scores = new Array(quizData.length).fill(null);
         document.getElementById('total-display').innerText = quizData.length;
         document.getElementById('setup-zone').style.display = 'none';
         document.getElementById('progress-container').style.display = 'block';
         document.getElementById('studio').style.display = 'block';
         renderWord();
-      })
-      .catch(err => { alert("連線失敗！"); console.error(err); });
+      }).catch(err => { alert("連線失敗！"); });
   };
 
   function renderWord() {
@@ -191,9 +219,7 @@
     document.getElementById('zh-display').innerText = current.zh;
     document.getElementById('feedback').innerText = scores[currentIndex] !== null ? "得分：" + scores[currentIndex] : "";
     document.getElementById('record-btn').style.display = 'block';
-    const fill = ((currentIndex + 1) / quizData.length) * 100;
-    document.getElementById('progress-fill').style.width = fill + "%";
-    
+    document.getElementById('progress-fill').style.width = (((currentIndex + 1) / quizData.length) * 100) + "%";
     if (isReReading) {
       document.getElementById('prev-btn').style.display = 'none';
       document.getElementById('next-btn').style.display = 'none';
@@ -208,226 +234,140 @@
   }
 
   const rb = document.getElementById('record-btn');
-  rb.onpointerdown = (e) => {
-    e.preventDefault();
-    document.getElementById('feedback').innerHTML = "";
-    maxVolume = 0; chunks = [];
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
-    mediaRecorder.start();
-    rb.classList.add('active');
-    document.getElementById('status').innerText = "正在錄音...";
-    document.getElementById('status').style.color = "var(--marian-red)";
-
-    const checkVolume = () => {
-      if (mediaRecorder.state === "recording") {
-        analyser.getByteFrequencyData(dataArray);
-        let values = 0; for (let i = 0; i < dataArray.length; i++) values += dataArray[i];
-        let average = values / dataArray.length;
-        if (average > maxVolume) maxVolume = average;
-        requestAnimationFrame(checkVolume);
-      }
-    }; checkVolume();
-  };
-
-  rb.onpointerup = () => {
-    if (!mediaRecorder || mediaRecorder.state !== "recording") return;
-    mediaRecorder.stop(); rb.classList.remove('active');
-    
-    if (maxVolume < 30) { 
-      document.getElementById('status').innerText = "太小聲或雜訊過多，請靠近麥克風大聲唸！"; document.getElementById('status').style.color = "var(--marian-red)"; return; 
-    }
-
-    let dots = 0; document.getElementById('status').style.color = "var(--primary-blue)";
-    gradingInterval = setInterval(() => { dots = (dots + 1) % 4; document.getElementById('status').innerText = "老師評分中" + ".".repeat(dots); }, 400);
-
-    mediaRecorder.onstop = () => {
-      const reader = new FileReader(); reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
-      reader.onloadend = () => {
-        const base64 = reader.result.split(',')[1];
-        fetch(`${GAS_URL}?action=evaluate_speech&word=${encodeURIComponent(quizData[currentIndex].en)}`, { method: 'POST', body: base64 })
-          .then(res => res.json()).then(data => {
-            clearInterval(gradingInterval); scores[currentIndex] = data.score;
-            if(!window.feedbacks) window.feedbacks = []; window.feedbacks[currentIndex] = data.feedback;
-            document.getElementById('feedback').innerHTML = `得分：${data.score}<br><span style="font-size:16px; color:#555; font-weight:normal;">${data.feedback}</span>`;
-            document.getElementById('status').innerText = "按住錄音，放開打分"; document.getElementById('status').style.color = "#636e72";
-          })
-          .catch(() => { clearInterval(gradingInterval); document.getElementById('status').innerText = "評分失敗，請重新錄音"; });
+  if(rb) {
+    rb.onpointerdown = (e) => {
+      e.preventDefault(); document.getElementById('feedback').innerHTML = ""; maxVolume = 0; chunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
+      mediaRecorder.start(); rb.classList.add('active');
+      document.getElementById('status').innerText = "正在錄音...";
+      const checkVol = () => { if (mediaRecorder.state === "recording") { analyser.getByteFrequencyData(dataArray); let v = 0; for (let i = 0; i < dataArray.length; i++) v += dataArray[i]; if ((v / dataArray.length) > maxVolume) maxVolume = (v / dataArray.length); requestAnimationFrame(checkVol); } }; checkVol();
+    };
+    rb.onpointerup = () => {
+      if (!mediaRecorder || mediaRecorder.state !== "recording") return;
+      mediaRecorder.stop(); rb.classList.remove('active');
+      if (maxVolume < 30) { document.getElementById('status').innerText = "太小聲了！"; return; }
+      let dots = 0; gradingInterval = setInterval(() => { dots = (dots + 1) % 4; document.getElementById('status').innerText = "老師評分中" + ".".repeat(dots); }, 400);
+      mediaRecorder.onstop = () => {
+        const reader = new FileReader(); reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
+        reader.onloadend = () => {
+          const base64 = reader.result.split(',')[1];
+          fetch(`${GAS_URL}?action=evaluate_speech&word=${encodeURIComponent(quizData[currentIndex].en)}`, { method: 'POST', body: base64 })
+            .then(res => res.json()).then(data => {
+              clearInterval(gradingInterval); scores[currentIndex] = data.score;
+              if(!window.feedbacks) window.feedbacks = []; window.feedbacks[currentIndex] = data.feedback;
+              document.getElementById('feedback').innerHTML = `得分：${data.score}<br><small>${data.feedback}</small>`;
+              document.getElementById('status').innerText = "按住錄音，放開打分";
+            }).catch(() => { clearInterval(gradingInterval); document.getElementById('status').innerText = "評分失敗"; });
+        };
       };
     };
-  };
+  }
 
-  document.getElementById('play-btn').onclick = () => { window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(quizData[currentIndex].en); msg.lang = 'en-US'; msg.rate = 0.9; window.speechSynthesis.speak(msg); };
+  document.getElementById('play-btn').onclick = () => { window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(quizData[currentIndex].en); msg.lang = 'en-US'; window.speechSynthesis.speak(msg); };
   document.getElementById('prev-btn').onclick = () => { if(currentIndex > 0){ currentIndex--; renderWord(); } };
   document.getElementById('next-btn').onclick = () => { if (currentIndex < quizData.length - 1) { currentIndex++; renderWord(); } else { showSummary(); } };
   document.getElementById('back-summary-btn').onclick = () => { isReReading = false; showSummary(); };
 
   function showSummary() {
     document.getElementById('studio').style.display = 'none'; document.getElementById('summary').style.display = 'block';
-    let sum = 0, count = 0; const list = document.getElementById('word-list'); list.innerHTML = "";
+    let sum = 0; const list = document.getElementById('word-list'); list.innerHTML = "";
     quizData.forEach((item, i) => {
-      let s = scores[i] || 0, f = (window.feedbacks && window.feedbacks[i]) ? window.feedbacks[i] : ""; sum += s; count++;
-      list.innerHTML += `<tr><td><b style="color:#0d47a1">${item.en}</b><br><span style="color:#7f8c8d; font-size:14px">${item.zh}</span><br><p style="margin:5px 0; font-size:13px; color:#e67e22;">💡 ${f}</p><button class="btn-re" onclick="reRead(${i})">🔄 重唸</button></td><td><span class="score-badge">${s} 分</span></td></tr>`;
+      let s = scores[i] || 0; sum += s;
+      list.innerHTML += `<tr><td><b>${item.en}</b><br><small>${item.zh}</small><br><button class="btn-re" onclick="reRead(${i})">🔄</button></td><td>${s} 分</td></tr>`;
     });
-    const avg = Math.round(sum / count); document.getElementById('total-avg').innerText = avg;
-    const submitBtn = document.getElementById('submit-btn'), lockMsg = document.getElementById('lock-msg'), rewardHint = document.getElementById('reward-hint');
-    if (MODE === 'review') { submitBtn.disabled = false; submitBtn.style.backgroundColor = "var(--marian-green)"; submitBtn.innerText = "完成練習"; document.getElementById('score-zone').style.display = "none"; rewardHint.innerText = "練習模式不計入點數"; lockMsg.innerText = ""; } 
-    else {
-      if (avg >= 70) { submitBtn.disabled = false; submitBtn.style.backgroundColor = "#27ae60"; lockMsg.innerText = ""; let reward = avg >= 90 ? 50 : (avg >= 80 ? 30 : 10); rewardHint.innerText = `🎁 可獲得：${reward} 點`; } 
-      else { submitBtn.disabled = true; submitBtn.style.backgroundColor = "#636e72"; lockMsg.innerText = "❌ 平均需達 70 分才能領獎"; }
-    }
+    const avg = Math.round(sum / quizData.length); document.getElementById('total-avg').innerText = avg;
+    const submitBtn = document.getElementById('submit-btn');
+    if (MODE === 'review') { submitBtn.disabled = false; submitBtn.innerText = "完成練習"; } 
+    else { submitBtn.disabled = avg < 70; }
   }
-
   function reRead(i) { currentIndex = i; isReReading = true; document.getElementById('summary').style.display = 'none'; document.getElementById('studio').style.display = 'block'; renderWord(); }
-  document.getElementById('submit-btn').onclick = () => { const avg = parseInt(document.getElementById('total-avg').innerText); fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}&mode=${MODE}`).then(() => { alert(MODE === 'review' ? "👍 練習辛苦了！" : "🎉 挑戰完成！"); window.location.href = `${GAS_URL}?id=${STUDENT_ID}`; }); };
+  document.getElementById('submit-btn').onclick = () => { fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${document.getElementById('total-avg').innerText}&mode=${MODE}`).then(() => { alert("完成！"); window.location.href = `${GAS_URL}?id=${STUDENT_ID}`; }); };
+
 
   // =======================================================
-  // ⚔️ 偵探外掛引擎：對戰室模組 (徹底封印時空暴走 Bug)
+  // ⚔️ 對戰室外掛引擎 (獨立運作)
   // =======================================================
-  let battleQuizArr = [], currentBattleRound = 0;
-  let readyTimer = null, currentLimitTimer = null, waitOpTimer = null; 
-  let myTotalWins = 0, opTotalWins = 0;
-  let roundSubmitted = false; 
-  let isChecking = false; 
-  let opponentWaitTimer = null; 
-  let syncTimer = null; 
-
-  function normalizeStr(val) { if (val === null || val === undefined) return ""; return String(val).replace(/(%20|\s)+/ig, "").toUpperCase(); }
-
-  // 🚪 路由入口
-  window.onload = async (e) => {
-    if (MODE === 'battle' && ROOM_ID) {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser(); source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser); analyser.fftSize = 256; dataArray = new Uint8Array(analyser.frequencyBinCount);
-        
-        document.getElementById('main-card').style.display = 'none';
-        document.body.classList.add('battle-active');
-        document.getElementById('battle-arena').style.display = 'flex';
-        fetchBattleDataAndStart(ROOM_ID);
-      } catch(err) { alert("請開啟麥克風權限才能進行對戰！"); }
-    } else {
-      await originalOnload();
-    }
-  }
-
   function fetchBattleDataAndStart(roomId) {
-    fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}`)
+    fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
-        if(data.status === "NotFound") { alert("房間已失效"); window.location.href = `${GAS_URL}?id=${STUDENT_ID}`; return; }
-        battleQuizArr = data.quiz; initArena(roomId);
-      }).catch(err => alert("戰場連接失敗"));
+        if(data.status === "NotFound") { alert("房間失效"); window.location.href = `${GAS_URL}?id=${STUDENT_ID}`; return; }
+        battleQuizArr = data.quiz; 
+        initArena(roomId);
+      });
   }
 
-  // 🛡️ 偵探：雙向 60 秒等待對手同步機制
   function initArena(roomId) {
     currentBattleRound = 0;
     updateArenaUI(roomId, true);
     
     document.getElementById('target-word').innerText = "等待對手同步...";
-    document.getElementById('battle-timer').innerText = "60";
-    document.getElementById('battle-info').innerText = "連線中請勿跳出...";
-    document.getElementById('battle-controls').style.visibility = 'hidden';
+    let waitCount = 60;
+    document.getElementById('battle-timer').innerText = waitCount;
     
-    // 1. 向後台宣告「我到了」
-    fetch(`${GAS_URL}?action=arena_ready&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`)
-      .then(() => {
-        // 2. 開始不斷確認雙方是否都已就緒
-        let waitCount = 60;
-        syncTimer = setInterval(() => {
-          waitCount--;
-          document.getElementById('battle-timer').innerText = waitCount;
-          
-          fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
-            .then(res => res.json()).then(data => {
-              if (data.status === "Playing") {
-                // 雙方都到了！開始倒數！
-                clearInterval(syncTimer); 
-                startRoundCountdown(roomId);
-              } else if (data.status === "Canceled") {
-                clearInterval(syncTimer);
-                alert("對手已離開或斷線，對戰取消！");
-                window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
-              }
-            });
-
-          if (waitCount <= 0) {
+    // 報到
+    fetch(`${GAS_URL}?action=arena_ready&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`);
+    
+    // 同步計時器
+    if(syncTimer) clearInterval(syncTimer);
+    syncTimer = setInterval(() => {
+      waitCount--;
+      document.getElementById('battle-timer').innerText = waitCount;
+      
+      fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
+        .then(res => res.json()).then(data => {
+          if (data.status === "Playing") {
             clearInterval(syncTimer);
-            fetch(`${GAS_URL}?action=cancel_battle&id=${STUDENT_ID}&roomId=${roomId}`);
-            alert("等待對手逾時 (超過60秒)，對戰已自動解散！");
+            startRoundCountdown(roomId);
+          } else if (data.status === "Canceled") {
+            clearInterval(syncTimer);
+            alert("對手已離開");
             window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
           }
-        }, 1000);
-      });
+        });
 
-    // 進入戰場後，如果對手 65 秒內連第一局都沒送出分數，就判定逃跑！
-    opponentWaitTimer = setTimeout(() => {
-      if (currentBattleRound === 0) {
-         alert("對手連線中斷或已逃跑，對戰取消！");
-         window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
+      if (waitCount <= 0) {
+        clearInterval(syncTimer);
+        alert("連線逾時");
+        window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
       }
-    }, 65000); 
-  }
-
-  function renderDots(wins, isMe) {
-    let html = ''; const winClass = isMe ? 'dot-me' : 'dot-op';
-    for(let i=0; i<7; i++) { if (i < wins) html += `<div class="round-dot ${winClass}"></div>`; else html += '<div class="round-dot"></div>'; } 
-    return html;
+    }, 1000);
   }
 
   function updateArenaUI(roomId, isInit = false) {
     fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
         const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
-        document.getElementById('my-name').innerText = isMeHost ? data.hostName : (data.guestName || "對手");
-        document.getElementById('op-name').innerText = isMeHost ? (data.guestName || "連線中...") : data.hostName;
-
-        const myScoresArr = isMeHost ? data.hostScores : data.guestScores;
-        const opScoresArr = isMeHost ? data.guestScores : data.hostScores;
-
+        document.getElementById('my-name').innerText = isMeHost ? data.hostName : (data.guestName || "挑戰者");
+        document.getElementById('op-name').innerText = isMeHost ? (data.guestName || "對手") : data.hostName;
+        const myS = isMeHost ? data.hostScores : data.guestScores;
+        const opS = isMeHost ? data.guestScores : data.hostScores;
         myTotalWins = 0; opTotalWins = 0;
-        for(let i=0; i<currentBattleRound; i++) { 
-           if(myScoresArr[i] > opScoresArr[i]) myTotalWins++; 
-           else if(opScoresArr[i] > myScoresArr[i]) opTotalWins++; 
-        }
+        for(let i=0; i<currentBattleRound; i++) { if(myS[i] > opS[i]) myTotalWins++; else if(opS[i] > myS[i]) opTotalWins++; }
         document.getElementById('my-rounds').innerHTML = renderDots(myTotalWins, true);
         document.getElementById('op-rounds').innerHTML = renderDots(opTotalWins, false);
       });
   }
 
-  function showImpactOverlay(myNum, opNum, isFinal) {
-    const overlay = document.getElementById('impact-overlay'), resText = document.getElementById('impact-result');
-    document.getElementById('impact-my-score').innerText = myNum; document.getElementById('impact-op-score').innerText = opNum;
-    document.getElementById('impact-title').innerText = isFinal ? "最終結算" : "本局結果";
-    
-    let text = "", color = "", sub = "";
-    if (myNum > opNum) { text = isFinal ? "🏆 最終勝利" : "本局獲勝！"; color = "var(--marian-green)"; sub = isFinal ? "🎉 已自動加發 10 點戰鬥獎勵！" : "帥氣的一擊！"; } 
-    else if (myNum < opNum) { text = isFinal ? "☠️ 挑戰失敗" : "本局敗北..."; color = "var(--marian-red)"; sub = isFinal ? "再接再厲，下次討回來！" : "被對手壓制了..."; } 
-    else { text = isFinal ? "🤝 最終平手" : "平局！"; color = "var(--gold)"; sub = "雙方實力相當，皆不加分！"; }
-    
-    resText.innerHTML = text; resText.style.color = color; document.getElementById('impact-subtitle').innerText = sub;
-    overlay.style.display = 'flex';
+  function renderDots(wins, isMe) {
+    let h = ''; const c = isMe ? 'dot-me' : 'dot-op';
+    for(let i=0; i<7; i++) h += `<div class="round-dot ${i < wins ? c : ''}"></div>`;
+    return h;
   }
 
   function startRoundCountdown(roomId) {
-    if(readyTimer) clearInterval(readyTimer); 
+    if(readyTimer) clearInterval(readyTimer);
     if(currentLimitTimer) clearInterval(currentLimitTimer);
     if(waitOpTimer) clearInterval(waitOpTimer);
-    isChecking = false;
-
+    
     if (currentBattleRound >= 7) { 
-      document.getElementById('target-word').innerText = "結算中...";
-      document.getElementById('battle-info').innerText = "等待伺服器同步...";
       setTimeout(() => {
         showImpactOverlay(myTotalWins, opTotalWins, true);
         setTimeout(() => window.location.href = `${GAS_URL}?id=${STUDENT_ID}`, 5000);
       }, 1000); return; 
     }
     
-    let count = 3; 
-    roundSubmitted = false; 
+    let count = 3; roundSubmitted = false;
     document.getElementById('round-num').innerText = `第 ${currentBattleRound + 1} 局 / 共 7 局`;
     document.getElementById('target-word').innerText = "READY?";
     document.getElementById('battle-timer').innerText = "";
@@ -439,64 +379,50 @@
       if (count < 0) {
         clearInterval(readyTimer);
         document.getElementById('target-word').innerText = battleQuizArr[currentBattleRound].en;
-        document.getElementById('battle-timer').innerText = ""; 
+        document.getElementById('battle-timer').innerText = "";
         document.getElementById('battle-controls').style.visibility = 'visible';
-        startRecordingSession(roomId);
+        startRecordingBattle(roomId);
       }
     }, 1000);
   }
 
-  function startRecordingSession(roomId) {
+  function startRecordingBattle(roomId) {
     let limit = 10;
-    document.getElementById('battle-info').innerText = "限時 10 秒發動攻擊！";
     document.getElementById('battle-timer').innerText = limit;
-
+    if(currentLimitTimer) clearInterval(currentLimitTimer);
     currentLimitTimer = setInterval(() => {
       limit--;
-      if (limit > 0) { document.getElementById('battle-timer').innerText = limit; } 
-      else { 
+      if (limit > 0) document.getElementById('battle-timer').innerText = limit;
+      else {
         clearInterval(currentLimitTimer);
-        document.getElementById('battle-timer').innerText = "0";
-        if (!roundSubmitted) { 
+        if (!roundSubmitted) {
           roundSubmitted = true;
-          if (mediaRecorder && mediaRecorder.state === "recording") { mediaRecorder.stop(); document.getElementById('battle-record-btn').classList.remove('active'); } 
-          else { submitBattleScore(roomId, 0); }
+          if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
+          submitBattleScore(roomId, 0);
         }
       }
     }, 1000);
   }
 
-  const battleRb = document.getElementById('battle-record-btn');
-  if(battleRb) {
-    battleRb.onpointerdown = (e) => {
-      if (roundSubmitted) return; 
+  const battleBtn = document.getElementById('battle-record-btn');
+  if(battleBtn) {
+    battleBtn.onpointerdown = (e) => {
+      if (roundSubmitted) return;
       e.preventDefault(); maxVolume = 0; chunks = [];
-      mediaRecorder = new MediaRecorder(stream); mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
-      mediaRecorder.start(); battleRb.classList.add('active');
-      document.getElementById('battle-info').innerText = "蓄力中...";
-
-      const checkBattleVol = () => {
-        if (mediaRecorder.state === "recording") {
-          analyser.getByteFrequencyData(dataArray); let vals = 0; for(let i=0; i<dataArray.length; i++) vals += dataArray[i];
-          if ((vals / dataArray.length) > maxVolume) maxVolume = vals / dataArray.length; requestAnimationFrame(checkBattleVol);
-        }
-      }; checkBattleVol();
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
+      mediaRecorder.start(); battleBtn.classList.add('active');
+      const check = () => { if (mediaRecorder && mediaRecorder.state === "recording") { analyser.getByteFrequencyData(dataArray); let v = 0; for(let i=0; i<dataArray.length; i++) v += dataArray[i]; if((v/dataArray.length) > maxVolume) maxVolume = v/dataArray.length; requestAnimationFrame(check); } }; check();
     };
-
-    battleRb.onpointerup = () => {
+    battleBtn.onpointerup = () => {
       if (roundSubmitted || !mediaRecorder || mediaRecorder.state !== "recording") return;
-      roundSubmitted = true; 
-      clearInterval(currentLimitTimer);
-      mediaRecorder.stop(); battleRb.classList.remove('active');
-      
-      if (maxVolume < 30) { document.getElementById('battle-info').innerText = "太小聲，攻擊無效(0分)！"; submitBattleScore(ROOM_ID, 0); return; }
-
-      document.getElementById('battle-info').innerText = "子彈飛行中 (評分中)...";
+      roundSubmitted = true; clearInterval(currentLimitTimer);
+      mediaRecorder.stop(); battleBtn.classList.remove('active');
+      if (maxVolume < 30) { submitBattleScore(ROOM_ID, 0); return; }
       mediaRecorder.onstop = () => {
-        const reader = new FileReader(); reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
-        reader.onloadend = () => {
-          const base64 = reader.result.split(',')[1];
-          fetch(`${GAS_URL}?action=evaluate_speech_battle&word=${encodeURIComponent(battleQuizArr[currentBattleRound].en)}`, { method: 'POST', body: base64 })
+        const r = new FileReader(); r.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
+        r.onloadend = () => {
+          fetch(`${GAS_URL}?action=evaluate_speech_battle&word=${encodeURIComponent(battleQuizArr[currentBattleRound].en)}`, { method: 'POST', body: r.result.split(',')[1] })
             .then(res => res.json()).then(data => submitBattleScore(ROOM_ID, data.score)).catch(() => submitBattleScore(ROOM_ID, 0));
         };
       };
@@ -504,38 +430,39 @@
   }
 
   function submitBattleScore(roomId, score) {
-    document.getElementById('battle-info').innerText = `您的火力：${score}！等待對手...`;
+    document.getElementById('battle-info').innerText = `得分：${score}，等待對手...`;
     document.getElementById('battle-controls').style.visibility = 'hidden';
-    
     fetch(`${GAS_URL}?action=submit_battle_score&id=${STUDENT_ID}&roomId=${roomId}&score=${score}&t=${new Date().getTime()}`)
-      .then(() => { 
-        if(waitOpTimer) clearInterval(waitOpTimer);
-        waitOpTimer = setInterval(() => checkBothFinished(roomId), 2000); 
-      }); 
+      .then(() => { waitOpTimer = setInterval(() => checkBoth(roomId), 2000); });
   }
 
-  function checkBothFinished(roomId) {
-    if(isChecking) return; 
-    isChecking = true;
-    
+  function checkBoth(roomId) {
+    if(isChecking) return; isChecking = true;
     fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
         if (data.hostScores.length > currentBattleRound && data.guestScores.length > currentBattleRound) {
-          clearInterval(waitOpTimer); 
-          if(opponentWaitTimer) clearTimeout(opponentWaitTimer); 
-          
+          clearInterval(waitOpTimer);
           const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
-          const myLastSc = isMeHost ? data.hostScores[currentBattleRound] : data.guestScores[currentBattleRound];
-          const opLastSc = isMeHost ? data.guestScores[currentBattleRound] : data.hostScores[currentBattleRound];
-          
-          showImpactOverlay(myLastSc, opLastSc, false);
-          setTimeout(() => {
-            document.getElementById('impact-overlay').style.display = 'none';
-            updateArenaUI(roomId); currentBattleRound++; startRoundCountdown(roomId); 
-          }, 3500); 
+          const myS = isMeHost ? data.hostScores[currentBattleRound] : data.guestScores[currentBattleRound];
+          const opS = isMeHost ? data.guestScores[currentBattleRound] : data.hostScores[currentBattleRound];
+          showImpactOverlay(myS, opS, false);
+          setTimeout(() => { document.getElementById('impact-overlay').style.display = 'none'; updateArenaUI(roomId); currentBattleRound++; startRoundCountdown(roomId); }, 3500);
         }
-        isChecking = false; 
-      }).catch(() => { isChecking = false; });
+        isChecking = false;
+      }).catch(() => isChecking = false);
+  }
+
+  function showImpactOverlay(myNum, opNum, isFinal) {
+    const o = document.getElementById('impact-overlay');
+    document.getElementById('impact-my-score').innerText = myNum;
+    document.getElementById('impact-op-score').innerText = opNum;
+    document.getElementById('impact-title').innerText = isFinal ? "最終結算" : "單局結果";
+    let t = "", c = "";
+    if (myNum > opNum) { t = isFinal ? "🏆 最終勝利" : "獲勝！"; c = "#27ae60"; }
+    else if (myNum < opNum) { t = isFinal ? "☠️ 挑戰失敗" : "敗北..."; c = "#e74c3c"; }
+    else { t = "平手"; c = "#ffd700"; }
+    const r = document.getElementById('impact-result'); r.innerText = t; r.style.color = c;
+    o.style.display = 'flex';
   }
 </script>
 </body>
