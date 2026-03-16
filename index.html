@@ -320,8 +320,7 @@
       }).catch(err => alert("戰場連接失敗"));
   }
 
-  let opponentWaitTimer = null; // 🛡️ GitHub 戰場內的 60 秒掛網偵測
-
+let opponentWaitTimer = null; // 🛡️ GitHub 戰場內的 60 秒掛網偵測
   let syncTimer = null; 
 
   // 🛡️ 偵探：60 秒等待對手同步機制
@@ -361,15 +360,15 @@
         window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
       }
     }, 1000);
-  }
 
-    // 🛡️ 偵探新增：進入戰場後，如果對手 60 秒內連第一局都沒送出分數，就判定逃跑！
+    // 🛡️ 偵探新增：必須包在 initArena 裡面！
+    // 進入戰場後，如果對手 65 秒內連第一局都沒送出分數，就判定逃跑！
     opponentWaitTimer = setTimeout(() => {
       if (currentBattleRound === 0) {
          alert("對手連線中斷或已逃跑，對戰取消！");
          window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
       }
-    }, 65000); // 給 65 秒的緩衝
+    }, 65000); 
   }
 
   function renderDots(wins, isMe) {
