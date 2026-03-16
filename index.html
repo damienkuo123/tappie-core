@@ -368,9 +368,14 @@
   }
 
   function renderDots(wins, isMe) {
-    let h = ''; const c = isMe ? 'dot-me' : 'dot-op';
-    for(let i=0; i<7; i++) h += `<div class="round-dot ${i < wins ? c : ''}"></div>`;
-    return h;
+    let html = ''; 
+    const winClass = isMe ? 'dot-me' : 'dot-op';
+    // 💡 畫面上顯示 5 個圓圈，代表領先分數
+    for(let i=0; i<5; i++) { 
+      if (i < wins) html += `<div class="round-dot ${winClass}"></div>`; 
+      else html += '<div class="round-dot"></div>'; 
+    } 
+    return html;
   }
 
   function startRoundCountdown(roomId) {
