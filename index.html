@@ -295,7 +295,7 @@
 
   function normalizeStr(val) { if (val === null || val === undefined) return ""; return String(val).replace(/(%20|\s)+/ig, "").toUpperCase(); }
 
-  // 🚪 路由入口
+// 🚪 路由入口
   window.onload = async (e) => {
     if (MODE === 'battle' && ROOM_ID) {
       try {
@@ -322,7 +322,10 @@
       }).catch(err => alert("戰場連接失敗"));
   }
 
-  // 🛡️ 偵探：60 秒等待對手同步機制
+  let opponentWaitTimer = null; // 🛡️ GitHub 戰場內的 60 秒掛網偵測
+  let syncTimer = null; 
+
+  // 🛡️ 偵探：雙向 60 秒等待對手同步機制
   function initArena(roomId) {
     currentBattleRound = 0;
     updateArenaUI(roomId, true);
@@ -332,34 +335,36 @@
     document.getElementById('battle-info').innerText = "連線中請勿跳出...";
     document.getElementById('battle-controls').style.visibility = 'hidden';
     
-    // 向後台宣告「我到了」
-    fetch(`${GAS_URL}?action=arena_ready&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`);
-    
-    let waitCount = 60;
-    syncTimer = setInterval(() => {
-      waitCount--;
-      document.getElementById('battle-timer').innerText = waitCount;
-      
-      // 加上時間戳，打破瀏覽器快取
-      fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
-        .then(res => res.json()).then(data => {
-          if (data.status === "Playing") {
-            clearInterval(syncTimer); // 雙方都到了，開打！
-            startRoundCountdown(roomId);
-          } else if (data.status === "Canceled") {
+    // 1. 向後台宣告「我到了」
+    fetch(`${GAS_URL}?action=arena_ready&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`)
+      .then(() => {
+        // 2. 開始不斷確認雙方是否都已就緒
+        let waitCount = 60;
+        syncTimer = setInterval(() => {
+          waitCount--;
+          document.getElementById('battle-timer').innerText = waitCount;
+          
+          fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
+            .then(res => res.json()).then(data => {
+              if (data.status === "Playing") {
+                // 雙方都到了！開始倒數！
+                clearInterval(syncTimer); 
+                startRoundCountdown(roomId);
+              } else if (data.status === "Canceled") {
+                clearInterval(syncTimer);
+                alert("對手已離開或斷線，對戰取消！");
+                window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
+              }
+            });
+
+          if (waitCount <= 0) {
             clearInterval(syncTimer);
-            alert("對手已離開或斷線，對戰取消！");
+            fetch(`${GAS_URL}?action=cancel_battle&id=${STUDENT_ID}&roomId=${roomId}`);
+            alert("等待對手逾時 (超過60秒)，對戰已自動解散！");
             window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
           }
-        });
-
-      if (waitCount <= 0) {
-        clearInterval(syncTimer);
-        fetch(`${GAS_URL}?action=cancel_battle&id=${STUDENT_ID}&roomId=${roomId}`);
-        alert("等待對手逾時 (超過60秒)，對戰已自動解散！");
-        window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
-      }
-    }, 1000);
+        }, 1000);
+      });
 
     // 進入戰場後，如果對手 65 秒內連第一局都沒送出分數，就判定逃跑！
     opponentWaitTimer = setTimeout(() => {
@@ -377,7 +382,6 @@
   }
 
   function updateArenaUI(roomId, isInit = false) {
-    // 加上時間戳
     fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
         const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
@@ -485,7 +489,58 @@
 
     battleRb.onpointerup = () => {
       if (roundSubmitted || !mediaRecorder || mediaRecorder.state !== "recording") return;
-      roundSubmitted
+      roundSubmitted = true; 
+      clearInterval(currentLimitTimer);
+      mediaRecorder.stop(); battleRb.classList.remove('active');
+      
+      if (maxVolume < 30) { document.getElementById('battle-info').innerText = "太小聲，攻擊無效(0分)！"; submitBattleScore(ROOM_ID, 0); return; }
+
+      document.getElementById('battle-info').innerText = "子彈飛行中 (評分中)...";
+      mediaRecorder.onstop = () => {
+        const reader = new FileReader(); reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
+        reader.onloadend = () => {
+          const base64 = reader.result.split(',')[1];
+          fetch(`${GAS_URL}?action=evaluate_speech_battle&word=${encodeURIComponent(battleQuizArr[currentBattleRound].en)}`, { method: 'POST', body: base64 })
+            .then(res => res.json()).then(data => submitBattleScore(ROOM_ID, data.score)).catch(() => submitBattleScore(ROOM_ID, 0));
+        };
+      };
+    };
+  }
+
+  function submitBattleScore(roomId, score) {
+    document.getElementById('battle-info').innerText = `您的火力：${score}！等待對手...`;
+    document.getElementById('battle-controls').style.visibility = 'hidden';
+    
+    fetch(`${GAS_URL}?action=submit_battle_score&id=${STUDENT_ID}&roomId=${roomId}&score=${score}&t=${new Date().getTime()}`)
+      .then(() => { 
+        if(waitOpTimer) clearInterval(waitOpTimer);
+        waitOpTimer = setInterval(() => checkBothFinished(roomId), 2000); 
+      }); 
+  }
+
+  function checkBothFinished(roomId) {
+    if(isChecking) return; 
+    isChecking = true;
+    
+    fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
+      .then(res => res.json()).then(data => {
+        if (data.hostScores.length > currentBattleRound && data.guestScores.length > currentBattleRound) {
+          clearInterval(waitOpTimer); 
+          if(opponentWaitTimer) clearTimeout(opponentWaitTimer); 
+          
+          const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
+          const myLastSc = isMeHost ? data.hostScores[currentBattleRound] : data.guestScores[currentBattleRound];
+          const opLastSc = isMeHost ? data.guestScores[currentBattleRound] : data.hostScores[currentBattleRound];
+          
+          showImpactOverlay(myLastSc, opLastSc, false);
+          setTimeout(() => {
+            document.getElementById('impact-overlay').style.display = 'none';
+            updateArenaUI(roomId); currentBattleRound++; startRoundCountdown(roomId); 
+          }, 3500); 
+        }
+        isChecking = false; 
+      }).catch(() => { isChecking = false; });
+  }
 </script>
 </body>
 </html>
