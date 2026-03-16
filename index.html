@@ -297,85 +297,71 @@
       });
   }
 
-// 🛡️ 偵探：同步優化版 (穩定計時器版)
+// 🛡️ 偵探：雙桶同步偵測 (不看 Status 文字，改看數據桶)
   function initArena(roomId) {
     currentBattleRound = 0;
-    // 1. 先抓一次狀態，確保雙方 ID 已載入
-    fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
-      .then(res => res.json()).then(data => {
-        const amIHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
-        updateArenaUI(roomId, true);
+    
+    document.getElementById('target-word').innerText = "戰場同步中...";
+    document.getElementById('battle-timer').innerText = "60";
+    document.getElementById('battle-info').innerText = "正在等待雙方就緒...";
+    document.getElementById('battle-controls').style.visibility = 'hidden';
+    
+    // 1. 先發送自己的「人在這」訊號 (-1)
+    fetch(`${GAS_URL}?action=arena_ready&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`)
+      .then(() => {
+        let waitCount = 60;
+        if(syncTimer) clearInterval(syncTimer);
         
-        document.getElementById('target-word').innerText = "戰場同步中...";
-        document.getElementById('battle-info').innerText = "正在等待對手進入...";
-        document.getElementById('battle-controls').style.visibility = 'hidden';
-        
-        // 2. 發送報到訊號
-        fetch(`${GAS_URL}?action=arena_ready&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`)
-          .then(res => res.json()).then(readyData => {
-            if (readyData.status === "Playing") {
-              startRoundCountdown(roomId);
-              return;
-            }
-
-            // 3. 啟動計時器與輪詢
-            let waitCount = 60;
-            document.getElementById('battle-timer').innerText = waitCount;
-            
-            if(syncTimer) clearInterval(syncTimer);
-            syncTimer = setInterval(() => {
-              waitCount--;
-              document.getElementById('battle-timer').innerText = waitCount;
-              
-              // 4. 每兩秒確認一次「門開了沒」
-              if (waitCount % 2 === 0) {
-                fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
-                  .then(res => res.json()).then(statusData => {
-                    const s = statusData.status;
-                    // 關鍵：如果狀態變成了 Playing，或者我是房主且對方已到，或我是挑戰者且房主已到
-                    if (s === "Playing" || 
-                       (amIHost && s === "GuestEntered") || 
-                       (!amIHost && s === "HostEntered")) {
-                      
-                      clearInterval(syncTimer);
-                      startRoundCountdown(roomId);
-                    } else if (s === "Canceled") {
-                      clearInterval(syncTimer);
-                      alert("對戰已取消！");
-                      window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
-                    }
-                  }).catch(e => console.log("輪詢暫時中斷，重試中..."));
+        // 2. 開始監控兩個桶子
+        syncTimer = setInterval(() => {
+          waitCount--;
+          document.getElementById('battle-timer').innerText = waitCount;
+          
+          fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
+            .then(res => res.json()).then(data => {
+              // 🚀 關鍵判斷：只要房主桶子有東西 且 挑戰者桶子也有東西
+              if (data.hostScores.length > 0 && data.guestScores.length > 0) {
+                clearInterval(syncTimer);
+                // 進入戰場前，先更新一下名字 UI
+                updateArenaUI(roomId, true); 
+                startRoundCountdown(roomId);
               }
 
-              if (waitCount <= 0) {
+              if (data.status === "Canceled") {
                 clearInterval(syncTimer);
-                alert("等待逾時，對戰解散。");
+                alert("對戰已取消");
                 window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
               }
-            }, 1000);
-          });
-      });
+            });
 
-    // 🛡️ 戰場內掛網防呆
-    if(opponentWaitTimer) clearTimeout(opponentWaitTimer);
-    opponentWaitTimer = setTimeout(() => {
-      if (currentBattleRound === 0 && !roundSubmitted) {
-         alert("連線不穩或對手離開，對戰取消！");
-         window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
-      }
-    }, 65000); 
+          if (waitCount <= 0) {
+            clearInterval(syncTimer);
+            alert("等待超時");
+            window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
+          }
+        }, 2000);
+      });
   }
 
+  // 🛡️ 偵探：修正亮燈邏輯 (排除掉 -1 這個報到訊號)
   function updateArenaUI(roomId, isInit = false) {
     fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
         const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
         document.getElementById('my-name').innerText = isMeHost ? data.hostName : (data.guestName || "挑戰者");
         document.getElementById('op-name').innerText = isMeHost ? (data.guestName || "對手") : data.hostName;
-        const myS = isMeHost ? data.hostScores : data.guestScores;
-        const opS = isMeHost ? data.guestScores : data.hostScores;
+
+        // 過濾掉報到用的 -1，只留下真正的分數
+        const myS = (isMeHost ? data.hostScores : data.guestScores).filter(s => s !== -1);
+        const opS = (isMeHost ? data.guestScores : data.hostScores).filter(s => s !== -1);
+
         myTotalWins = 0; opTotalWins = 0;
-        for(let i=0; i<currentBattleRound; i++) { if(myS[i] > opS[i]) myTotalWins++; else if(opS[i] > myS[i]) opTotalWins++; }
+        // 只比對已經產生的局數
+        const roundsToCompare = Math.min(myS.length, opS.length);
+        for(let i=0; i < roundsToCompare; i++) { 
+           if(myS[i] > opS[i]) myTotalWins++; 
+           else if(opS[i] > myS[i]) opTotalWins++; 
+        }
         document.getElementById('my-rounds').innerHTML = renderDots(myTotalWins, true);
         document.getElementById('op-rounds').innerHTML = renderDots(opTotalWins, false);
       });
