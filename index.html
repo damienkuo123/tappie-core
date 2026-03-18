@@ -526,6 +526,44 @@
     r.style.color = c;
     o.style.display = 'flex';
   }
+  // =======================================================
+  // 🚀 瑪麗安「全域刷卡攔截器」：解決學生中途離開、隨時換人問題
+  // =======================================================
+  let nfcBuffer = "";
+  document.addEventListener('keydown', function(e) {
+    // 判斷是否為數字鍵 (YP210 噴出的通常是數字)
+    if (!isNaN(e.key)) {
+      nfcBuffer += e.key;
+    }
+
+    // 當讀卡機噴完 ID 帶入 Enter 時觸發
+    if (e.key === 'Enter') {
+      if (nfcBuffer.length > 3) { // 確保不是誤觸
+        console.log("偵測到學生刷卡，準備強制跳轉：" + nfcBuffer);
+        
+        // 強制跳轉回你的 GAS 跳板，由 GAS 重新查表
+        // 注意：這裡必須使用你的 GAS 完整連結
+        const gatekeeperUrl = "https://script.google.com/macros/s/AKfycbyWm-WnRO5h3dliEPR36Cq1hCf5DgM4GIgJqXVUREclhtYOHjxq9DptApmQPkU5p5Ys/exec";
+        
+        // 動作：直接把目前的網頁換掉，帶入 cardId 參數
+        window.location.href = gatekeeperUrl + "?cardId=" + nfcBuffer;
+      }
+      nfcBuffer = ""; // 清空緩衝區
+    }
+  });
+
+  // 💡 小提醒：如果 3 分鐘沒人動，自動回到「請刷卡」入口畫面 (選配)
+  let idleTimer;
+  const resetIdleTimer = () => {
+    clearTimeout(idleTimer);
+    // 180000 毫秒 = 3 分鐘
+    idleTimer = setTimeout(() => {
+      window.location.href = "https://script.google.com/macros/s/AKfycbyWm-WnRO5h3dliEPR36Cq1hCf5DgM4GIgJqXVUREclhtYOHjxq9DptApmQPkU5p5Ys/exec";
+    }, 180000);
+  };
+  document.addEventListener('touchstart', resetIdleTimer);
+  document.addEventListener('mousedown', resetIdleTimer);
+  resetIdleTimer();
 </script>
 </body>
 </html>
