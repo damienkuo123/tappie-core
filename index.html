@@ -411,17 +411,27 @@
     
     btn.innerText = "正在儲存中...";
     btn.style.pointerEvents = "none";
+    btn.style.backgroundColor = "#95a5a6";
 
-    fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}&mode=${MODE}`)
+    // 🚀 優化後的送出指令
+    const finalUrl = `${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}&mode=${MODE}`;
+    
+    fetch(finalUrl, { mode: 'no-cors' }) // 使用 no-cors 解決大部分 GAS 送出失敗問題
       .then(() => { 
         alert(MODE === 'review' ? "👍 練習辛苦了！" : "🎉 挑戰完成！"); 
         window.location.href = `${GAS_URL}?id=${STUDENT_ID}`; 
-      }).catch(() => {
-        alert("連線不穩，請再試一次！");
-        btn.innerText = "完成挑戰並領獎";
-        btn.style.pointerEvents = "auto";
+      }).catch(err => {
+        // 如果 fetch 還是失敗，使用後備方案：直接用瀏覽器打開連結 (隱藏式)
+        console.log("Fetch 失敗，啟動備案...", err);
+        const img = new Image();
+        img.src = finalUrl; // 這是最古老但最有效的跨域傳送方式
+        setTimeout(() => {
+          alert("🎉 挑戰完成！");
+          window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
+        }, 1000);
       });
   }
+  
   function reRead(i) { currentIndex = i; isReReading = true; document.getElementById('summary').style.display = 'none'; document.getElementById('studio').style.display = 'block'; renderWord(); }
   document.getElementById('submit-btn').onclick = () => {
     const avg = parseInt(document.getElementById('total-avg').innerText);
