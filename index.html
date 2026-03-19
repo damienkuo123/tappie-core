@@ -25,6 +25,26 @@
     .btn-re { background: var(--marian-red); font-size: 13px; padding: 6px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold; }
     #zh-display { font-size: 20px; color: #7f8c8d; margin: -10px 0 20px 0; font-weight: bold; }
 
+    /* 🛡️ 傳送門彈窗 (修正偏左上角問題) */
+    #battle-portal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.95); /* 極深色背景 */
+      z-index: 9999; 
+      /* display: none; 先保留 inline style 的控制 */
+      flex-direction: column;
+      align-items: center; 
+      justify-content: center; /* 垂直置中 */
+      backdrop-filter: blur(10px);
+    }
+    
+    .portal-box {
+      width: 85%; max-width: 320px; text-align: center; color: white;
+      padding: 30px; border: 2px solid var(--gold); border-radius: 30px;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+      /* 確保內容置中 */
+      margin: 0 auto;
+    }
+    
     /* 🌌 戰場背景：暗黑漸層 + 完美適應 Safari */
     #battle-arena { 
       position: fixed; top: 0; left: 0; width: 100vw; 
