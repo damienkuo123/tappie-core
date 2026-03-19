@@ -425,26 +425,27 @@
   function updateArenaUI(roomId, isInit = false) {
     fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
+        // 1. 設定名字
         const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
         document.getElementById('my-name').innerText = isMeHost ? data.hostName : (data.guestName || "挑戰者");
         document.getElementById('op-name').innerText = isMeHost ? (data.guestName || "對手") : data.hostName;
 
-        // 🚀 外科手術：載入英雄立繪
-        const meImg = isMeHost ? data.hostImg : data.guestImg;
-        const opImg = isMeHost ? data.guestImg : data.hostImg;
+        // 2. 🚀 注入圖片 (使用後端回傳的 hostImg / guestImg)
+        const hostHero = document.getElementById('vs-host');
+        const guestHero = document.getElementById('vs-guest');
         
-        if (meImg) document.getElementById('hero-me').style.backgroundImage = `url('${meImg}')`;
-        if (opImg) document.getElementById('hero-op').style.backgroundImage = `url('${opImg}')`;
+        if(data.hostImg) hostHero.style.backgroundImage = `url('${data.hostImg}')`;
+        if(data.guestImg) guestHero.style.backgroundImage = `url('${data.guestImg}')`;
         
-        // 如果對手是 AI，給他一張帥氣的預設機器人圖 (可選)
-        if (data.guestId === "AI_BOT") document.getElementById('hero-op').style.backgroundImage = `url('https://cdn-icons-png.flaticon.com/512/4712/4712139.png')`;
+        // AI 特殊頭像補位
+        if (data.guestId === "AI_BOT") guestHero.style.backgroundImage = `url('https://cdn-icons-png.flaticon.com/512/4712/4712139.png')`;
 
-        // 啟動進場滑入動畫
+        // 3. 啟動視覺動畫
         document.getElementById('battle-arena').classList.add('battle-ready');
 
+        // 4. 更新分數點點 (維持原本邏輯)
         const hS = data.hostScores.filter(s => s !== -1);
         const gS = data.guestScores.filter(s => s !== -1);
-
         myTotalWins = 0; opTotalWins = 0;
         const commonLen = Math.min(hS.length, gS.length);
         for(let i=0; i < commonLen; i++) { 
