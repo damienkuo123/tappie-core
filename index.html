@@ -25,29 +25,20 @@
     .btn-re { background: var(--marian-red); font-size: 13px; padding: 6px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold; }
     #zh-display { font-size: 20px; color: #7f8c8d; margin: -10px 0 20px 0; font-weight: bold; }
 
-        /* ⚔️ 史詩戰場：層級大排整 */
+      /* ⚔️ 史詩戰場最終校正：確保層級與隱藏 */
     #battle-arena { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, #1a2a3a 0%, #000 100%) !important; z-index: 2000; color: white; display: none; overflow: hidden; flex-direction: column; justify-content: space-between; padding: 4vh 15px; box-sizing: border-box; }
-  
-    #arena-divide-line { position: absolute; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #ffd700, transparent); top: 38%; z-index: 2; transform: scaleX(0); transition: 0.8s; box-shadow: 0 0 15px #ffd700; }
-    .battle-ready #arena-divide-line { transform: scaleX(1); }
-  
+    
     .vs-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
     .vs-hero { position: absolute; width: 85%; height: 60vh; background-size: contain; background-repeat: no-repeat; transition: 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; }
-    
-    /* 房主：左下角 / 挑戰者：能量線上 */
-    #vs-host { bottom: -2vh; left: -10%; background-position: left bottom; transform: translateX(-100%); }
-    #vs-guest { top: calc(38% - 55vh); right: -10%; background-position: right bottom; transform: translateX(100%); }
+    #vs-host { bottom: -2vh; left: -10%; background-position: left bottom; transform: translateX(-120%); }
+    #vs-guest { top: calc(38% - 55vh); right: -10%; background-position: right bottom; transform: translateX(120%); }
     .battle-ready #vs-host, .battle-ready #vs-guest { transform: translateX(0); opacity: 0.6; }
   
-    .vs-mid { position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%) scale(0); z-index: 3; width: 70px; height: 70px; background: #d63031; border: 3px solid #ffd700; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; color: white; transition: 0.5s 0.8s; opacity: 0; }
-    .battle-ready .vs-mid { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  
+    /* 🛑 解決預設顯示獲勝的問題 */
     #impact-overlay { display: none !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; }
     #impact-overlay.active { display: flex !important; }
   
-    #battle-record-btn { width: 100px; height: 100px; border-radius: 50%; border: 6px solid white; background: var(--marian-red); font-size: 40px; color: white; cursor: pointer; box-shadow: 0 0 20px rgba(214, 48, 49, 0.6); outline: none; }
-    .take-damage { animation: shake 0.5s infinite; filter: sepia(1) brightness(2) !important; opacity: 1 !important; }
-    @keyframes shake { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-5px,-5px); } 75% { transform: translate(5px,5px); } }
+    .arena-section, .stage-zone, #battle-controls { position: relative; z-index: 100 !important; }
   </style>
 </head>
 <body>
@@ -105,14 +96,14 @@
     <div id="vs-guest" class="vs-hero"></div>
   </div>
 
-  <div class="arena-section opponent-zone">
+  <div class="arena-section">
     <div style="font-size:12px; color:#aaa; font-weight:bold; letter-spacing:2px;">對手 OPPONENT</div>
     <div id="op-name" class="arena-p-name" style="color:var(--marian-red);">連線中...</div>
     <div id="op-rounds" style="display:flex; justify-content:center; gap:8px;"></div>
   </div>
 
-  <div class="arena-section stage-zone" style="position:relative; z-index:100;">
-    <div id="round-num" style="color:#aaa; font-size: 14px; font-weight:bold;">準備中...</div>
+  <div class="arena-section stage-zone">
+    <div id="round-num" style="color:#aaa; font-size: 14px; font-weight:bold;">第 1 局 / 先得 5 分獲勝</div>
     <h1 id="target-word" style="font-size:11vw; margin:10px 0; text-shadow: 0 0 20px #000;">READY?</h1>
     <div id="battle-timer" style="font-size:15vw; font-weight:900; color:var(--gold);">60</div>
   </div>
@@ -420,17 +411,15 @@
         document.getElementById('my-name').innerText = isMeHost ? data.hostName : (data.guestName || "挑戰者");
         document.getElementById('op-name').innerText = isMeHost ? (data.guestName || "對手") : data.hostName;
 
-        // 🚀 注入圖片
-        const hostHero = document.getElementById('vs-host');
-        const guestHero = document.getElementById('vs-guest');
-        if(data.hostImg) hostHero.style.backgroundImage = `url('${data.hostImg}')`;
-        if(data.guestImg) guestHero.style.backgroundImage = `url('${data.guestImg}')`;
-        if (data.guestId === "AI_BOT") guestHero.style.backgroundImage = `url('https://cdn-icons-png.flaticon.com/512/4712/4712139.png')`;
+        const vh = document.getElementById('vs-host');
+        const vg = document.getElementById('vs-guest');
+        if(data.hostImg) vh.style.backgroundImage = `url('${data.hostImg}')`;
+        if(data.guestImg) vg.style.backgroundImage = `url('${data.guestImg}')`;
+        if (data.guestId === "AI_BOT") vg.style.backgroundImage = `url('https://cdn-icons-png.flaticon.com/512/4712/4712139.png')`;
 
-        // 啟動動畫
+        // 啟動視覺滑入
         document.getElementById('battle-arena').classList.add('battle-ready');
 
-        // 更新分數點點
         const hS = data.hostScores.filter(s => s !== -1);
         const gS = data.guestScores.filter(s => s !== -1);
         myTotalWins = 0; opTotalWins = 0;
@@ -442,7 +431,7 @@
         document.getElementById('my-rounds').innerHTML = renderDots(myTotalWins, true);
         document.getElementById('op-rounds').innerHTML = renderDots(opTotalWins, false);
       });
-  } // <--- 剛才就是少了這一個括號，害全家陪葬！
+  } // ✅ 括號補回來了！
 
   function renderDots(wins, isMe) {
     let html = ''; const winClass = isMe ? 'dot-me' : 'dot-op';
