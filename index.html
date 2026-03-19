@@ -85,11 +85,10 @@
     .glass-panel {
       background: rgba(30, 39, 46, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
-      padding: 8px 20px; 
-      margin-top: -20px; /* 讓面板稍微往上重疊在橫圖上 */
-      z-index: 2; display: flex; flex-direction: column; align-items: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-      width: 80%; max-width: 400px; /* 給面板一個固定寬度 */
+      padding: 8px 20px; margin-top: -20px; 
+      z-index: 20; /* 🚀 關鍵：提高層級，才不會被裂痕蓋住 */
+      display: flex; flex-direction: column; align-items: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 80%; max-width: 400px; 
     }
 
     /* 點點與文字區 */
@@ -127,8 +126,8 @@
     /* 🌟 燃特效：火力集結 (卡片本體爆發！) */
     .charging-mana { animation: cardCharge 0.5s infinite alternate; }
     @keyframes cardCharge {
-      0% { box-shadow: 0 0 15px #0fb9b1, inset 0 0 15px #0fb9b1; border-color: #eb3b5a; transform: translateY(0px); }
-      100% { box-shadow: 0 0 50px #26de81, inset 0 0 25px #26de81; border-color: #ff4757; transform: translateY(-5px); }
+      0% { box-shadow: 0 0 15px #0fb9b1, inset 0 0 15px #0fb9b1; border-color: #0fb9b1; transform: translateY(0px); }
+      100% { box-shadow: 0 0 50px #26de81, inset 0 0 25px #26de81; border-color: #26de81; transform: translateY(-5px); }
     }
 
     /* 💎 螢光得分字體 (用來取代原本的倒數計時) */
@@ -230,6 +229,13 @@
       25% { transform: scale(1.1) skewX(15deg); filter: brightness(2) drop-shadow(0 0 80px #ff4757); opacity: 1; } /* 爆炸膨脹 */
       40% { transform: scale(0.8) rotate(-10deg) translateY(20px); filter: grayscale(0.5) blur(2px); opacity: 0.8; } /* 開始崩解焦黑 */
       100% { transform: scale(0.2) rotate(45deg) translateY(300px); filter: blur(20px); opacity: 0; } /* 墜落消失 */
+    }
+
+    /* 🏆 最終勝利的耀眼光芒 */
+    .winner-glory { animation: glory-shine 1.5s ease-in-out infinite alternate !important; border-color: #f1c40f !important; z-index: 20; }
+    @keyframes glory-shine {
+      0% { box-shadow: 0 0 20px #f1c40f, inset 0 0 20px #f1c40f; transform: translateY(0); filter: brightness(1.2); }
+      100% { box-shadow: 0 0 60px #f1c40f, 0 0 100px #f1c40f, inset 0 0 40px #f1c40f; transform: translateY(-10px); filter: brightness(1.5); }
     }
 
     #impact-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.6); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; }
@@ -842,7 +848,11 @@
     // 隱藏錄音按鈕
     document.getElementById('battle-controls').style.visibility = 'hidden';
 
-    // 🌟 將分數直接填入原本「倒數計時」的位子，不會往下推擠
+    // 🚀 關鍵修復：確保強制移除卡片的蓄力特效，避免超時送出導致特效卡住
+    const myCard = document.getElementById('my-card');
+    if(myCard) myCard.classList.remove('charging-mana');
+
+    // 將分數填入倒數計時的位子
     document.getElementById('battle-timer').innerHTML = `<span class="neon-score">得分：${score}</span>`;
     document.getElementById('battle-info').innerText = "等待對手...";
 
@@ -863,40 +873,43 @@
     if(damageLevel >= 4) cardElement.classList.add('dmg-4');
   }
 
-  // 🎬 動畫發動機 (分離顏色與延遲)
+  // 🎬 動畫發動機
   function triggerBattleAnimations(myNum, opNum, isFinal, myTotalWins, opTotalWins) {
     const myCard = document.getElementById('my-card'); 
     const opCard = document.getElementById('op-card');
     const arenaBg = document.getElementById('battle-arena');
 
-    // 🚀 清除上一局所有動畫狀態
-    const animations = ['cast-me', 'cast-op', 'blast-up', 'blast-down', 'loser-shatter', 'take-damage', 'screen-flash-red', 'screen-flash-cyan'];
+    // 🚀 清除所有可能殘留的動畫 (加入 winner-glory)
+    const animations = ['cast-me', 'cast-op', 'blast-up', 'blast-down', 'loser-shatter', 'take-damage', 'screen-flash-red', 'screen-flash-cyan', 'winner-glory'];
     if(myCard) myCard.classList.remove(...animations); 
     if(opCard) opCard.classList.remove(...animations);
     if(arenaBg) arenaBg.classList.remove('screen-flash-red', 'screen-flash-cyan');
     
-    // 強制重繪
     void myCard.offsetWidth; void opCard.offsetWidth;
 
     // 發動攻擊！
     if (myNum > opNum) { 
-      // 🌟 我贏了：我方發出「青藍光」與「向上光球」
-      if(myCard) myCard.classList.add('cast-me', 'blast-up'); 
+      if(myCard) {
+        myCard.classList.add('cast-me', 'blast-up'); 
+        // 🏆 如果是最後一局，光球擊中對手後 (0.8s) 我方亮起勝利光芒！
+        if(isFinal) setTimeout(() => myCard.classList.add('winner-glory'), 800);
+      }
       if(opCard) opCard.classList.add(isFinal ? 'loser-shatter' : 'take-damage'); 
-      if(arenaBg) arenaBg.classList.add('screen-flash-cyan'); // 螢幕閃青藍光
+      if(arenaBg) arenaBg.classList.add('screen-flash-cyan'); 
     }
     else if (myNum < opNum) { 
-      // 🌟 對手贏了：對手發出「紅光」與「向下光球」
-      if(opCard) opCard.classList.add('cast-op', 'blast-down'); 
+      if(opCard) {
+        opCard.classList.add('cast-op', 'blast-down'); 
+        if(isFinal) setTimeout(() => opCard.classList.add('winner-glory'), 800);
+      }
       if(myCard) myCard.classList.add(isFinal ? 'loser-shatter' : 'take-damage');
-      if(arenaBg) arenaBg.classList.add('screen-flash-red'); // 螢幕閃紅光
+      if(arenaBg) arenaBg.classList.add('screen-flash-red'); 
     }
 
-    // 更新戰損狀態 (受到幾次傷害，卡片就會多破爛)
+    // 更新戰損狀態
     updateCardDamage(myCard, opTotalWins);
     updateCardDamage(opCard, myTotalWins);
 
-    // 🚀 關鍵：動畫變長了，我們延遲 1.6 秒（等光球炸完、畫面閃完），才跳出文字黑屏
     setTimeout(() => {
       showImpactOverlay(myNum, opNum, isFinal);
     }, 1600); 
