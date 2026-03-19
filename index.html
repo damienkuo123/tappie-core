@@ -273,46 +273,58 @@
     }
   }
 
-// 🛡️ 錄音狀態鎖，防止重複點擊與分數打架
+  // 🛡️ 狀態鎖與標記
   let isGrading = false; 
+  let tooQuietFlag = false; 
 
   const rb = document.getElementById('record-btn');
   if(rb) {
     rb.onpointerdown = (e) => {
-      if(isGrading) return; // 如果正在評分，不准點
+      if(isGrading) return;
       e.preventDefault(); 
       document.getElementById('feedback').innerHTML = ""; 
-      maxVolume = 0; chunks = [];
+      maxVolume = 0; chunks = []; tooQuietFlag = false; // 重置標記
       
       mediaRecorder = new MediaRecorder(stream);
       mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
       
       mediaRecorder.onstop = () => {
-        isGrading = true; // 鎖定狀態
+        // 🚀 關鍵：如果剛剛判斷太小聲，這裡直接斷開，不准進 fetch
+        if (tooQuietFlag) {
+          isGrading = false;
+          rb.style.opacity = "1";
+          return; 
+        }
+
+        isGrading = true;
         rb.style.opacity = "0.5";
         
+        // 🚀 切換顯示：老師評分中動畫
+        if (gradingInterval) clearInterval(gradingInterval);
+        let dots = 0;
+        gradingInterval = setInterval(() => { 
+          dots = (dots + 1) % 4; 
+          document.getElementById('status').innerText = "老師評分中" + ".".repeat(dots); 
+        }, 400);
+
         const reader = new FileReader();
         reader.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
         reader.onloadend = () => {
           const base64 = reader.result.split(',')[1];
-          // 發送請求前，確保舊的計時器被清乾淨
-          if (gradingInterval) clearInterval(gradingInterval);
-          
           fetch(`${GAS_URL}?action=evaluate_speech&word=${encodeURIComponent(quizData[currentIndex].en)}`, { method: 'POST', body: base64 })
             .then(res => res.json()).then(data => {
               clearInterval(gradingInterval);
               scores[currentIndex] = data.score;
               if(!window.feedbacks) window.feedbacks = [];
               window.feedbacks[currentIndex] = data.feedback;
-              
               document.getElementById('feedback').innerHTML = `得分：${data.score}<br><small>${data.feedback}</small>`;
               document.getElementById('status').innerText = "評分完成！";
-              isGrading = false; // 解鎖
+              isGrading = false;
               rb.style.opacity = "1";
             }).catch(() => {
               clearInterval(gradingInterval);
-              document.getElementById('status').innerText = "評分失敗，請重試";
-              isGrading = false; // 解鎖
+              document.getElementById('status').innerText = "連線超時，請重新錄音";
+              isGrading = false;
               rb.style.opacity = "1";
             });
         };
@@ -320,21 +332,22 @@
 
       mediaRecorder.start(); 
       rb.classList.add('active');
-      document.getElementById('status').innerText = "正在錄音...";
+      document.getElementById('status').innerText = "正在錄音中...";
       const checkVol = () => { if (mediaRecorder.state === "recording") { analyser.getByteFrequencyData(dataArray); let v = 0; for (let i = 0; i < dataArray.length; i++) v += dataArray[i]; if ((v / dataArray.length) > maxVolume) maxVolume = (v / dataArray.length); requestAnimationFrame(checkVol); } }; checkVol();
     };
 
     rb.onpointerup = () => {
       if (!mediaRecorder || mediaRecorder.state !== "recording") return;
-      mediaRecorder.stop(); 
       rb.classList.remove('active');
-      if (maxVolume < 30) { document.getElementById('status').innerText = "太小聲了！"; return; }
       
-      let dots = 0;
-      gradingInterval = setInterval(() => { 
-        dots = (dots + 1) % 4; 
-        document.getElementById('status').innerText = "老師評分中" + ".".repeat(dots); 
-      }, 400);
+      // 🚀 先檢查音量，如果太小聲，設下攔截標記
+      if (maxVolume < 30) { 
+        tooQuietFlag = true; 
+        document.getElementById('status').innerText = "太小聲了，再大聲點！";
+        mediaRecorder.stop(); // 雖然呼叫 stop，但 stop 裡的 fetch 會被 Flag 擋住
+      } else {
+        mediaRecorder.stop(); // 正常執行 fetch
+      }
     };
   }
 
