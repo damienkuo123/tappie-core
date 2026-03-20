@@ -948,15 +948,14 @@
   function submitBattleScore(roomId, score) {
     if (currentLimitTimer) clearInterval(currentLimitTimer);
     
-    // 隱藏控制面板
+    // 隱藏錄音按鈕與技能按鈕面板
     document.getElementById('battle-controls').style.visibility = 'hidden';
 
-    // 🚀 強制清除所有發光特效，保證下回合正常
+    // 🚀 強制清除所有發光特效，保證下回合乾乾淨淨
     const myCard = document.getElementById('my-card');
-    if(myCard) {
-        myCard.classList.remove('charging-mana');
-        myCard.classList.remove('ultimate-charging');
-    }
+    if(myCard) myCard.classList.remove('charging-mana', 'ultimate-charging');
+    const bBtn = document.getElementById('battle-record-btn');
+    if(bBtn) bBtn.classList.remove('active', 'ult-active');
 
     // 將分數填入倒數計時的位子
     document.getElementById('battle-timer').innerHTML = `<span class="neon-score">得分：${score}</span>`;
