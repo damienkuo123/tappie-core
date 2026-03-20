@@ -37,7 +37,7 @@
       box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); margin: 0 auto;
     }
 
-    /* 🌌 戰場背景 */
+    /* 🌌 戰場背景：鎖死高度，完美適應 Safari */
     #battle-arena { 
       position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; 
       background: radial-gradient(circle at 50% 50%, #1c2331 0%, #0b0f19 100%) !important; 
@@ -58,6 +58,7 @@
       z-index: 50; visibility: hidden; gap: 15px; 
     }
 
+    /* 👊 技能重擊按鈕 */
     #skill-btn {
       background: linear-gradient(135deg, #f39c12, #e74c3c); color: white; 
       border: 2px solid #f1c40f; border-radius: 20px;
@@ -68,6 +69,7 @@
     #skill-btn:active { transform: scale(0.9); }
     @keyframes float-btn { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(231, 76, 60, 0.8); } }
 
+    /* 🎤 錄音按鈕本體 */
     #battle-record-btn {
       width: 75px; height: 75px; border-radius: 50%; font-size: 30px; cursor: pointer;
       background: linear-gradient(145deg, #2d3436, #1e272b); border: 3px solid #0fb9b1; color: white; outline: none;
@@ -81,7 +83,7 @@
     #battle-record-btn.ult-active { transform: scale(0.9); animation: ultManaCharge 0.5s infinite alternate; border-color: #fff; }
     @keyframes ultManaCharge { 0% { box-shadow: 0 0 20px #f1c40f, 0 0 30px #f1c40f; } 100% { box-shadow: 0 0 50px #f39c12, 0 0 80px #fff; } }
 
-    /* 🎴 實體卡片設計 */
+    /* 🎴 實體卡片設計 (維持你的比例 2816x1271) */
     .arena-section { z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
     .card-entity {
       height: 17vh; min-height: 100px; max-height: 150px; 
@@ -93,25 +95,27 @@
       overflow: hidden; 
     }
 
+    /* 🌟 一般錄音：卡片本體爆發 (青藍色) */
     .card-entity.charging-mana { border-color: #0fb9b1 !important; animation: cardChargePulse 0.5s infinite alternate; z-index: 25; }
     @keyframes cardChargePulse {
       0% { box-shadow: 0 0 15px #0fb9b1, inset 0 0 15px #0fb9b1; transform: translateY(0px); }
       100% { box-shadow: 0 0 50px #26de81, inset 0 0 25px #26de81; transform: translateY(-5px); }
     }
 
+    /* 🌟 大招錄音：黃金卡片爆發 (金色) */
     .card-entity.ultimate-charging { border-color: #f1c40f !important; animation: ultCardCharge 0.5s infinite alternate; z-index: 25; }
     @keyframes ultCardCharge {
       0% { box-shadow: 0 0 20px #f1c40f, inset 0 0 20px #f1c40f; transform: translateY(0px); }
       100% { box-shadow: 0 0 60px #f39c12, 0 0 80px #fff, inset 0 0 40px #f39c12; transform: translateY(-5px); }
     }
 
-    /* 🚀 全新窄版「橫向排列」資訊面板 */
+    /* 🚀 全新窄版「橫向排列」資訊面板，不遮擋卡片 */
     .glass-panel {
       background: rgba(30, 39, 46, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; /* 圓角更滑順 */
-      padding: 10px 20px; 
+      border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px;
+      padding: 6px 15px; margin: 8px 0; /* 改為上下外距，不再是負數重疊 */
       position: relative; z-index: 20; 
-      display: flex; flex-direction: row; justify-content: space-between; align-items: center; /* 橫向排版 */
+      display: flex; flex-direction: row; justify-content: space-between; align-items: center;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 90%; max-width: 450px; 
     }
 
@@ -146,7 +150,7 @@
       100% { opacity: 0; transform: translate(-50%, -60px) scale(0.8); }
     }
 
-    /* 💥 雙重金色光球 */
+    /* 💥 雙重金色光球 (大招成功專用：一前一後發射) */
     .blast-ultimate::before, .blast-ultimate::after {
       content: ''; position: absolute; top: 50%; left: 50%; width: 90px; height: 90px;
       background: radial-gradient(circle, #fff 0%, #f1c40f 40%, transparent 80%);
@@ -155,6 +159,7 @@
     .blast-ultimate::before { animation: blast-upward 0.4s 0.2s ease-in forwards; }
     .blast-ultimate::after { animation: blast-upward 0.4s 0.4s ease-in forwards; } 
     
+    /* 💥 對手的大招光球 (向下) */
     .blast-ultimate-down::before, .blast-ultimate-down::after {
       content: ''; position: absolute; top: 50%; left: 50%; width: 90px; height: 90px;
       background: radial-gradient(circle, #fff 0%, #f1c40f 40%, transparent 80%);
@@ -177,6 +182,7 @@
     .cast-me { animation: magic-cast-me 0.8s ease-out forwards; }
     @keyframes magic-cast-me { 0%, 100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0 transparent); z-index: 1; } 40% { transform: scale(1.05); filter: brightness(1.8) drop-shadow(0 0 40px #0fb9b1); z-index: 10; } }
 
+    /* 🌟 大招專屬：發射前金色蓄力 */
     .cast-me-ult { animation: magic-cast-ult 0.8s ease-out forwards; }
     @keyframes magic-cast-ult { 0%, 100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0 transparent); z-index: 1; } 40% { transform: scale(1.05); filter: brightness(2) drop-shadow(0 0 40px #f1c40f); z-index: 10; } }
 
@@ -358,14 +364,14 @@
   <div id="skill-popup"></div>
   
   <div class="arena-section opponent-zone">
-    <div id="op-card" class="card-entity"></div>
-    <div class="glass-panel" style="margin-top: -20px;">
+    <div class="glass-panel" style="margin-bottom: 5px;">
       <div style="display:flex; align-items:center; gap:8px;">
         <span style="font-size:11px; color:#a4b0be; font-weight:bold; letter-spacing:1px;">OPPONENT</span>
         <span id="op-name" style="color:#eb3b5a; font-weight:900; font-size:15px;">連線中...</span>
       </div>
       <div id="op-rounds" class="rounds-container" style="margin:0;"></div>
     </div>
+    <div id="op-card" class="card-entity"></div>
   </div>
 
   <div class="arena-section stage-zone">
@@ -382,7 +388,7 @@
   </div>
 
   <div class="arena-section player-zone">
-    <div class="glass-panel" style="margin-top: 0; margin-bottom: -20px;">
+    <div class="glass-panel" style="margin-bottom: 5px;">
       <div id="my-rounds" class="rounds-container" style="margin:0;"></div>
       <div style="display:flex; align-items:center; gap:8px;">
         <span id="my-name" style="color:#0fb9b1; font-weight:900; font-size:15px;"></span>
@@ -765,7 +771,6 @@
         document.getElementById('my-name').innerText = isMeHost ? data.hostName : (data.guestName || "挑戰者");
         document.getElementById('op-name').innerText = isMeHost ? (data.guestName || "對手") : data.hostName;
 
-        // 🚀 主題參數存入全域，給後續大招使用！
         window.myTheme = isMeHost ? data.hostTheme : data.guestTheme;
         window.opTheme = isMeHost ? data.guestTheme : data.hostTheme;
 
