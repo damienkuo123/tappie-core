@@ -69,7 +69,7 @@
       z-index: 50; width: 100%; 
     }
 
-    /* 🎴 實體卡片設計 (限制高度) */
+    /* 🎴 實體卡片設計 (限制高度，加入 overflow 解決裂痕溢出) */
     .arena-section { z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
     
     .card-entity {
@@ -78,17 +78,16 @@
       background-size: cover; background-position: center center; background-repeat: no-repeat;
       border-radius: 12px; border: 3px solid #576574; 
       box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.2);
-      position: relative; z-index: 5; /* 🚀 確保圖層在玻璃面板之下 */
-      transition: all 0.4s ease;
+      position: relative; z-index: 5; transition: all 0.4s ease;
+      overflow: hidden; /* 🚀 關鍵：把超出去的裂痕直接切掉！ */
     }
 
-    /* 磨砂玻璃 (Frosted Glass) 資訊面板 */
+    /* 磨砂玻璃資訊面板 */
     .glass-panel {
       background: rgba(30, 39, 46, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
       padding: 8px 20px; margin-top: -20px; 
-      position: relative; z-index: 20; /* 🚀 加上 position 與高 z-index，完美壓住卡片裂痕！ */
-      display: flex; flex-direction: column; align-items: center;
+      position: relative; z-index: 20; display: flex; flex-direction: column; align-items: center;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 80%; max-width: 400px; 
     }
 
@@ -98,48 +97,65 @@
     .dot-me { background: #0fb9b1; box-shadow: 0 0 15px #0fb9b1, inset 0 0 5px #fff; border-color: #fff; } 
     .dot-op { background: #eb3b5a; box-shadow: 0 0 15px #eb3b5a, inset 0 0 5px #fff; border-color: #fff; } 
 
-    /* ⚔️ 中間交戰區 (金屬切割字體) */
+    /* ⚔️ 中間交戰區 */
     .stage-zone { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; margin: 1vh 0; max-height: 35vh; }
-    #target-word { font-size: 8vw; text-transform: uppercase; letter-spacing: 2px; color: #f1f2f6; text-shadow: 0 0 15px rgba(255,255,255,0.5), 0px 4px 0px #576574; margin: 0 0 5px 0; text-align: center; }
+    #target-word { font-size: 8vw; text-transform: uppercase; letter-spacing: 2px; color: #f1f2f6; text-shadow: 0 0 15px rgba(255,255,255,0.5), 0px 4px 0px #576574; margin: 0 0 5px 0; text-align: center; transition: 0.3s; }
     
-    /* 🛡️ 鎖死中央區域高度，倒數與分數共用同一個籠子 */
     #battle-timer-container { height: 55px; display: flex; justify-content: center; align-items: center; }
     #battle-timer { font-size: 38px; font-weight: 900; color: #f6e58d; text-shadow: 0 0 15px rgba(246, 229, 141, 0.5); margin: 0; min-height: 45px; }
   
-    /* 🚀 修復：讓 Player Zone 有額外底邊距，並把錄音按鈕釘在下方 */
+    /* 🚀 修復錄音與技能按鈕佈局 (採用橫向排列) */
     .player-zone { position: relative; padding-bottom: 90px; }
-    #battle-controls { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 50; width: 100%; }
+    #battle-controls { 
+      position: absolute; bottom: 0; left: 0; 
+      width: 100%; height: 90px; z-index: 50; 
+      display: flex; justify-content: center; align-items: center; visibility: hidden; 
+    }
 
     #battle-record-btn {
       width: 75px; height: 75px; border-radius: 50%; font-size: 30px; cursor: pointer;
       background: linear-gradient(145deg, #2d3436, #1e272b); border: 3px solid #0fb9b1; color: white; outline: none;
       box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.1); transition: all 0.2s;
     }
-    #battle-record-btn.active { transform: scale(0.9); animation: manaCharge 0.5s infinite alternate; border-color: #26de81; }
-    @keyframes manaCharge { 0% { box-shadow: 0 0 10px #0fb9b1, 0 0 20px #0fb9b1; } 100% { box-shadow: 0 0 30px #26de81, 0 0 60px #26de81; } }
+    #battle-record-btn.active { transform: scale(0.9); border-color: #26de81; }
 
-    /* 🌟 燃特效：火力集結 (改用 outline，完美避開戰損 border 衝突！) */
-    .charging-mana { outline: 4px solid #0fb9b1; animation: cardChargePulse 0.4s infinite alternate; }
-    @keyframes cardChargePulse {
-      0% { outline-color: #0fb9b1; outline-offset: 2px; box-shadow: 0 0 20px #0fb9b1; }
-      100% { outline-color: #26de81; outline-offset: 10px; box-shadow: 0 0 50px #26de81; }
-    }
-
-    /* 👊 技能重擊按鈕 (大招 UI) */
+    /* 👊 技能重擊按鈕 (變成右下角的圓形浮動按鈕) */
     #skill-btn {
-      position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
-      background: linear-gradient(135deg, #f39c12, #e74c3c); color: white; border: 2px solid #f1c40f; border-radius: 20px;
-      padding: 8px 20px; font-size: 16px; font-weight: 900; box-shadow: 0 5px 15px rgba(231, 76, 60, 0.5); cursor: pointer;
+      position: absolute; right: 15vw; bottom: 15px;
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg, #f1c40f, #e67e22); 
+      color: white; border: 2px solid #fff; font-size: 28px; 
+      box-shadow: 0 5px 15px rgba(241, 196, 15, 0.5); cursor: pointer;
       z-index: 40; transition: all 0.3s; animation: float-btn 2s infinite ease-in-out;
+      display: flex; justify-content: center; align-items: center;
     }
-    #skill-btn:active { transform: translateX(-50%) scale(0.9); }
-    @keyframes float-btn { 0%, 100% { bottom: 85px; } 50% { bottom: 95px; box-shadow: 0 10px 20px rgba(231, 76, 60, 0.7); } }
+    #skill-btn:active { transform: scale(0.9); }
+    @keyframes float-btn { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(241, 196, 15, 0.8); } }
 
-    /* 🌈 進入大招蓄力狀態的特效 */
-    .ultimate-mode-bg { background: radial-gradient(circle at 50% 50%, #2c0000 0%, #000 100%) !important; }
-    .ultimate-word { color: #ff4757 !important; text-shadow: 0 0 20px #ff4757, 0 0 40px #ff4757 !important; animation: word-pulse 0.5s infinite alternate; }
+    /* 🌟 一般錄音：回復舊版卡片本體爆發 (加入 !important 覆蓋戰損) */
+    .charging-mana { animation: cardCharge 0.5s infinite alternate !important; outline: none !important; }
+    @keyframes cardCharge {
+      0% { box-shadow: 0 0 15px #0fb9b1, inset 0 0 15px #0fb9b1 !important; border-color: #0fb9b1 !important; transform: translateY(0px); }
+      100% { box-shadow: 0 0 50px #26de81, inset 0 0 25px #26de81 !important; border-color: #26de81 !important; transform: translateY(-5px); }
+    }
+
+    /* 🌈 大招狀態的視覺統整 (高階金黃色) */
+    .ultimate-mode-bg { background: radial-gradient(circle at 50% 50%, #4a3600 0%, #0b0f19 100%) !important; }
+    .ultimate-word { color: #f1c40f !important; text-shadow: 0 0 20px #f1c40f, 0 0 40px #f1c40f !important; animation: word-pulse 0.5s infinite alternate; }
     @keyframes word-pulse { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
-    .ultimate-record-btn { background: linear-gradient(145deg, #1e0000, #3a0000) !important; border: 4px solid #ff4757 !important; box-shadow: 0 0 30px #ff4757, inset 0 0 15px #ff4757 !important; }
+    
+    .ultimate-record-btn {
+      background: linear-gradient(145deg, #e67e22, #f39c12) !important;
+      border: 4px solid #fff !important;
+      box-shadow: 0 0 30px #f1c40f, inset 0 0 15px #f1c40f !important;
+    }
+
+    /* 大招錄音時的黃金卡片發光 */
+    .ultimate-charging { animation: ultCardCharge 0.5s infinite alternate !important; outline: none !important; }
+    @keyframes ultCardCharge {
+      0% { box-shadow: 0 0 20px #f1c40f, inset 0 0 20px #f1c40f !important; border-color: #f1c40f !important; transform: translateY(0px); }
+      100% { box-shadow: 0 0 60px #f39c12, 0 0 80px #fff, inset 0 0 40px #f39c12 !important; border-color: #fff !important; transform: translateY(-5px); }
+    }
 
     /* 💎 螢光得分字體 (用來取代原本的倒數計時) */
     .neon-score {
@@ -338,9 +354,9 @@
     </div>
     <div id="my-card" class="card-entity"></div>
     
-    <div id="battle-controls">
-      <button id="skill-btn" onclick="activateSkill()">👊 技能重擊 (1/1)</button>
+    <div id="battle-controls" style="visibility: hidden;">
       <button id="battle-record-btn" oncontextmenu="return false;">🎤</button>
+      <button id="skill-btn" onclick="activateSkill()">👊</button>
     </div>
   </div>
 </div>
@@ -723,6 +739,9 @@
     document.getElementById('battle-timer').innerText = "60";
     document.getElementById('round-num').innerText = "規則：先得 5 分者勝";
     document.getElementById('battle-info').innerText = "正在等待雙方就緒...";
+    
+    // 🚀 關鍵修復：在準備時強制隱藏面板，防止偷按！
+    document.getElementById('battle-controls').style.visibility = 'hidden';
     
     // 🚀 手術 1：先抓圖並啟動立繪動畫，不用等同步完成
     updateArenaUI(roomId, true);
