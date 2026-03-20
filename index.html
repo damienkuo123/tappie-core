@@ -62,95 +62,54 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
 
-    /* 🚀 修復：讓 Player Zone 有額外底邊距，並把錄音按鈕釘在下方 */
-    .player-zone { position: relative; padding-bottom: 90px; }
+    /* 🚀 修復錄音與技能按鈕佈局 (採用 Flex 垂直置中排列) */
+    .player-zone { position: relative; padding-bottom: 120px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+    
     #battle-controls { 
-      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-      z-index: 50; width: 100%; 
+      position: absolute; bottom: 10px; left: 0; right: 0; 
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end; 
+      z-index: 50; visibility: hidden; 
     }
 
-    /* 🎴 實體卡片設計 (限制高度，加入 overflow 解決裂痕溢出) */
-    .arena-section { z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
-    
-    .card-entity {
-      height: 17vh; min-height: 100px; max-height: 150px; 
-      aspect-ratio: 16 / 9; width: auto; max-width: 95vw; 
-      background-size: cover; background-position: center center; background-repeat: no-repeat;
-      border-radius: 12px; border: 3px solid #576574; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.2);
-      position: relative; z-index: 5; transition: all 0.4s ease;
-      overflow: hidden; /* 🚀 關鍵：把超出去的裂痕直接切掉！ */
-    }
-
-    /* 磨砂玻璃資訊面板 */
-    .glass-panel {
-      background: rgba(30, 39, 46, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
-      padding: 8px 20px; margin-top: -20px; 
-      position: relative; z-index: 20; display: flex; flex-direction: column; align-items: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 80%; max-width: 400px; 
-    }
-
-    /* 點點與文字區 */
-    .rounds-container { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
-    .round-dot { width: 14px; height: 14px; border-radius: 50%; background: #2f3542; box-shadow: inset 0 2px 4px rgba(0,0,0,0.8); border: 1px solid #57606f; transition: 0.3s; }
-    .dot-me { background: #0fb9b1; box-shadow: 0 0 15px #0fb9b1, inset 0 0 5px #fff; border-color: #fff; } 
-    .dot-op { background: #eb3b5a; box-shadow: 0 0 15px #eb3b5a, inset 0 0 5px #fff; border-color: #fff; } 
-
-    /* ⚔️ 中間交戰區 */
-    .stage-zone { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; margin: 1vh 0; max-height: 35vh; }
-    #target-word { font-size: 8vw; text-transform: uppercase; letter-spacing: 2px; color: #f1f2f6; text-shadow: 0 0 15px rgba(255,255,255,0.5), 0px 4px 0px #576574; margin: 0 0 5px 0; text-align: center; transition: 0.3s; }
-    
-    #battle-timer-container { height: 55px; display: flex; justify-content: center; align-items: center; }
-    #battle-timer { font-size: 38px; font-weight: 900; color: #f6e58d; text-shadow: 0 0 15px rgba(246, 229, 141, 0.5); margin: 0; min-height: 45px; }
-  
-    /* 🚀 修復錄音與技能按鈕佈局 (疊加式排列，保證絕對置中) */
-    .player-zone { position: relative; padding-bottom: 120px; }
-    #battle-controls { 
-      position: absolute; bottom: 0; left: 0; width: 100%; height: 100px; 
-      z-index: 50; display: flex; justify-content: center; align-items: center; 
-    }
-
-    #battle-record-btn {
-      width: 75px; height: 75px; border-radius: 50%; font-size: 30px; cursor: pointer;
-      background: linear-gradient(145deg, #2d3436, #1e272b); border: 3px solid #0fb9b1; color: white; outline: none;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.1); transition: all 0.2s;
-      z-index: 51; flex-shrink: 0; display: flex; justify-content: center; align-items: center;
-    }
-    
-    /* 一般錄音按鈕特效 */
-    #battle-record-btn.active { transform: scale(0.9); animation: manaCharge 0.5s infinite alternate; border-color: #26de81; }
-    @keyframes manaCharge { 0% { box-shadow: 0 0 10px #0fb9b1, 0 0 20px #0fb9b1; } 100% { box-shadow: 0 0 30px #26de81, 0 0 60px #26de81; } }
-    
-    /* 大招錄音按鈕特效 */
-    #battle-record-btn.ult-active { transform: scale(0.9); animation: ultManaCharge 0.5s infinite alternate; border-color: #fff; }
-    @keyframes ultManaCharge { 0% { box-shadow: 0 0 20px #f1c40f, 0 0 30px #f1c40f; } 100% { box-shadow: 0 0 50px #f39c12, 0 0 80px #fff; } }
-
-    /* 👊 技能重擊按鈕 (長條形，置中懸浮於錄音按鈕正上方) */
+    /* 👊 技能重擊按鈕 (浮在錄音上方) */
     #skill-btn {
-      position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+      margin-bottom: 15px; /* 與麥克風保持距離 */
       background: linear-gradient(135deg, #f39c12, #e74c3c); color: white; 
       border: 2px solid #f1c40f; border-radius: 20px;
       padding: 8px 25px; font-size: 16px; font-weight: 900; 
       box-shadow: 0 5px 15px rgba(231, 76, 60, 0.5); cursor: pointer;
-      z-index: 40; transition: all 0.3s; animation: float-btn 2s infinite ease-in-out;
-      white-space: nowrap;
+      transition: all 0.3s; animation: float-btn 2s infinite ease-in-out; white-space: nowrap;
     }
-    #skill-btn:active { transform: translateX(-50%) scale(0.9); }
-    @keyframes float-btn { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -5px); box-shadow: 0 10px 20px rgba(231, 76, 60, 0.8); } }
+    #skill-btn:active { transform: scale(0.9); }
+    @keyframes float-btn { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(231, 76, 60, 0.8); } }
 
-    /* 🌟 一般錄音：卡片本體爆發 (青藍色) - 拔除 @keyframes 裡的 !important 修復失效問題 */
-    .charging-mana { outline: 4px solid #0fb9b1; animation: cardChargePulse 0.5s infinite alternate; z-index: 25; }
+    /* 🎤 錄音按鈕本體 */
+    #battle-record-btn {
+      width: 75px; height: 75px; border-radius: 50%; font-size: 30px; cursor: pointer;
+      background: linear-gradient(145deg, #2d3436, #1e272b); border: 3px solid #0fb9b1; color: white; outline: none;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.1); transition: all 0.2s;
+      display: flex; justify-content: center; align-items: center; flex-shrink: 0;
+    }
+    
+    /* 按鈕發光特效 */
+    #battle-record-btn.active { transform: scale(0.9); animation: manaCharge 0.5s infinite alternate; border-color: #26de81; }
+    @keyframes manaCharge { 0% { box-shadow: 0 0 10px #0fb9b1, 0 0 20px #0fb9b1; } 100% { box-shadow: 0 0 30px #26de81, 0 0 60px #26de81; } }
+    
+    #battle-record-btn.ult-active { transform: scale(0.9); animation: ultManaCharge 0.5s infinite alternate; border-color: #fff; }
+    @keyframes ultManaCharge { 0% { box-shadow: 0 0 20px #f1c40f, 0 0 30px #f1c40f; } 100% { box-shadow: 0 0 50px #f39c12, 0 0 80px #fff; } }
+
+    /* 🌟 一般錄音：卡片本體爆發 (青藍色) - 拔除 @keyframes 內的 !important 解決失效 Bug */
+    .card-entity.charging-mana { border-color: #0fb9b1 !important; animation: cardChargePulse 0.5s infinite alternate; z-index: 25; }
     @keyframes cardChargePulse {
-      0% { outline-color: #0fb9b1; outline-offset: 2px; box-shadow: 0 0 20px #0fb9b1, inset 0 0 15px #0fb9b1; transform: translateY(0px); }
-      100% { outline-color: #26de81; outline-offset: 10px; box-shadow: 0 0 50px #26de81, inset 0 0 25px #26de81; transform: translateY(-5px); }
+      0% { box-shadow: 0 0 15px #0fb9b1, inset 0 0 15px #0fb9b1; transform: translateY(0px); }
+      100% { box-shadow: 0 0 50px #26de81, inset 0 0 25px #26de81; transform: translateY(-5px); }
     }
 
     /* 🌟 大招錄音：黃金卡片爆發 (金色) */
-    .ultimate-charging { outline: 4px solid #f1c40f; animation: ultCardCharge 0.5s infinite alternate; z-index: 25; }
+    .card-entity.ultimate-charging { border-color: #f1c40f !important; animation: ultCardCharge 0.5s infinite alternate; z-index: 25; }
     @keyframes ultCardCharge {
-      0% { outline-color: #f1c40f; outline-offset: 2px; box-shadow: 0 0 30px #f1c40f, inset 0 0 20px #f1c40f; transform: translateY(0px); }
-      100% { outline-color: #fff; outline-offset: 12px; box-shadow: 0 0 70px #f39c12, 0 0 80px #fff, inset 0 0 40px #f39c12; transform: translateY(-5px); }
+      0% { box-shadow: 0 0 20px #f1c40f, inset 0 0 20px #f1c40f; transform: translateY(0px); }
+      100% { box-shadow: 0 0 60px #f39c12, 0 0 80px #fff, inset 0 0 40px #f39c12; transform: translateY(-5px); }
     }
 
     /* 🌈 大招狀態的視覺統整 */
@@ -853,9 +812,18 @@
     
     let count = 3; roundSubmitted = false;
     
-    // 🚀 新增：每回合重置大招視覺狀態
+    // 🚀 終極修復：回合開始時，強制洗掉卡片身上殘留的所有動畫標籤，防止「亂動 Bug」！
+    const myCard = document.getElementById('my-card');
+    const opCard = document.getElementById('op-card');
+    const arenaBg = document.getElementById('battle-arena');
+    const allAnims = ['cast-me', 'cast-op', 'blast-up', 'blast-down', 'blast-ultimate', 'loser-shatter', 'take-damage', 'screen-flash-red', 'screen-flash-cyan', 'screen-flash-gold', 'winner-glory'];
+    if(myCard) myCard.classList.remove(...allAnims);
+    if(opCard) opCard.classList.remove(...allAnims);
+    if(arenaBg) arenaBg.classList.remove('screen-flash-red', 'screen-flash-cyan', 'screen-flash-gold');
+
+    // 🚀 重置大招狀態
     isUltimateMode = false;
-    document.getElementById('battle-arena').classList.remove('ultimate-mode-bg');
+    arenaBg.classList.remove('ultimate-mode-bg');
     document.getElementById('target-word').classList.remove('ultimate-word');
     const rb = document.getElementById('battle-record-btn');
     rb.classList.remove('ultimate-record-btn');
@@ -909,7 +877,7 @@
       
       const myCard = document.getElementById('my-card');
       
-      // 🚀 精準判斷大招或一般攻擊，分別套用正確的動畫！
+      // 🚀 精準判斷：按鈕和卡片同步發出對應顏色的光芒！
       if (isUltimateMode) {
           battleBtn.classList.add('ult-active');
           if(myCard) myCard.classList.add('ultimate-charging');
@@ -925,6 +893,15 @@
       if (roundSubmitted || !mediaRecorder || mediaRecorder.state !== "recording") return;
       roundSubmitted = true; clearInterval(currentLimitTimer);
       mediaRecorder.stop(); 
+      
+      // 🚀 清除按鈕動畫
+      battleBtn.classList.remove('active', 'ult-active');
+      
+      // 🚀 清除卡片動畫
+      const myCard = document.getElementById('my-card');
+      if (myCard) {
+          myCard.classList.remove('charging-mana', 'ultimate-charging');
+      }
       
       // 🚀 清除按鈕動畫
       battleBtn.classList.remove('active', 'ult-active');
