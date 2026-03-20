@@ -83,19 +83,16 @@
     #battle-record-btn.ult-active { transform: scale(0.9); animation: ultManaCharge 0.5s infinite alternate; border-color: #fff; }
     @keyframes ultManaCharge { 0% { box-shadow: 0 0 20px #f1c40f, 0 0 30px #f1c40f; } 100% { box-shadow: 0 0 50px #f39c12, 0 0 80px #fff; } }
 
-    /* 🎴 實體卡片設計 (解開高度封印，維持你的 2816x1271 比例，變得更大張！) */
+    /* 🎴 實體卡片設計 */
     .arena-section { z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
     .card-entity {
-      height: 20vh; /* 🚀 高度佔比從 17vh 拉大到 22vh */
-      min-height: 120px; /* 🚀 最小高度提高 */
-      max-height: 180px; /* 🚀 最大高度封印解除，從 150px 放寬到 220px */
-      aspect-ratio: 2816 / 1271; 
-      width: auto; max-width: 95vw; 
+      height: 20vh; min-height: 120px; max-height: 180px; 
+      aspect-ratio: 2816 / 1271; width: auto; max-width: 95vw; 
       background-size: cover; background-position: center center; background-repeat: no-repeat;
       border-radius: 12px; border: 3px solid #576574; 
       box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.2);
       position: relative; z-index: 5; transition: all 0.4s ease;
-      overflow: hidden; 
+      /* 🚀 已經移除 overflow: hidden; 讓光球可以順利飛出卡片結界！ */
     }
 
     /* 🌟 一般錄音：卡片本體爆發 (青藍色) */
@@ -211,8 +208,12 @@
     }
     @keyframes blast-downward { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, 65vh) scale(3); opacity: 0; } }
 
-    /* 🩸 戰損碎裂系統 */
-    .card-entity::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; border-radius: 10px; pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 15; }
+    /* 🩸 戰損碎裂系統 (完整保留您的精美設計！) */
+    .card-entity::before { 
+      content: ''; position: absolute; top:0; left:0; right:0; bottom:0; 
+      border-radius: inherit; /* 🚀 加上這行：讓裂痕自動繼承卡片的 12px 圓角，就不會刺出去了！ */
+      pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 15; 
+    }
     .dmg-1 { border-color: #f1c40f !important; }
     .dmg-1::before { opacity: 0.6; background: linear-gradient(35deg, transparent 49%, rgba(255,255,255,0.8) 49.5%, transparent 50%); }
     .dmg-2 { border-color: #e67e22 !important; box-shadow: inset 0 0 20px rgba(230, 126, 34, 0.5) !important; filter: saturate(0.8); }
