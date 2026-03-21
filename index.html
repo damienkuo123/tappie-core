@@ -1459,7 +1459,7 @@
     }, delayBeforeAttack); 
   }
 
-  // 2. 檢查雙方分數 (已修改總展示時間)
+  // 2. 檢查雙方分數 (修復括號錯誤與整合抽獎系統)
   function checkBoth(roomId) {
     if(isChecking) return; isChecking = true;
     fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
@@ -1500,23 +1500,16 @@
 
           const isFinal = (myTotalWins >= 5 || opTotalWins >= 5 || currentBattleRound >= 9);
         
-          // ... 前面的代碼保持不變 ...
           triggerBattleAnimations(myS, opS, isFinal, myTotalWins, opTotalWins, myUltThisRound, opUltThisRound, myImgUrl, opImgUrl);
         
           let delayBeforeAttack = ( (myS > opS && myUltThisRound) || (opS > myS && opUltThisRound) ) ? 1500 : 0;
           
           // 🚀 縮短展示時間：攻擊前置 + 光球動畫(1600) + 展示(2800ms) = 完美銜接
-          // 動畫全長 3s，我們在 2.8s 時切換退場，卡片就不會停下來發呆！
           let totalWaitTime = delayBeforeAttack + 1600 + 2800; 
 
           setTimeout(() => {
               const overlay = document.getElementById('impact-overlay');
-              // 🚀 觸發帥氣的飛出退場動畫！
-              overlay.classList.add('fade-out');
-              
-              // 等 0.6 秒滑出動畫播完後，再跳轉或切換下一局
-              setTimeout(() => {
-              const overlay = document.getElementById('impact-overlay');
+              // 🚀 觸發帥氣的飛出退場動畫
               overlay.classList.add('fade-out');
               
               setTimeout(() => {
@@ -1538,8 +1531,12 @@
                       currentBattleRound++; 
                       startRoundCountdown(roomId); 
                   }
-              }, 600);
+              }, 600); // 退場動畫時間 0.6 秒
           }, totalWaitTime);
+        }
+        isChecking = false;
+      }).catch(() => isChecking = false);
+  }
 
   // 🚀 重新打造的顯示畫面函數，支援最終決戰 (Final Match) 的神級展現
   function showImpactOverlay(myNum, opNum, isFinal, myImgUrl, opImgUrl) {
