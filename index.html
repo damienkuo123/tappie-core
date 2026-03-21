@@ -25,17 +25,111 @@
     .btn-re { background: var(--marian-red); font-size: 13px; padding: 6px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold; }
     #zh-display { font-size: 20px; color: #7f8c8d; margin: -10px 0 20px 0; font-weight: bold; }
 
-    /* 🛡️ 傳送門彈窗 */
+    /* ========================================= */
+    /* 🚀 傳送門：全息對峙 Loading 畫面 (VS Clash) */
+    /* ========================================= */
     #battle-portal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.95); z-index: 9999; flex-direction: column;
-      align-items: center; justify-content: center; backdrop-filter: blur(10px);
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at center, #1c2331 0%, #050914 100%);
+      z-index: 9999; flex-direction: column; align-items: center; justify-content: space-between; 
+      padding: 40px 0; box-sizing: border-box; overflow: hidden;
     }
-    .portal-box {
-      width: 85%; max-width: 320px; text-align: center; color: white;
-      padding: 30px; border: 2px solid var(--gold); border-radius: 30px;
-      box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); margin: 0 auto;
+    
+    /* 頂部倒數計時 */
+    .portal-timer-modern {
+      font-size: 24px; font-weight: 900; color: #f1c40f; text-shadow: 0 0 15px rgba(241,196,15,0.8);
+      letter-spacing: 5px; z-index: 20;
     }
+
+    /* 對戰區容器 (讓卡片可以在裡面重疊) */
+    .portal-clash-container {
+      position: relative; width: 100%; flex: 1; max-width: 600px; margin: 20px 0;
+    }
+
+    /* 卡片共用樣式 */
+    .portal-card {
+      position: absolute; width: 75vw; max-width: 320px; aspect-ratio: 2816/1271;
+      border-radius: 12px; border: 3px solid rgba(255,255,255,0.8);
+      background-size: cover; background-position: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; /* 初始隱藏，等待 JS 觸發飛入 */
+    }
+
+    /* 姓名條 (直接黏在卡片底部) */
+    .portal-name-tag {
+      background: rgba(0,0,0,0.85); color: white; padding: 6px 25px; font-size: 14px; font-weight: 900;
+      letter-spacing: 2px; text-transform: uppercase; border-top-left-radius: 12px; border-top-right-radius: 12px;
+      transform: translateY(3px); border: 1px solid rgba(255,255,255,0.3); border-bottom: none;
+      backdrop-filter: blur(5px);
+    }
+
+    /* 對手卡片 (從右上角殺出) */
+    .op-card {
+      top: 15%; right: -100vw; transform: rotate(15deg); 
+      border-color: #ff6b6b; box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 40px rgba(255,107,107,0.4);
+    }
+    
+    /* 我方卡片 (從左下角殺出) */
+    .my-card {
+      bottom: 15%; left: -100vw; transform: rotate(-15deg); 
+      border-color: #00d2d3; box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 40px rgba(0,210,211,0.4);
+    }
+
+    /* 🚀 雙卡飛入動畫 + 摩擦震動 (Friction) */
+    .clash-in-op { animation: slide-in-op 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) forwards, friction-op 0.15s 0.4s infinite alternate; }
+    .clash-in-my { animation: slide-in-my 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) forwards, friction-my 0.15s 0.4s infinite alternate; }
+
+    @keyframes slide-in-op {
+      0% { right: -100vw; top: -20%; transform: rotate(25deg) scale(1.2); opacity: 0; }
+      100% { right: 5%; top: 20%; transform: rotate(8deg) scale(1); opacity: 1; }
+    }
+    @keyframes slide-in-my {
+      0% { left: -100vw; bottom: -20%; transform: rotate(-25deg) scale(1.2); opacity: 0; }
+      100% { left: 5%; bottom: 20%; transform: rotate(-8deg) scale(1); opacity: 1; }
+    }
+
+    /* 高頻摩擦震動 (製造力量抗衡的緊繃感) */
+    @keyframes friction-op { to { transform: rotate(8.5deg) translate(-2px, 2px); filter: brightness(1.2); } }
+    @keyframes friction-my { to { transform: rotate(-8.5deg) translate(2px, -2px); filter: brightness(1.2); } }
+
+    /* ⚡ 中間的 VS 閃電特效 */
+    .portal-vs-spark {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+      font-size: 90px; font-weight: 900; font-style: italic; color: #fff;
+      text-shadow: 0 0 20px #f39c12, 0 0 40px #f1c40f, 0 0 80px #e67e22;
+      z-index: 10; opacity: 0; pointer-events: none;
+    }
+    .spark-active { animation: vs-slam 0.4s 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, vs-pulse 0.1s 0.7s infinite alternate; }
+    
+    @keyframes vs-slam { 0% { transform: translate(-50%, -50%) scale(5); opacity: 0; filter: blur(10px); } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: blur(0px); } }
+    @keyframes vs-pulse { to { transform: translate(-50%, -50%) scale(1.05) skewX(-5deg); text-shadow: 0 0 30px #f39c12, 0 0 80px #fff; } }
+
+    /* 🚀 現代化進入按鈕 */
+    .portal-btn-hidden { opacity: 0; transform: translateY(30px); pointer-events: none; }
+    .portal-btn-show { 
+      opacity: 1; pointer-events: auto; transform: translateY(0); 
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-cyber {
+      background: linear-gradient(135deg, #00d2d3, #0fb9b1); color: white;
+      font-size: 22px; font-weight: 900; letter-spacing: 4px; padding: 18px 50px;
+      border: none; border-radius: 15px; cursor: pointer; outline: none;
+      box-shadow: 0 10px 30px rgba(0, 210, 211, 0.5); position: relative; overflow: hidden;
+      text-transform: uppercase;
+    }
+    /* 按鈕上的掃光特效 */
+    .btn-cyber::after {
+      content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+      transform: skewX(-25deg); animation: btn-sweep 2s infinite;
+    }
+    @keyframes btn-sweep { 0% { left: -100%; } 100% { left: 200%; } }
+    .btn-cyber:active { transform: scale(0.95); box-shadow: 0 5px 15px rgba(0, 210, 211, 0.8); }
+
+        /* ========================================= */
+    /* 對戰頁面 */
+    /* ========================================= */
 
     /* 🌌 戰場背景：鎖死高度，完美適應 Safari */
     #battle-arena { 
@@ -496,12 +590,24 @@
 </div>
 
 <div id="battle-portal-overlay" style="display:none;">
-  <div class="portal-box">
-    <h2 style="color:var(--gold); margin-top:0;">⚔️ 傳送至戰場</h2>
-    <div class="portal-timer" id="portal-countdown">60</div>
-    <div id="vs-names-portal" style="color:white; font-weight:bold; margin-bottom:15px;">載入對手資訊...</div>
-    <button class="btn" style="background:var(--marian-green); width:100%; font-size:20px;" onclick="portalJump()">🚀 立即進入</button>
+  
+  <div class="portal-timer-modern">00:<span id="portal-countdown">60</span></div>
+
+  <div class="portal-clash-container">
+    
+    <div id="portal-op-card" class="portal-card op-card">
+      <div class="portal-name-tag" id="portal-op-name">OPPONENT</div>
+    </div>
+
+    <div class="portal-vs-spark">VS</div>
+
+    <div id="portal-my-card" class="portal-card my-card">
+      <div class="portal-name-tag" id="portal-my-name">YOU</div>
+    </div>
+    
   </div>
+
+  <button id="portal-enter-btn" class="btn-cyber portal-btn-hidden" onclick="portalJump()">進入戰場</button>
 </div>
 
 <div id="battle-arena">
@@ -652,20 +758,35 @@
 
     fetch(`${GAS_URL}?action=get_battle_status&roomId=${ROOM_ID}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
-        document.getElementById('vs-names-portal').innerText = `${data.hostName} VS ${data.guestName || "等待對手中..."}`;
         const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
-        const myCard = document.getElementById('my-card');
-        const opCard = document.getElementById('op-card');
 
-        if (isMeHost) {
-            if(data.hostImg) myCard.style.backgroundImage = `url('${data.hostImg}')`;
-            if(data.guestImg) opCard.style.backgroundImage = `url('${data.guestImg}')`;
-        } else {
-            if(data.guestImg) myCard.style.backgroundImage = `url('${data.guestImg}')`;
-            if(data.hostImg) opCard.style.backgroundImage = `url('${data.hostImg}')`;
-        }
-      
+        // 判定名稱
+        const myName = isMeHost ? data.hostName : (data.guestName || "挑戰者");
+        const opName = isMeHost ? (data.guestName || "等待對手...") : data.hostName;
 
+        // 判定圖片
+        const myImgUrl = isMeHost ? data.hostImg : data.guestImg;
+        const opImgUrl = isMeHost ? data.guestImg : data.hostImg;
+
+        // 填入姓名版
+        document.getElementById('portal-my-name').innerText = myName;
+        document.getElementById('portal-op-name').innerText = opName;
+
+        // 填入背景卡片
+        if(myImgUrl) document.getElementById('portal-my-card').style.backgroundImage = `url('${myImgUrl}')`;
+        if(opImgUrl) document.getElementById('portal-op-card').style.backgroundImage = `url('${opImgUrl}')`;
+
+        // 🚀 資料載入完畢，觸發史詩級對撞動畫！
+        document.getElementById('portal-my-card').classList.add('clash-in-my');
+        document.getElementById('portal-op-card').classList.add('clash-in-op');
+        document.querySelector('.portal-vs-spark').classList.add('spark-active');
+
+        // 秀出帥氣的進入戰場按鈕
+        const enterBtn = document.getElementById('portal-enter-btn');
+        enterBtn.classList.remove('portal-btn-hidden');
+        enterBtn.classList.add('portal-btn-show');
+
+        // 綁定跳轉功能
         window.portalJump = () => {
           clearInterval(pTimer);
           portal.style.display = 'none';
@@ -675,7 +796,12 @@
         };
       }).catch(err => {
         console.error("Portal Error:", err);
-        document.getElementById('vs-names-portal').innerText = "連線稍有延遲，請直接進入";
+        // 如果連線失敗的備用按鈕顯示
+        const enterBtn = document.getElementById('portal-enter-btn');
+        enterBtn.innerText = "強制進入";
+        enterBtn.classList.remove('portal-btn-hidden');
+        enterBtn.classList.add('portal-btn-show');
+        
         window.portalJump = () => {
           clearInterval(pTimer);
           portal.style.display = 'none';
@@ -684,20 +810,6 @@
         };
       });
   }
-
-  document.getElementById('start-btn').onclick = () => {
-    document.getElementById('info-text').innerText = "正在載入題目...";
-    fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`)
-      .then(res => res.json()).then(data => {
-        if (!data.words || data.words.length === 0) { alert("題目為空"); return; }
-        quizData = data.words; scores = new Array(quizData.length).fill(null);
-        document.getElementById('total-display').innerText = quizData.length;
-        document.getElementById('setup-zone').style.display = 'none';
-        document.getElementById('progress-container').style.display = 'block';
-        document.getElementById('studio').style.display = 'block';
-        renderWord();
-      }).catch(err => { alert("連線失敗！"); });
-  };
 
   function renderWord() {
     const current = quizData[currentIndex];
