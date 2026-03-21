@@ -575,15 +575,33 @@
     #gacha-subtitle { font-size: 15px; color: #dcdde1; letter-spacing: 2px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 8px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
     #picks-left { color: #f1c40f; font-size: 24px; font-weight: 900; text-shadow: 0 0 10px #f1c40f; margin: 0 5px; }
 
-    .gacha-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; max-width: 600px; z-index: 10; transform: rotateX(5deg); transition: opacity 0.5s; }
-    .gacha-grid.focus-mode { opacity: 0.3; pointer-events: none; filter: blur(5px); } /* 當某張卡放大時，其他變暗模糊 */
+    /* 抽獎卡片網格 */
+    .gacha-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; max-width: 600px; z-index: 10; transform: rotateX(5deg); transition: transform 0.5s; }
+    
+    /* 🚀 修復 1：當進入聚焦模式時，取消外層的 3D 透視，讓中央卡片能精準 fixed 置中 */
+    #gacha-overlay.focus-mode { perspective: none; }
+    #gacha-overlay.focus-mode .gacha-grid { transform: rotateX(0deg); }
+    
+    /* 🚀 修復 2：只讓「沒有被選中」的卡片替身變模糊，絕不影響外層網格！ */
+    #gacha-overlay.focus-mode .gacha-card-wrapper:not(.has-focus) { opacity: 0.2; pointer-events: none; filter: blur(6px); transition: all 0.5s; }
 
-    /* 🃏 卡片本體與中央聚焦狀態 */
-    .gacha-card { position: relative; aspect-ratio: 5/7; width: 100%; cursor: pointer; perspective: 1000px; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1; }
-    .gacha-card.focused { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.8) rotateX(0deg); z-index: 100; cursor: default; }
+    /* 🚀 修復 3：新增「卡片佔位符替身」，防止卡片飛出時排版崩塌 */
+    .gacha-card-wrapper { position: relative; aspect-ratio: 5/7; width: 100%; perspective: 1000px; }
+
+    /* 🃏 卡片本體 */
+    .gacha-card { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1; }
+    
+    /* 🚀 中央聚焦狀態：拔出網格，固定於螢幕正中央，並給予絕對的寬高防變形 */
+    .gacha-card.focused { 
+      position: fixed; top: 50%; left: 50%; 
+      width: 45vw; max-width: 250px; 
+      height: calc(45vw * 1.4); max-height: 350px;
+      transform: translate(-50%, -50%) scale(1.3) !important; 
+      z-index: 1000; cursor: default; 
+    }
     
     .gacha-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; box-shadow: 0 15px 35px rgba(0,0,0,0.6); border-radius: 12px; }
-    .gacha-card:not(.focused):not(.flipped):hover .gacha-inner { transform: translateY(-10px) scale(1.05); box-shadow: 0 25px 40px rgba(0,210,211,0.4); }
+    .gacha-card-wrapper:not(.has-focus) .gacha-card:not(.flipped):hover .gacha-inner { transform: translateY(-10px) scale(1.05); box-shadow: 0 25px 40px rgba(0,210,211,0.4); }
     
     .gacha-card.flipped .gacha-inner { transform: rotateY(180deg) scale(1); }
     .gacha-card.missed .gacha-inner { transform: rotateY(180deg) scale(0.95); filter: grayscale(0.9) brightness(0.4); }
@@ -1672,13 +1690,18 @@
     // 生成 6 張帶有隨機密碼的卡片
     gachaCardsData = [];
     for(let i = 0; i < 6; i++) {
-        // 從戰鬥詞庫裡隨機抽一個字當密語，如果沒有就用 "OPEN"
         let randomWord = battleQuizArr.length > 0 ? battleQuizArr[Math.floor(Math.random() * battleQuizArr.length)].en : "OPEN";
         gachaCardsData.push({ id: i, word: randomWord, prize: drawPrize(), flipped: false });
     }
 
-    // 渲染卡片
+    // 渲染卡片 (加上 Wrapper 替身)
     gachaCardsData.forEach((card, index) => {
+      // 🚀 建立替身外殼
+      const wrapperEl = document.createElement('div');
+      wrapperEl.className = 'gacha-card-wrapper';
+      wrapperEl.id = `wrapper-${index}`;
+
+      // 建立卡片本體
       const cardEl = document.createElement('div');
       cardEl.className = 'gacha-card';
       cardEl.id = `gacha-card-${index}`;
@@ -1703,20 +1726,19 @@
       // 第一層互動：點擊卡片放大聚焦
       cardEl.onclick = (e) => {
           if (isGachaResolving || card.flipped || gachaPicksLeft <= 0) return;
-          // 如果點到的是麥克風按鈕，不觸發放大取消
           if (e.target.closest('.voice-lock-btn')) return; 
 
           if (focusedCardIndex === index) {
-              // 再次點擊卡片其他地方可取消聚焦
               cancelFocus();
           } else {
               focusCard(index);
           }
       };
 
-      board.appendChild(cardEl);
+      // 將卡片塞入替身，替身塞入網格
+      wrapperEl.appendChild(cardEl);
+      board.appendChild(wrapperEl);
       
-      // 綁定長按錄音事件
       bindVoiceLock(index);
     });
 
@@ -1727,16 +1749,20 @@
   function focusCard(index) {
       if (focusedCardIndex !== -1) cancelFocus();
       focusedCardIndex = index;
-      document.getElementById('gacha-board').classList.add('focus-mode');
-      document.getElementById('gacha-header').style.opacity = '0';
+      
+      // 🚀 在最外層加上 focus-mode，在專屬替身上加上 has-focus
+      document.getElementById('gacha-overlay').classList.add('focus-mode');
+      document.getElementById(`wrapper-${index}`).classList.add('has-focus');
       document.getElementById(`gacha-card-${index}`).classList.add('focused');
   }
 
   function cancelFocus() {
       if (focusedCardIndex === -1) return;
+      
+      // 🚀 移除所有的 focus 狀態
       document.getElementById(`gacha-card-${focusedCardIndex}`).classList.remove('focused');
-      document.getElementById('gacha-board').classList.remove('focus-mode');
-      document.getElementById('gacha-header').style.opacity = '1';
+      document.getElementById(`wrapper-${focusedCardIndex}`).classList.remove('has-focus');
+      document.getElementById('gacha-overlay').classList.remove('focus-mode');
       document.getElementById(`lock-status-${focusedCardIndex}`).innerText = "長按發音解鎖";
       focusedCardIndex = -1;
   }
