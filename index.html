@@ -552,95 +552,130 @@
     .theme-magic #cutin-text { color: #1dd1a1; text-shadow: 0 0 20px #1dd1a1, 0 5px 15px #000; }
     .theme-magic #cutin-char { filter: drop-shadow(0 0 25px #1dd1a1); }
 
+
     /* ========================================= */
-    /* 🎁 全息盲盒抽獎系統 (Holo-Gacha System) */
+    /* 🎁 史詩級全息盲盒抽獎系統 (Epic Holo-Gacha) */
     /* ========================================= */
     #gacha-overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-      background: rgba(5, 10, 15, 0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      /* 🚀 建立深邃的空間感背景 */
+      background: radial-gradient(circle at 50% 30%, #162233 0%, #050914 80%);
       z-index: 10000; flex-direction: column; align-items: center; justify-content: center;
-      padding: max(40px, env(safe-area-inset-top)) 20px max(40px, env(safe-area-inset-bottom));
-      box-sizing: border-box; overflow: hidden; color: white; perspective: 1000px;
+      padding: max(40px, env(safe-area-inset-top)) 15px max(40px, env(safe-area-inset-bottom));
+      box-sizing: border-box; overflow: hidden; color: white; 
+      perspective: 1500px; /* 強化 3D 深度 */
     }
+
+    /* 🚀 偽 3D 科技地板 (創造機台空間感) */
+    #gacha-overlay::before {
+      content: ''; position: absolute; bottom: -20%; left: -50%; width: 200%; height: 60%;
+      background: 
+        linear-gradient(to top, rgba(0, 210, 211, 0.15) 0%, transparent 80%),
+        repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0, 210, 211, 0.05) 41px, rgba(0, 210, 211, 0.05) 42px),
+        repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(0, 210, 211, 0.05) 41px, rgba(0, 210, 211, 0.05) 42px);
+      transform: rotateX(70deg); z-index: 0; pointer-events: none;
+      box-shadow: inset 0 50px 100px #050914; /* 邊緣融入黑暗 */
+    }
+
     #gacha-overlay.active { display: flex; animation: fadeIn 0.5s ease forwards; }
 
-    #gacha-header { text-align: center; margin-bottom: 30px; z-index: 10; }
-    #gacha-title { font-size: 28px; font-weight: 900; color: #f1c40f; text-shadow: 0 0 20px rgba(241,196,15,0.6); margin: 0 0 10px 0; letter-spacing: 2px; }
-    #gacha-subtitle { font-size: 16px; color: #a4b0be; letter-spacing: 4px; }
-    #picks-left { color: #00d2d3; font-size: 24px; font-weight: 900; text-shadow: 0 0 10px #00d2d3; }
-
-    /* 抽獎卡片網格 (手機 2x3，電腦 3x2) */
-    .gacha-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
-      width: 100%; max-width: 500px; z-index: 10;
+    #gacha-header { text-align: center; margin-bottom: 2vh; z-index: 10; }
+    #gacha-title { 
+      font-size: 32px; font-weight: 900; font-style: italic; color: #fff; 
+      text-shadow: 0 0 15px #00d2d3, 0 0 30px #00d2d3, 0 4px 0px #0fb9b1; 
+      margin: 0 0 10px 0; letter-spacing: 4px; text-transform: uppercase;
     }
-    @media (min-width: 600px) { .gacha-grid { grid-template-columns: repeat(3, 1fr); max-width: 700px; } }
+    #gacha-subtitle { font-size: 15px; color: #dcdde1; letter-spacing: 2px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 8px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+    #picks-left { color: #f1c40f; font-size: 24px; font-weight: 900; text-shadow: 0 0 10px #f1c40f; margin: 0 5px; }
 
-    /* 🃏 3D 翻轉卡片本體 */
+    /* 抽獎卡片網格：3列2排，緊湊且霸氣 */
+    .gacha-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
+      width: 100%; max-width: 600px; z-index: 10;
+      transform: rotateX(5deg); /* 讓整個牌陣微微後仰，更有機台感 */
+    }
+
+    /* 🃏 3D 直立式卡片本體 */
     .gacha-card {
-      position: relative; aspect-ratio: 2816/1271; width: 100%; cursor: pointer;
-      perspective: 1000px; /* 啟動 3D */
+      position: relative; 
+      aspect-ratio: 5 / 7; /* 🚀 恢復成完美的直立卡牌比例！ */
+      width: 100%; cursor: pointer; perspective: 1000px;
     }
     .gacha-inner {
       position: relative; width: 100%; height: 100%; text-align: center;
       transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       transform-style: preserve-3d;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6); border-radius: 12px;
     }
+    .gacha-card:hover .gacha-inner { transform: translateY(-10px) scale(1.05); box-shadow: 0 25px 40px rgba(0,210,211,0.4); }
+    
     /* 翻牌動作 */
     .gacha-card.flipped .gacha-inner { transform: rotateY(180deg) scale(1.05); }
-    /* 錯過的大獎 (變暗、灰階) */
-    .gacha-card.missed .gacha-inner { transform: rotateY(180deg) scale(0.95); filter: grayscale(0.8) brightness(0.5); }
+    /* 錯過的大獎 (變暗、灰階、失去光芒) */
+    .gacha-card.missed .gacha-inner { transform: rotateY(180deg) scale(0.95); filter: grayscale(0.9) brightness(0.4); }
 
-    /* 卡片的正反面共用屬性 */
+    /* 卡片正反面共用 */
     .gacha-front, .gacha-back {
       position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
-      border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
       overflow: hidden; background-size: cover; background-position: center;
     }
 
-    /* 卡背 (未翻開：顯示 A~F 與流光) */
+    /* 🔮 神祕卡背 (未翻開)：取代無聊的 ABCD */
     .gacha-front {
-      background: linear-gradient(135deg, #1e272b, #2d3436);
-      font-size: 50px; font-weight: 900; font-style: italic; color: rgba(255,255,255,0.8);
-      text-shadow: 0 0 20px rgba(255,255,255,0.5);
+      background: linear-gradient(145deg, #1e272b 0%, #0b0f19 100%);
+      border: 2px solid rgba(0, 210, 211, 0.3);
     }
-    /* 不同的卡背流光顏色 */
-    .gacha-front::after {
+    
+    /* 動態雷射全息背景 */
+    .gacha-front::before {
       content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-      transform: rotate(45deg); animation: gacha-shine 3s infinite;
+      background: conic-gradient(from 0deg, transparent, rgba(0, 210, 211, 0.3), transparent, rgba(155, 89, 182, 0.3), transparent);
+      animation: spin-hologram 4s linear infinite; pointer-events: none;
     }
-    @keyframes gacha-shine { 0% { left: -100%; } 100% { left: 100%; } }
+    @keyframes spin-hologram { 100% { transform: rotate(360deg); } }
 
-    /* 卡面 (翻開後的獎品) */
-    .gacha-back {
-      transform: rotateY(180deg); background: #0b0f19;
+    /* 跳動的神祕核心 (取代字母) */
+    .mystery-core {
+      position: relative; width: 40px; height: 40px; border-radius: 50%;
+      background: radial-gradient(circle, #fff 0%, #00d2d3 50%, transparent 100%);
+      box-shadow: 0 0 20px #00d2d3, 0 0 40px #00d2d3;
+      animation: core-pulse 1.5s ease-in-out infinite alternate, core-color 5s linear infinite;
+      display: flex; justify-content: center; align-items: center;
     }
-    .prize-value { font-size: 32px; font-weight: 900; z-index: 2; margin-bottom: 5px; text-shadow: 0 2px 10px #000; }
-    .prize-label { font-size: 12px; font-weight: bold; letter-spacing: 2px; z-index: 2; text-shadow: 0 2px 5px #000; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 10px; }
+    .mystery-core::after { content: '?'; font-size: 24px; font-weight: 900; color: #0b0f19; font-style: italic; }
+    
+    @keyframes core-pulse { 0% { transform: scale(0.8) translateY(5px); box-shadow: 0 0 10px #00d2d3; } 100% { transform: scale(1.2) translateY(-5px); box-shadow: 0 0 30px #00d2d3, 0 0 50px #fff; } }
+    @keyframes core-color { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } } /* 顏色自動流轉 */
+
+    /* 💎 卡面 (翻開後的獎品) */
+    .gacha-back {
+      transform: rotateY(180deg); background: #1c2331; border: 2px solid #576574;
+    }
+    .prize-value { font-size: 28px; font-weight: 900; z-index: 2; margin-bottom: 5px; text-shadow: 0 2px 10px #000; }
+    .prize-label { font-size: 11px; font-weight: bold; letter-spacing: 2px; z-index: 2; text-shadow: 0 2px 5px #000; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 8px; backdrop-filter: blur(5px); }
     
     /* 大獎發光特效 */
-    .prize-ssr { color: #f1c40f; text-shadow: 0 0 20px #f1c40f, 0 0 40px #f1c40f; box-shadow: inset 0 0 30px rgba(241,196,15,0.5); border-color: #f1c40f; }
-    .prize-sr { color: #9b59b6; text-shadow: 0 0 20px #9b59b6; border-color: #9b59b6; }
-    .prize-r { color: #00d2d3; text-shadow: 0 0 10px #00d2d3; }
+    .prize-ssr { color: #f1c40f; text-shadow: 0 0 15px #f1c40f, 0 0 30px #f1c40f; box-shadow: inset 0 0 40px rgba(241,196,15,0.4); border-color: #f1c40f; }
+    .prize-sr { color: #9b59b6; text-shadow: 0 0 15px #9b59b6; box-shadow: inset 0 0 40px rgba(155,89,182,0.4); border-color: #9b59b6; }
+    .prize-r { color: #00d2d3; text-shadow: 0 0 10px #00d2d3; border-color: #00d2d3; }
 
     /* 🏆 結算彈窗 */
     #gacha-summary-popup {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-      background: rgba(20, 25, 30, 0.95); border: 2px solid #00d2d3; border-radius: 25px;
+      background: rgba(10, 15, 20, 0.95); border: 2px solid #f1c40f; border-radius: 25px;
       padding: 40px; text-align: center; width: 85%; max-width: 400px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(0, 210, 211, 0.3);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 50px rgba(241, 196, 15, 0.3);
       z-index: 100; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      backdrop-filter: blur(15px);
+      backdrop-filter: blur(20px);
     }
     #gacha-summary-popup.show { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
     
-    #gacha-won-list { margin: 20px 0; font-size: 22px; font-weight: bold; color: #f1c40f; line-height: 1.8; }
+    #gacha-won-list { margin: 25px 0; font-size: 24px; font-weight: bold; color: #f1c40f; line-height: 2; letter-spacing: 2px; }
     .btn-claim {
-      background: linear-gradient(135deg, #00d2d3, #0fb9b1); color: white; border: none;
-      padding: 15px 40px; font-size: 20px; font-weight: 900; border-radius: 30px; letter-spacing: 4px;
-      box-shadow: 0 10px 20px rgba(0,210,211,0.4); cursor: pointer; transition: 0.3s; width: 100%;
+      background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border: none;
+      padding: 15px 40px; font-size: 18px; font-weight: 900; border-radius: 30px; letter-spacing: 4px;
+      box-shadow: 0 10px 20px rgba(243,156,18,0.4); cursor: pointer; transition: 0.3s; width: 100%;
     }
     .btn-claim:active { transform: scale(0.95); }
   </style>
@@ -1664,17 +1699,24 @@
         gachaCardsData.push({ id: i, letter: letters[i], prize: drawPrize(), flipped: false });
     }
 
-    // 3. 渲染 6 張 3D 卡片
+    // 3. 渲染 6 張 3D 卡片 (動態神祕核心版)
     gachaCardsData.forEach((card, index) => {
       const cardEl = document.createElement('div');
       cardEl.className = 'gacha-card';
+      
+      // 🚀 將原本印出 ${card.letter} 的地方，換成帶有全息流光的 mystery-core 結構！
       cardEl.innerHTML = `
         <div class="gacha-inner" id="gacha-inner-${index}">
-          <div class="gacha-front">${card.letter}</div>
-          <div class="gacha-back ${card.prize.class}" ${card.prize.bgImg ? `style="background-image: url('${card.prize.bgImg}')"` : ''}>
-            <div class="prize-value">${card.prize.type === 'points' ? `+${card.prize.value}` : '🌟'}</div>
+          
+          <div class="gacha-front">
+            <div class="mystery-core"></div>
+          </div>
+          
+          <div class="gacha-back ${card.prize.class}" ${card.prize.bgImg ? `style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('${card.prize.bgImg}')"` : ''}>
+            <div class="prize-value">${card.prize.type === 'points' ? `+${card.prize.value}` : '✨'}</div>
             <div class="prize-label">${card.prize.label}</div>
           </div>
+
         </div>
       `;
       
