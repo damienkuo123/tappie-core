@@ -30,11 +30,10 @@
     /* ========================================= */
     #battle-portal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      /* 🚀 乾淨深色毛玻璃背景 */
       background: rgba(5, 10, 15, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
       z-index: 9999; flex-direction: column; align-items: center; justify-content: space-between; 
       padding: 50px 0; box-sizing: border-box; overflow: hidden;
-      perspective: 1200px; /* 🚀 沿用 3D 視角 */
+      perspective: 1200px; /* 🚀 啟動 3D 視角 */
     }
 
     /* 頂部倒數計時 */
@@ -46,53 +45,55 @@
     .portal-clash-container {
       position: relative; width: 100%; flex: 1; max-width: 800px; 
       display: flex; align-items: center; justify-content: center;
-      transform-style: preserve-3d; /* 🚀 啟用 3D 空間關係 */
+      transform-style: preserve-3d; 
     }
 
-    /* 🛡️ 卡片本體：完全複製 impact-stand-stage 的卡片質感 */
+    /* 🛡️ 卡片本體：完全複製結算畫面 (impact-stand-stage) 的直立比例與質感 */
     .portal-card {
-      position: absolute; width: 45vw; max-width: 320px; aspect-ratio: 2816/1271;
-      background: rgba(255, 255, 255, 0.05); 
-      border-radius: 15px; 
+      position: absolute; 
+      width: 42vw; height: 60vh; /* 🚀 改回直立式比例！ */
+      max-width: 260px; max-height: 400px; 
+      background: rgba(255, 255, 255, 0.1); 
+      border-radius: 25px; 
       box-shadow: 
         15px 20px 40px rgba(0,0,0,0.6), 
-        inset 2px 2px 4px rgba(255,255,255,0.3), 
-        inset -2px -2px 4px rgba(0,0,0,0.3), 
-        0 0 0 1px rgba(255,255,255,0.15); 
+        inset 3px 3px 5px rgba(255,255,255,0.4), 
+        inset -3px -3px 5px rgba(0,0,0,0.3), 
+        0 0 0 1px rgba(255,255,255,0.2); 
       background-size: cover; background-repeat: no-repeat; background-position: center top;
-      -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
-      mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 20px;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 25px;
       opacity: 0;
+      transform-style: preserve-3d;
     }
 
-    /* 姓名條：融入卡片底部，乾淨發光 */
+    /* 姓名條：使用結算畫面的高級毛玻璃風格 */
     .portal-name-tag {
       font-size: 16px; color: #fff; font-weight: 900; letter-spacing: 4px; text-transform: uppercase;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-      transform: skewX(-5deg); 
+      background: rgba(0, 0, 0, 0.6); padding: 12px 25px; border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+      text-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
 
-    /* 🚀 動態進場：我方 (左下飛入，懸浮對峙) */
-    .clash-in-my { animation: portal-my-enter 2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
-    @keyframes portal-my-enter {
-      /* 🚀 沿用 impact 飛入參數：filter: brightness(2.5) blur(10px) */
-      0% { transform: translate(-100%, 100%) rotateZ(-20deg) rotateY(20deg) scale(0.6); opacity: 0; filter: brightness(2.5) blur(10px); }
-      100% { transform: translate(-45%, 15%) rotateZ(-10deg) rotateY(15deg) scale(1); opacity: 1; filter: brightness(1) blur(0px); }
+    /* 🚀 動態進場：我方卡片 (從左側優雅飛入，向右傾斜) */
+    .clash-in-my { animation: slide-in-my 1.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
+    @keyframes slide-in-my {
+      0% { transform: translateX(-100vw) translateY(50px) rotateY(45deg) rotateZ(-15deg) scale(0.8); opacity: 0; filter: brightness(2) blur(10px); }
+      100% { transform: translateX(-28%) translateY(0) rotateY(15deg) rotateZ(-5deg) scale(1); opacity: 1; filter: brightness(1) blur(0px); }
     }
 
-    /* 🚀 動態進場：對手 (右上飛入，懸浮對峙) */
-    .clash-in-op { animation: portal-op-enter 2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
-    @keyframes portal-op-enter {
-      0% { transform: translate(100%, -100%) rotateZ(20deg) rotateY(-20deg) scale(0.6); opacity: 0; filter: brightness(2.5) blur(10px); }
-      100% { transform: translate(45%, -15%) rotateZ(-10deg) rotateY(-15deg) scale(1); opacity: 1; filter: brightness(1) blur(0px); }
+    /* 🚀 動態進場：對手卡片 (從右側優雅飛入，向左傾斜) */
+    .clash-in-op { animation: slide-in-op 1.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
+    @keyframes slide-in-op {
+      0% { transform: translateX(100vw) translateY(-50px) rotateY(-45deg) rotateZ(15deg) scale(0.8); opacity: 0; filter: brightness(2) blur(10px); }
+      100% { transform: translateX(28%) translateY(0) rotateY(-15deg) rotateZ(5deg) scale(1); opacity: 1; filter: brightness(1) blur(0px); }
     }
 
-    /* ✨ 乾淨發光的 VS 標誌 (替代舊街機風 Proposal) */
+    /* ✨ 乾淨發光的 VS 標誌 (拔除廉價白光) */
     .portal-vs-spark {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-      font-size: 32px; font-weight: 900; font-style: italic; color: #fff;
-      text-shadow: 0 0 15px rgba(0, 210, 211, 0.8), 0 0 30px rgba(0, 210, 211, 0.4);
+      font-size: 50px; font-weight: 900; font-style: italic; color: #fff;
+      text-shadow: 0 0 15px rgba(241, 196, 15, 0.8), 0 0 30px rgba(241, 196, 15, 0.4);
       z-index: 10; opacity: 0; letter-spacing: 5px;
     }
     .spark-active { animation: portal-vs-pop 0.6s 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
@@ -101,24 +102,7 @@
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: blur(0px); }
     }
 
-    /* 🥊 卡片中間持續的白光相撞摩擦特效 (看我怎麼做) */
-    .clash-conflict-effect {
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        width: 100px; height: 100px; border-radius: 50%;
-        background: radial-gradient(circle, #fff, rgba(255,255,255,0.7) 40%, rgba(255,255,255,0) 70%);
-        box-shadow: 0 0 50px #fff, 0 0 100px #fff, 0 0 150px #00d2d3, 0 0 200px #00d2d3;
-        z-index: 5; opacity: 0; transform-style: preserve-3d; pointer-events: none;
-    }
-    .clash-conflict-effect::after {
-        content:''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-        background: radial-gradient(circle, #fff, rgba(255,255,255,0.7) 30%, rgba(255,255,255,0) 70%);
-        animation: portal-vs-pulse 0.1s infinite alternate;
-    }
-    /* 使 VS 的 conflict 效果閃爍 */
-    .spark-active .clash-conflict-effect { opacity: 1; animation: vs-pulse 0.1s infinite alternate; }
-    @keyframes vs-pulse { to { opacity: 1; transform: translate(-50%, -50%) scale(1.05); text-shadow: 0 0 30px #f39c12, 0 0 80px #fff; } }
-
-    /* 🚀 毛玻璃進入戰場按鈕 (比原本好看多了) */
+    /* 🚀 進入戰場按鈕 (高級毛玻璃按鈕) */
     .portal-btn-hidden { opacity: 0; transform: translateY(30px); pointer-events: none; }
     .portal-btn-show { opacity: 1; pointer-events: auto; transform: translateY(0); transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     
@@ -600,17 +584,14 @@
 
   <div class="portal-clash-container">
     
-    <div id="portal-op-card" class="portal-card">
-      <div class="portal-name-tag" id="portal-op-name">OPPONENT</div>
-    </div>
-
-    <div class="portal-vs-spark">
-        <div class="clash-conflict-effect"></div>
-        VS
-    </div>
-
     <div id="portal-my-card" class="portal-card">
       <div class="portal-name-tag" id="portal-my-name">YOU</div>
+    </div>
+
+    <div class="portal-vs-spark">VS</div>
+
+    <div id="portal-op-card" class="portal-card">
+      <div class="portal-name-tag" id="portal-op-name">OPPONENT</div>
     </div>
     
   </div>
