@@ -36,23 +36,36 @@
       perspective: 1200px; /* 🚀 啟動 3D 視角 */
     }
 
-    /* 頂部倒數計時 */
+    /* 頂部倒數計時與提示容器 */
     .portal-timer-modern {
-      font-size: 20px; font-weight: 900; color: #a4b0be; letter-spacing: 8px; z-index: 20;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 20;
+    }
+
+    /* 🚀 新增：提示文字樣式 */
+    .portal-hint {
+      font-size: 14px; font-weight: bold; color: #a4b0be; letter-spacing: 2px;
+      margin-bottom: 8px; text-transform: uppercase;
+    }
+
+    /* 倒數計時數字 */
+    .portal-timer-numbers {
+      font-size: 20px; font-weight: 900; color: #f1c40f; text-shadow: 0 0 15px rgba(241,196,15,0.8);
+      letter-spacing: 8px;
     }
 
     /* 對戰卡片對峙區 Container */
     .portal-clash-container {
       position: relative; width: 100%; flex: 1; max-width: 800px; 
       display: flex; align-items: center; justify-content: center;
-      transform-style: preserve-3d; 
+      transform-style: preserve-3d;
     }
 
-    /* 🛡️ 卡片本體：完全複製結算畫面 (impact-stand-stage) 的直立比例與質感 */
+    /* 🛡️ 卡片本體：沿用 impact-stand-stage 的直立比例與質感 */
     .portal-card {
       position: absolute; 
-      width: 42vw; height: 60vh; /* 🚀 改回直立式比例！ */
-      max-width: 260px; max-height: 400px; 
+      width: 38vw; height: 60vh; /* 🚀 寬度調小一點，避免在較小螢幕碰在一起 */
+      max-width: 240px; max-height: 400px; 
       background: rgba(255, 255, 255, 0.1); 
       border-radius: 25px; 
       box-shadow: 
@@ -66,7 +79,7 @@
       transform-style: preserve-3d;
     }
 
-    /* 姓名條：使用結算畫面的高級毛玻璃風格 */
+    /* 姓名條：高級毛玻璃框 */
     .portal-name-tag {
       font-size: 16px; color: #fff; font-weight: 900; letter-spacing: 4px; text-transform: uppercase;
       background: rgba(0, 0, 0, 0.6); padding: 12px 25px; border-radius: 15px;
@@ -75,25 +88,25 @@
       text-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
 
-    /* 🚀 動態進場：我方卡片 (從左側優雅飛入，向右傾斜) */
+    /* 🚀 動態進場：我方卡片 (從左側飛入，向右傾斜) */
     .clash-in-my { animation: slide-in-my 1.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
     @keyframes slide-in-my {
       0% { transform: translateX(-100vw) translateY(50px) rotateY(45deg) rotateZ(-15deg) scale(0.8); opacity: 0; filter: brightness(2) blur(10px); }
-      100% { transform: translateX(-28%) translateY(0) rotateY(15deg) rotateZ(-5deg) scale(1); opacity: 1; filter: brightness(1) blur(0px); }
+      100% { transform: translateX(-35%) translateY(0) rotateY(15deg) rotateZ(-5deg) scale(1); opacity: 1; filter: brightness(1) blur(0px); } /* 🚀 調整 translateX(-35%) 讓中間更開 */
     }
 
-    /* 🚀 動態進場：對手卡片 (從右側優雅飛入，向左傾斜) */
+    /* 🚀 動態進場：對手卡片 (從右側飛入，向左傾斜) */
     .clash-in-op { animation: slide-in-op 1.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
     @keyframes slide-in-op {
       0% { transform: translateX(100vw) translateY(-50px) rotateY(-45deg) rotateZ(15deg) scale(0.8); opacity: 0; filter: brightness(2) blur(10px); }
-      100% { transform: translateX(28%) translateY(0) rotateY(-15deg) rotateZ(5deg) scale(1); opacity: 1; filter: brightness(1) blur(0px); }
+      100% { transform: translateX(35%) translateY(0) rotateY(-15deg) rotateZ(5deg) scale(1); opacity: 1; filter: brightness(1) blur(0px); } /* 🚀 調整 translateX(35%) 讓中間更開 */
     }
 
-    /* ✨ 乾淨發光的 VS 標誌 (拔除廉價白光) */
+    /* ✨ 乾淨發光的 VS 標誌 (替代舊街機風 Proposal) */
     .portal-vs-spark {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
       font-size: 50px; font-weight: 900; font-style: italic; color: #fff;
-      text-shadow: 0 0 15px rgba(241, 196, 15, 0.8), 0 0 30px rgba(241, 196, 15, 0.4);
+      text-shadow: 0 0 15px rgba(0, 210, 211, 0.8), 0 0 30px rgba(0, 210, 211, 0.4);
       z-index: 10; opacity: 0; letter-spacing: 5px;
     }
     .spark-active { animation: portal-vs-pop 0.6s 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
@@ -102,7 +115,7 @@
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: blur(0px); }
     }
 
-    /* 🚀 進入戰場按鈕 (高級毛玻璃按鈕) */
+    /* 🚀 高級毛玻璃「進入戰場」按鈕 */
     .portal-btn-hidden { opacity: 0; transform: translateY(30px); pointer-events: none; }
     .portal-btn-show { opacity: 1; pointer-events: auto; transform: translateY(0); transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     
@@ -580,7 +593,10 @@
 
 <div id="battle-portal-overlay" style="display:none;">
   
-  <div class="portal-timer-modern">00:<span id="portal-countdown">60</span></div>
+  <div class="portal-timer-modern">
+    <span class="portal-hint">請於倒數前點擊按鈕</span>
+    <span class="portal-timer-numbers">00:<span id="portal-countdown">60</span></span>
+  </div>
 
   <div class="portal-clash-container">
     
@@ -734,57 +750,67 @@
     }
   };
   
+  // 🚀 傳送門：全息對峙 Loading 畫面邏輯
   function showPortal() {
     const portal = document.getElementById('battle-portal-overlay');
-    // 強制重繪與套用 3D 視角，與 impact 一致
+    
+    // 強制重繪與套用 3D 視角
     portal.className = '';
     void portal.offsetWidth; 
     portal.style.display = 'flex';
+    
     let pCount = 60;
     
+    // 啟動頂部倒數計時
     const pTimer = setInterval(() => {
       pCount--;
       document.getElementById('portal-countdown').innerText = pCount;
-      if(pCount <= 0) { clearInterval(pTimer); location.reload(); }
+      if(pCount <= 0) { 
+          clearInterval(pTimer); 
+          location.reload(); 
+      }
     }, 1000);
 
+    // 向後端抓取對戰對手資料
     fetch(`${GAS_URL}?action=get_battle_status&roomId=${ROOM_ID}&t=${new Date().getTime()}`)
-      .then(res => res.json()).then(data => {
+      .then(res => res.json())
+      .then(data => {
         const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
 
-        // 判定圖片與名稱
+        // 判定雙方圖片與名稱
         const myImgUrl = isMeHost ? data.hostImg : data.guestImg;
         const opImgUrl = isMeHost ? data.guestImg : data.hostImg;
         const myName = isMeHost ? data.hostName : (data.guestName || STUDENT_ID);
         const opName = isMeHost ? (data.guestName || "挑戰者") : data.hostName;
 
-        // 填入卡片背景圖與姓名 tags
+        // 填入卡片背景圖與姓名 Tag
         if(myImgUrl) document.getElementById('portal-my-card').style.backgroundImage = `url('${myImgUrl}')`;
         if(opImgUrl) document.getElementById('portal-op-card').style.backgroundImage = `url('${opImgUrl}')`;
         document.getElementById('portal-my-name').innerText = myName;
         document.getElementById('portal-op-name').innerText = opName;
 
-        // 🚀 資料載入完畢，觸發史詩級「對撞對峙」動畫！
-        // 清除舊動畫狀態
+        // 🚀 資料載入完畢，觸發史詩級「卡牌滑入對峙」動畫！
         const myCard = document.getElementById('portal-my-card');
         const opCard = document.getElementById('portal-op-card');
         const vsSpark = document.querySelector('.portal-vs-spark');
+        
+        // 清除舊動畫狀態，強制瀏覽器重繪
         myCard.classList.remove('clash-in-my');
         opCard.classList.remove('clash-in-op');
         vsSpark.classList.remove('spark-active');
-        void portal.offsetWidth; // 強制重繪以重啟動畫
+        void portal.offsetWidth; 
 
-        // 觸發進場與對峙動畫
+        // 加上 Class，正式播放飛入與發光動畫
         myCard.classList.add('clash-in-my');
         opCard.classList.add('clash-in-op');
         vsSpark.classList.add('spark-active');
 
-        // 秀出帥氣質感的「進入戰場」按鈕
+        // 秀出底部帥氣質感的「進入戰場」毛玻璃按鈕
         const enterBtn = document.getElementById('portal-enter-btn');
         enterBtn.classList.remove('portal-btn-hidden');
         enterBtn.classList.add('portal-btn-show');
 
-        // 綁定跳轉功能
+        // 綁定「點擊進入戰場」的跳轉功能
         window.portalJump = () => {
           clearInterval(pTimer);
           portal.style.display = 'none';
@@ -792,9 +818,10 @@
           setTimeout(() => { document.getElementById('battle-arena').classList.add('battle-ready'); }, 100);
           fetchBattleDataAndStart(ROOM_ID);
         };
-      }).catch(err => {
+      })
+      .catch(err => {
         console.error("Portal Error:", err);
-        // 如果載入失敗的備用按鈕與跳轉
+        // 如果網路連線失敗，備用的顯示機制
         const enterBtn = document.getElementById('portal-enter-btn');
         enterBtn.innerText = "強制進入";
         enterBtn.classList.remove('portal-btn-hidden');
