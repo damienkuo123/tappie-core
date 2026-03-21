@@ -188,15 +188,16 @@
     #battle-record-btn.ult-active { transform: scale(0.9); animation: ultManaCharge 0.5s infinite alternate; border-color: #fff; }
     @keyframes ultManaCharge { 0% { box-shadow: 0 0 20px #f1c40f, 0 0 30px #f1c40f; } 100% { box-shadow: 0 0 50px #f39c12, 0 0 80px #fff; } }
 
-    /* 🎴 實體卡片設計 (🚀 變成手遊直式 5:7 比例) */
+    /* 🎴 實體卡片設計 */
     .arena-section { z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
     .card-entity {
-      height: 25vh; min-height: 160px; max-height: 240px; 
-      aspect-ratio: 5 / 7; width: auto; max-width: 95vw; /* 🚀 完美直式比例 */
+      height: 20vh; min-height: 120px; max-height: 180px; 
+      aspect-ratio: 2816 / 1271; width: auto; max-width: 95vw; 
       background-size: cover; background-position: center center; background-repeat: no-repeat;
       border-radius: 12px; border: 3px solid #576574; 
       box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.2);
       position: relative; z-index: 5; transition: all 0.4s ease;
+      /* 🚀 已經移除 overflow: hidden; 讓光球可以順利飛出卡片結界！ */
     }
 
     /* 🌟 一般錄音：卡片本體爆發 (青藍色) */
