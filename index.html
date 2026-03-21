@@ -1247,37 +1247,41 @@
       }).catch(() => isChecking = false);
   }
 
-  // 3. 顯示結算畫面 (全息卡牌)
+  // 🚀 重新打造的顯示畫面函數，吃進去圖片 URL 並套用全息立繪樣式
   function showImpactOverlay(myNum, opNum, isFinal, myImgUrl, opImgUrl) {
     const o = document.getElementById('impact-overlay');
     const r = document.getElementById('impact-result'); 
     const sub = document.getElementById('impact-subtitle');
     const standStage = document.getElementById('impact-stand-stage'); 
 
-    // 清除舊狀態
+    // 清除所有舊狀態與主題
     r.className = '';
-    o.classList.remove('fade-out', 'active');
+    o.classList.remove('fade-out', 'active', 'theme-win', 'theme-lose'); 
     standStage.style.backgroundImage = 'none';
-    void o.offsetWidth; 
+    void o.offsetWidth; // 強制重繪
 
     // 填入分數
     document.getElementById('impact-my-score').innerText = myNum;
     document.getElementById('impact-op-score').innerText = opNum;
     sub.innerText = isFinal ? "FINAL MATCH RESULT" : "ROUND RESULT";
     
+    // 判定勝負與霸氣背景展現
     if (myNum > opNum) { 
       r.innerText = isFinal ? "VICTORY" : "WIN"; 
       r.classList.add('result-win');
+      o.classList.add('theme-win'); // 🚀 觸發我方勝利動畫方向
       if (myImgUrl) standStage.style.backgroundImage = `url('${myImgUrl}')`; 
     }
     else if (myNum < opNum) { 
       r.innerText = isFinal ? "DEFEAT" : "LOSE"; 
       r.classList.add('result-lose');
+      o.classList.add('theme-lose'); // 🚀 觸發對手勝利動畫方向
       if (opImgUrl) standStage.style.backgroundImage = `url('${opImgUrl}')`; 
     }
     else { 
       r.innerText = "DRAW"; 
       r.classList.add('result-draw');
+      o.classList.add('theme-win'); // 平手借用贏家方向
     }
     
     o.classList.add('active'); 
