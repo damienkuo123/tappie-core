@@ -52,20 +52,20 @@
       letter-spacing: 8px;
     }
 
-    /* 對戰卡片對峙區 (使用 Flexbox Gap 確保絕對隔離) */
+    /* 對戰卡片對峙區 (縮小一點間隙，把空間還給卡片) */
     .portal-clash-container {
       position: relative; width: 100%; max-width: 900px; 
-      display: flex; align-items: center; justify-content: center; gap: 20px; /* 🚀 強制兩張卡片保持 20px 的間距！ */
+      display: flex; align-items: center; justify-content: center; 
+      gap: 12px; /* 🚀 間距縮小到 12px，確保分開但畫面緊湊 */
       transform-style: preserve-3d;
-      margin-top: 20px; /* 微調位置 */
+      margin-top: 20px; 
     }
 
-    /* 🛡️ 卡片本體：限制寬度，確保不會互相擠壓 */
+    /* 🛡️ 卡片本體：解除封印！恢復霸氣寬度 */
     .portal-card {
-      /* 🚀 移除 absolute，讓 Flexbox 接管佈局！ */
       position: relative; 
-      width: 40vw; height: 55vh; 
-      max-width: 260px; max-height: 400px; 
+      width: 45vw; height: 65vh; /* 🚀 寬度提升到 45vw (兩張剛好逼近單張大卡的滿版氣勢) */
+      max-width: 360px; max-height: 500px; /* 🚀 解除原本 260px 的憋屈限制！大幅放大 */
       background: rgba(255, 255, 255, 0.1); 
       border-radius: 20px; 
       box-shadow: 
@@ -77,7 +77,7 @@
       display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 25px;
       opacity: 0;
       transform-style: preserve-3d;
-      flex-shrink: 0; /* 防止被擠壓變形 */
+      flex-shrink: 0; 
     }
 
     /* 姓名條 */
