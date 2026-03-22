@@ -1726,10 +1726,11 @@
     return PRIZE_POOL[0];
   }
 
-  window.wonPoints = 0;   // 統計總獲得點數 (含重複補償)
-  window.wonAvatars = []; // 統計獲得的新角色 ID
   
   function initGacha(opponentName) {
+    window.wonPoints = 0;   // 統計總獲得點數 (含重複補償)
+    window.wonAvatars = []; // 統計獲得的新角色 ID
+    
     const overlay = document.getElementById('gacha-overlay');
     const board = document.getElementById('gacha-board');
     const picksSpan = document.getElementById('picks-left');
