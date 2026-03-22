@@ -922,11 +922,8 @@
         
         battleQuizArr = [{en: "APPLE"}, {en: "MAGIC"}, {en: "HERO"}];
         
-        // 🚀 直接寫死你目前擁有的角色，免去網路請求，絕對不卡！
-        window.myUnlockedAvatars = ['A001', 'A002', 'A004']; 
-        console.log("測試模式啟動！目前設定擁有：", window.myUnlockedAvatars);
-        
         try {
+            // 1. 開啟麥克風權限
             stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
@@ -934,8 +931,22 @@
             source.connect(analyser);
             analyser.fftSize = 256;
             dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            // 🚀 2. 動態去後端查你「現在」真正擁有的角色！
+            document.getElementById('gacha-title').innerText = "連線讀取中..."; // 給個小提示
+            
+            let res = await fetch(`${GAS_URL}?action=get_profile&id=${STUDENT_ID}`);
+            let data = await res.json();
+            
+            // 將後端回傳的字串轉換成陣列
+            window.myUnlockedAvatars = data.unlocked.split(',').map(s => s.trim()).filter(s => s !== "");
+            console.log("測試模式啟動！真實擁有角色：", window.myUnlockedAvatars);
+            
+            document.getElementById('gacha-title').innerText = "🎉 戰鬥勝利 🎉"; // 恢復標題
+
         } catch(e) {
-            console.log("麥克風未開啟", e);
+            console.log("API 請求或麥克風失敗", e);
+            window.myUnlockedAvatars = ['A001']; // 萬一斷線的備用防呆
         }
         
         initGacha("高階Ai");
@@ -944,6 +955,8 @@
     }
 
     // --- 原本的正常載入邏輯 ---
+    // ... (以下維持不變) ...
+
     if (MODE === 'battle' && ROOM_ID) {
       document.getElementById('main-card').style.display = 'none';
       document.getElementById('impact-overlay').classList.remove('active');
