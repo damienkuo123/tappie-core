@@ -244,25 +244,42 @@
     let currentCenteredId = ""; 
 
     // 1. 初始化：跟後端要資料 (包含點數、已解鎖、已裝備)
+    // ⚠️ 這裡一定要貼上你最新發佈的 GAS URL！！！
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyWm-WnRO5h3dliEPR36Cq1hCf5DgM4GIgJqXVUREclhtYOHjxq9DptApmQPkU5p5Ys/exec";
+    
+    const params = new URLSearchParams(window.location.search);
+    const STUDENT_ID = params.get('id') || "S001";
+
+    // 🚀 把原本寫死的假資料砍掉，改成空的，等後端餵資料
+    let characterAssets = {}; 
+    let userUnlocked = [];
+    let userEquipped = "";
+    let currentCenteredId = ""; 
+
+    // 1. 初始化：呼叫新 API，取得真實的點數、解鎖進度與所有卡片屬性！
     async function initLobby() {
       try {
-        const res = await fetch(`${GAS_URL}?action=get_profile&id=${STUDENT_ID}`);
+        const res = await fetch(`${GAS_URL}?action=get_lobby_data&id=${STUDENT_ID}`);
         const data = await res.json();
         
-        document.getElementById('header-name').innerText = STUDENT_ID;
-        document.getElementById('header-points').innerText = `${data.points || 1500} PTS`;
-
-        // 確保不會產生空字串的元素
-        userUnlocked = (data.unlocked || "A001").split(',').map(s => s.trim()).filter(s => s !== "");
-        userEquipped = data.equipped || "A001"; 
+        // 接收伺服器傳來的角色總圖鑑
+        characterAssets = data.assets;
         
+        // 渲染個人資料
+        document.getElementById('header-name').innerText = STUDENT_ID;
+        document.getElementById('header-points').innerText = `${data.profile.points} PTS`;
+
+        // 讀取解鎖與裝備狀態
+        userUnlocked = (data.profile.unlocked || "A001").split(',').map(s => s.trim()).filter(s => s !== "");
+        userEquipped = data.profile.equipped || "A001"; 
+        
+        // 開始繪製 3D 畫廊！
         renderCarousel();
       } catch (e) {
-        console.error(e);
-        // 如果斷線，防呆提供預設資料展示
-        userUnlocked = ["A001", "A002", "A003", "A004"];
-        userEquipped = "A001";
-        renderCarousel();
+        console.error("載入失敗：", e);
+        document.getElementById('hero-name').innerText = "⚠️ 資料載入失敗";
+        document.getElementById('hero-name').style.color = "#e74c3c";
+        alert("資料庫連線失敗，請確認 GAS_URL 是否正確，並已發佈新版本！");
       }
     }
 
