@@ -1724,6 +1724,9 @@
     return PRIZE_POOL[0];
   }
 
+  window.wonPoints = 0;   // 統計總獲得點數 (含重複補償)
+  window.wonAvatars = []; // 統計獲得的新角色 ID
+  
   function initGacha(opponentName) {
     const overlay = document.getElementById('gacha-overlay');
     const board = document.getElementById('gacha-board');
@@ -1924,17 +1927,20 @@
       }, 1000); // 震動與爆發光芒持續 1 秒
   }
 
-  // 顯示戰利品並發送 GAS
+  
+
+  // 顯示戰利品並發送 GAS (修正後的重複補償版)
   function showGachaSummary() {
     const listEl = document.getElementById('gacha-won-list');
-    let totalPoints = 0;
-    let unlockedAvatars = [];
+    
+    // 🚀 我們已經在 triggerReveal 算好了
+    let totalPoints = window.wonPoints; 
+    let unlockedAvatars = window.wonAvatars;
+    
     let html = "";
-
     gachaWonItems.forEach(item => {
-        html += `<div>${item.label}</div>`;
-        if (item.type === 'points') totalPoints += item.value;
-        if (item.type === 'avatar') unlockedAvatars.push(item.value);
+        // 使用我們在 triggerReveal 存好的真名
+        html += `<div style="font-size: 18px; line-height: 1.6">${item.realLabel}</div>`;
     });
 
     listEl.innerHTML = html;
@@ -1947,7 +1953,7 @@
         
         const avatarsParam = unlockedAvatars.length > 0 ? `&avatars=${unlockedAvatars.join(',')}` : '';
         
-        // 🚀 在 URL 中加入 roomId 與 winnerId 參數！
+        // 🚀 發送統計好的總點数 (含補償)
         const finalUrl = `${GAS_URL}?action=claim_gacha&id=${STUDENT_ID}&roomId=${ROOM_ID}&winnerId=${STUDENT_ID}&addPoints=${totalPoints}${avatarsParam}`;
         
         fetch(finalUrl, { mode: 'no-cors' }).then(() => {
