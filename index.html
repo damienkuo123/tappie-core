@@ -961,23 +961,6 @@
       await originalOnload();
     }
   };
-
-    // --- 原本的正常載入邏輯 ---
-    if (MODE === 'battle' && ROOM_ID) {
-      document.getElementById('main-card').style.display = 'none';
-      document.getElementById('impact-overlay').classList.remove('active');
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
-        showPortal();
-      } catch(err) { alert("請開啟麥克風權限才能對戰！"); }
-    } else {
-      await originalOnload();
-    }
-  };
   
   // 🚀 傳送門：全息對峙 Loading 畫面邏輯
   function showPortal() {
