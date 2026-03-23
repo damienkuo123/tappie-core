@@ -1158,13 +1158,23 @@
         const myName = isMeHost ? data.hostName : (data.guestName || STUDENT_ID);
         const opName = isMeHost ? (data.guestName || "挑戰者") : data.hostName;
 
-        // 🚀 根據圖片 URL 逆推角色的 Rarity 和 Mask
+        // 🚀 智能比對引擎：自動解碼 URL 並只比對「檔名」，無視伺服器參數與空格編碼！
         let myRarity = 'N', opRarity = 'N', myMask = '', opMask = '';
         
+        // 輔助函數：取得乾淨的檔名 (例如把 https://.../Hero%2001.webp?alt=media 變成 Hero 01.webp)
+        const getCleanFileName = (url) => { 
+            try { return decodeURIComponent(url).split('/').pop().split('?')[0]; } 
+            catch(e) { return ''; } 
+        };
+
         if (window.characterAssets) {
+            const myFile = getCleanFileName(myImgUrl);
+            const opFile = getCleanFileName(opImgUrl);
+
             Object.values(window.characterAssets).forEach(char => {
-               if(char.img && char.img === myImgUrl) { myRarity = char.rarity || 'N'; myMask = char.mask || ''; }
-               if(char.img && char.img === opImgUrl) { opRarity = char.rarity || 'N'; opMask = char.mask || ''; }
+               const charFile = getCleanFileName(char.img);
+               if(charFile && myFile.includes(charFile)) { myRarity = char.rarity || 'N'; myMask = char.mask || ''; }
+               if(charFile && opFile.includes(charFile)) { opRarity = char.rarity || 'N'; opMask = char.mask || ''; }
             });
         }
 
