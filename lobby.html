@@ -442,7 +442,7 @@
 
       <div class="section-divider"><span>Ai 對戰</span></div>
       <div>
-        <div class="ai-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Hero_01.webp');" onclick="alert('進入初階 AI')">
+        <div class="ai-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Hero_01.webp');" onclick="startAiChallenge('初階Ai')">
           <div class="ai-banner-overlay"></div>
           <div class="ai-banner-text">
             <h4>初階 Ai</h4>
@@ -450,7 +450,7 @@
           </div>
         </div>
 
-        <div class="ai-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Aldo.webp');" onclick="alert('進入中階 AI')">
+        <div class="ai-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Aldo.webp');" onclick="startAiChallenge('中階Ai')">
           <div class="ai-banner-overlay"></div>
           <div class="ai-banner-text">
             <h4>中階 Ai</h4>
@@ -458,7 +458,7 @@
           </div>
         </div>
 
-        <div class="ai-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Felix.webp');" onclick="alert('進入高階 AI')">
+        <div class="ai-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Felix.webp');" onclick="startAiChallenge('高階Ai')">
           <div class="ai-banner-overlay"></div>
           <div class="ai-banner-text">
             <h4>高階 Ai</h4>
@@ -482,7 +482,7 @@
 
           <div class="radar-title">
             <span>📡 附近戰場掃描中...</span>
-            <span style="color: #2ecc71;">2 個信號</span>
+            <span id="radar-signal-count" style="color: #2ecc71;">0 個信號</span>
           </div>
           <div class="room-list" id="pvp-room-list">
             <div class="room-item">
@@ -551,6 +551,14 @@
     let userUnlocked = [];
     let userEquipped = "";
     let currentCenteredId = ""; 
+
+    // 🚀 新增：對戰大廳專用的全域變數
+    let lobbyRefreshTimer = null;
+    let battleStatusTimer = null;
+    let aiTimerInterval = null;
+    let currentRoomId = null;
+    let roomExpireTimer = null;
+    const GITHUB_APP_URL = "https://damienkuo123.github.io/marian-app/";
 
     async function initLobby() {
       try {
@@ -863,6 +871,147 @@
     function clamp(val, min, max) { return Math.min(Math.max(val, min), max); }
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = 1; t.style.transform = 'translate(-50%, 0)'; setTimeout(() => { t.style.opacity = 0; t.style.transform = 'translate(-50%, -20px)'; }, 2000); }
 
+    // =======================================================
+    // ⚔️ 戰場連線核心引擎 (從 GAS 移植並優化)
+    // =======================================================
+
+    // 1. 刷新雷達房間列表
+    function refreshLobby() {
+      fetch(`${GAS_URL}?action=get_lobby&t=${new Date().getTime()}`)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('pvp-room-list');
+          
+          if (!data || data.length === 0) { 
+            container.innerHTML = `
+              <div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.4);">
+                <span style="font-size: 24px; display:block; margin-bottom:10px;">📡</span>
+                暫無可加入的戰場...
+              </div>`; 
+            document.getElementById('radar-signal-count').innerText = "0 個信號";
+            return; 
+          }
+
+          document.getElementById('radar-signal-count').innerText = `${data.length} 個信號`;
+          const now = new Date().getTime();
+          
+          container.innerHTML = data.map(room => {
+            const isMyRoom = (room.hostId === STUDENT_ID);
+            const remain = Math.max(0, 120 - Math.floor((now - room.startTime) / 1000));
+
+            return `
+              <div class="room-item" style="${isMyRoom ? 'border-left-color: #2ecc71;' : ''}">
+                <div class="room-info">
+                  <span class="room-name">${room.hostName} 的戰場</span>
+                  <span class="room-meta">難度: ${room.difficulty} | ⏱ ${remain}s</span>
+                </div>
+                <button class="btn-join" 
+                        style="${isMyRoom ? 'background: #2ecc71; color: white;' : ''}" 
+                        ${isMyRoom ? 'disabled' : ''} 
+                        onclick="joinBattle('${room.roomId}')">
+                  ${isMyRoom ? '我的戰場' : '加入'}
+                </button>
+              </div>
+            `;
+          }).join('');
+        })
+        .catch(err => console.log("掃描失敗:", err));
+    }
+
+    // 2. 建立 1v1 真人房間
+    function createBattleRoom() {
+      const classId = document.getElementById('pvp-level').value;
+      const createBtn = document.querySelector('.btn-create-room');
+      
+      createBtn.innerText = "⏳ 建立中...";
+      createBtn.disabled = true;
+      createBtn.style.background = "#576574";
+      createBtn.style.boxShadow = "none";
+
+      fetch(`${GAS_URL}?action=create_battle&id=${STUDENT_ID}&classId=${classId}`)
+        .then(res => res.json())
+        .then(data => {
+          currentRoomId = data.roomId;
+          createBtn.innerText = "❌ 取消戰場";
+          createBtn.disabled = false;
+          createBtn.style.background = "#e74c3c";
+          createBtn.onclick = () => cancelMyRoom();
+
+          battleStatusTimer = setInterval(checkRoomStatus, 3000);
+          roomExpireTimer = setTimeout(() => { if(currentRoomId) cancelMyRoom(true); }, 120000);
+          refreshLobby();
+        });
+    }
+
+    // 3. 取消房間
+    function cancelMyRoom(isTimeout = false) {
+      if (currentRoomId) {
+        fetch(`${GAS_URL}?action=cancel_battle&id=${STUDENT_ID}&roomId=${currentRoomId}`);
+        if(battleStatusTimer) clearInterval(battleStatusTimer);
+        currentRoomId = null;
+      }
+      
+      const createBtn = document.querySelector('.btn-create-room');
+      createBtn.innerText = "開啟 1v1 真人戰場";
+      createBtn.style.background = "linear-gradient(to bottom, #ff8c00, #e65c00)";
+      createBtn.onclick = () => createBattleRoom();
+      
+      if (isTimeout) alert("已超過 2 分鐘無人挑戰，戰場自動關閉。");
+      refreshLobby();
+    }
+
+    // 4. 加入別人的房間
+    function joinBattle(roomId) {
+      if(lobbyRefreshTimer) clearInterval(lobbyRefreshTimer);
+      document.getElementById('pvp-room-list').innerHTML = '<p style="color:var(--gold); text-align:center;">🔗 正在建立連線...</p>';
+      
+      fetch(`${GAS_URL}?action=join_battle&id=${STUDENT_ID}&roomId=${roomId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "Success") jumpToBattle(roomId);
+          else { alert("戰場已關閉或滿員！"); refreshLobby(); lobbyRefreshTimer = setInterval(refreshLobby, 4000); }
+        });
+    }
+
+    // 5. 檢查房間是否有人加入 (房主視角)
+    function checkRoomStatus() {
+      if(!currentRoomId) return;
+      fetch(`${GAS_URL}?action=get_battle_status&roomId=${currentRoomId}&t=${new Date().getTime()}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "InGame") {
+            if(battleStatusTimer) clearInterval(battleStatusTimer);
+            jumpToBattle(currentRoomId);
+          }
+        });
+    }
+
+    // 6. 建立 AI 房間並進入
+    function startAiChallenge(level) {
+      // 簡單的防連點防護
+      if(aiTimerInterval) return;
+      aiTimerInterval = true; 
+      
+      showToast(`正在連線至 ${level}...`);
+      
+      fetch(`${GAS_URL}?action=create_ai_battle&id=${STUDENT_ID}&level=${level}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.roomId) jumpToBattle(data.roomId);
+          aiTimerInterval = null;
+        }).catch(err => {
+          alert("連線失敗");
+          aiTimerInterval = null;
+        });
+    }
+
+    // 7. 最終跳轉指令 (前往對戰 APP)
+    function jumpToBattle(roomId) {
+      const targetUrl = `${GITHUB_APP_URL}?id=${STUDENT_ID}&mode=battle&roomId=${roomId}`;
+      // 直接在當前頁面跳轉至對戰介面
+      window.location.href = targetUrl;
+    }
+    
     // =======================================================
     // ⚔️ 視圖切換邏輯 (英雄整備室 <--> 戰鬥指揮中心)
     // =======================================================
