@@ -127,17 +127,21 @@
     .card__shine:before { transform: translateZ(1px); }
     .card__shine:after { transform: translateZ(1.2px); }
 
-    /* 🚀 進化版 Masking (遮罩自動反轉設定) */
+    /* 🚀 進化版 Masking (遮罩自動反轉設定，加上 !important 絕對強制挖空) */
     .card.masked .card__shine, .card.masked .card__shine:before, .card.masked .card__shine:after {
-      -webkit-mask-image: linear-gradient(white, white), var(--mask);
-      -webkit-mask-composite: destination-out;
-      mask-image: linear-gradient(white, white), var(--mask);
-      mask-composite: exclude;
-      -webkit-mask-size: cover; mask-size: cover;
-      -webkit-mask-position: center center; mask-position: center center;
+      -webkit-mask-image: linear-gradient(white, white), var(--mask) !important;
+      -webkit-mask-composite: destination-out !important;
+      mask-image: linear-gradient(white, white), var(--mask) !important;
+      mask-composite: exclude !important;
+      -webkit-mask-size: cover !important; mask-size: cover !important;
+      -webkit-mask-position: center center !important; mask-position: center center !important;
     }
 
-    /* 🎨 100% 滿血還原：對接你的 cosmos, trainer, v-full-art */
+    /* =======================================================
+       🎨 100% 滿血還原：對接你的 cosmos, trainer, v-full-art
+       ======================================================= */
+
+    /* 🔵【R卡：Cosmos Holo 宇宙碎鑽】 */
     .card[data-rarity="R"] .card__shine {
       --space: 4%;
       background-image: var(--cosmos-bottom), repeating-linear-gradient(82deg, hsl(53, 65%, 60%) calc(var(--space)*1), hsl(93, 56%, 50%) calc(var(--space)*2), hsl(176, 54%, 49%) calc(var(--space)*3), hsl(228, 59%, 55%) calc(var(--space)*4), hsl(283, 60%, 55%) calc(var(--space)*5), hsl(326, 59%, 51%) calc(var(--space)*6), hsl(326, 59%, 51%) calc(var(--space)*7), hsl(283, 60%, 55%) calc(var(--space)*8), hsl(228, 59%, 55%) calc(var(--space)*9), hsl(176, 54%, 49%) calc(var(--space)*10), hsl(93, 56%, 50%) calc(var(--space)*11), hsl(53, 65%, 60%) calc(var(--space)*12) ), radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y), hsla(180, 100%, 89%, 0.5) 5%, hsla(180, 14%, 57%, 0.3) 40%, hsl(0, 0%, 0%) 130% );
@@ -157,12 +161,15 @@
     }
     .card[data-rarity="R"] .card__bg { border-color: #3498db; }
 
+    /* 🟣【SR卡：Trainer Full Art】 (⚠️ 已拔除 :not(.masked) 封印) */
     .card[data-rarity="SR"] .card__shine {
       filter: brightness(calc((var(--pointer-from-center)*0.05) + .8)) contrast(1.75) saturate(1.2);
-      --mask: none; --imgsize: 20%; background-blend-mode: color-burn, hue, hard-light;
+      --imgsize: 20%;
+      background-blend-mode: color-burn, hue, hard-light;
     }
-    .card:not(.masked)[data-rarity="SR"] .card__shine, .card:not(.masked)[data-rarity="SR"] .card__shine:after {
-      background-image: var(--trainer-foil); background-size: var(--imgsize);
+    .card[data-rarity="SR"] .card__shine, .card[data-rarity="SR"] .card__shine:after {
+      background-image: var(--trainer-foil);
+      background-size: var(--imgsize);
       filter: brightness(calc((var(--pointer-from-center)*0.05) + .6)) contrast(1.5) saturate(1.2);
     }
     .card[data-rarity="SR"] .card__shine:before {
@@ -174,13 +181,13 @@
     }
     .card[data-rarity="SR"] .card__bg { border-color: #bdc3c7; }
 
-    .card:not(.masked)[data-rarity="SSR"] .card__shine, .card:not(.masked)[data-rarity="SSR"] .card__shine:after {
-      -webkit-mask-image: var(--mask); mask-image: var(--mask); -webkit-mask-size: var(--imgsize); mask-size: var(--imgsize);
+    /* 🟡【SSR卡：V-Full Art】 (⚠️ 已拔除 :not(.masked) 封印與衝突的 mask 設定) */
+    .card[data-rarity="SSR"] .card__shine, .card[data-rarity="SSR"] .card__shine:after {
       background-blend-mode: exclusion, hue, hard-light;
       filter: brightness(calc((var(--pointer-from-center)*.3) + .35)) contrast(2) saturate(1.5);
     }
-    .card:not(.masked)[data-rarity="SSR"] .card__shine:before { content: none; display: none; }
-    .card:not(.masked)[data-rarity="SSR"] .card__shine:after { filter: brightness(calc((var(--pointer-from-center)*.5) + .8)) contrast(1.6) saturate(1.4); }
+    .card[data-rarity="SSR"] .card__shine:before { content: none; display: none; }
+    .card[data-rarity="SSR"] .card__shine:after { filter: brightness(calc((var(--pointer-from-center)*.5) + .8)) contrast(1.6) saturate(1.4); }
     
     .card[data-rarity="SSR"] .card__shine {
       background-image: var(--foil), repeating-linear-gradient( 0deg, var(--sunpillar-clr-1) calc(var(--space)*1), var(--sunpillar-clr-2) calc(var(--space)*2), var(--sunpillar-clr-3) calc(var(--space)*3), var(--sunpillar-clr-4) calc(var(--space)*4), var(--sunpillar-clr-5) calc(var(--space)*5), var(--sunpillar-clr-6) calc(var(--space)*6), var(--sunpillar-clr-1) calc(var(--space)*7) ), repeating-linear-gradient( var(--angle), #0e152e 0%, hsl(180, 10%, 60%) 3.8%, hsl(180, 29%, 66%) 4.5%, hsl(180, 10%, 60%) 5.2%, #0e152e 10% , #0e152e 12% ), radial-gradient( farthest-corner circle at var(--pointer-x) var(--pointer-y), hsla(0, 0%, 0%, 0.1) 12%, hsla(0, 0%, 0%, 0.15) 20%, hsla(0, 0%, 0%, 0.25) 120% );
