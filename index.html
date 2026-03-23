@@ -702,36 +702,7 @@
     #gacha-won-list { margin: 25px 0; font-size: 24px; font-weight: bold; color: #f1c40f; line-height: 2; letter-spacing: 2px; }
     .btn-claim { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border: none; padding: 15px 40px; font-size: 18px; font-weight: 900; border-radius: 30px; letter-spacing: 4px; box-shadow: 0 10px 20px rgba(243,156,18,0.4); cursor: pointer; transition: 0.3s; width: 100%; }
     .btn-claim:active { transform: scale(0.95); }
-
-    /* ========================================= */
-    /* 🌈 頂級互動 3D 全息閃卡反光鍍膜 (Holo-Foil) */
-    /* ========================================= */
-    .holo-layer {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      border-radius: inherit; 
-      pointer-events: none; /* 絕對不阻擋任何點擊 */
-      z-index: 12; /* 蓋在角色圖上，但在戰損特效下 */
-      
-      /* 🚀 閃卡核心漸層：結合白光反光與七彩霓虹色 */
-      background: linear-gradient(
-        115deg, 
-        transparent 20%, 
-        rgba(255, 255, 255, 0.7) 25%, 
-        transparent 30%, 
-        rgba(0, 212, 255, 0.6) 45%, 
-        rgba(255, 0, 128, 0.6) 55%, 
-        transparent 70%, 
-        rgba(255, 255, 255, 0.7) 75%, 
-        transparent 80%
-      );
-      background-size: 300% 300%;
-      background-position: 50% 50%;
-      
-      /* 🚀 靈魂魔法：將色彩暴力增值融入立繪底圖中 */
-      mix-blend-mode: color-dodge; 
-      opacity: 0; /* 預設隱藏，手指摸上去才發光 */
-      transition: opacity 0.3s ease;
-    }
+    
   </style>
 </head>
 <body>
