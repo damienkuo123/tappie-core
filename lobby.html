@@ -384,7 +384,7 @@
     </div>
   </div>
 
-  <div id="battle-view">
+  </div> <div id="battle-view">
     <div class="battle-header">
       <div class="btn-return-armory" onclick="goBackToArmory()">🔙</div>
       <h2 class="battle-title">戰術指揮中心</h2>
@@ -392,58 +392,68 @@
     
     <div class="battle-content">
       
+      <div class="section-divider"><span>突發事件</span></div>
+      <div>
+        <div class="event-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Glou-Glou.webp');" onclick="alert('活動尚未開啟！')">
+          <div class="event-overlay">
+            <div class="locked-tag">🔒 尚未開啟</div>
+          </div>
+        </div>
+      </div>
+
       <div class="section-divider"><span>Ai 對戰</span></div>
-      
-      <div class="ai-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Hero_01.webp');" onclick="alert('進入初階 AI')">
-        <div class="ai-banner-overlay"></div>
-        <div class="ai-banner-text">
-          <h4>初階 Ai</h4>
-          <p>挑戰獎勵：0 點</p>
-        </div>
-      </div>
-
-      <div class="ai-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Aldo.webp');" onclick="alert('進入中階 AI')">
-        <div class="ai-banner-overlay"></div>
-        <div class="ai-banner-text">
-          <h4>中階 Ai</h4>
-          <p>挑戰獎勵：10 點</p>
-        </div>
-      </div>
-
-      <div class="ai-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Felix.webp');" onclick="alert('進入高階 AI')">
-        <div class="ai-banner-overlay"></div>
-        <div class="ai-banner-text">
-          <h4>高階 Ai</h4>
-          <p>挑戰獎勵：20 點</p>
+      <div>
+        <div class="ai-grid">
+          <div class="ai-card-btn easy" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Hero_01.webp');" onclick="alert('進入初階戰鬥！')">
+            <div class="ai-level-tag">初 階</div>
+          </div>
+          <div class="ai-card-btn mid" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Aldo.webp');" onclick="alert('進入中階戰鬥！')">
+            <div class="ai-level-tag">中 階</div>
+          </div>
+          <div class="ai-card-btn hard" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Felix.webp');" onclick="alert('進入高階戰鬥！')">
+            <div class="ai-level-tag">高 階</div>
+          </div>
         </div>
       </div>
 
       <div class="section-divider" style="margin-top: 40px;"><span>1v1 真人對戰</span></div>
-      
-      <div class="difficulty-selector">
-        <div class="diff-btn active" onclick="selectDifficulty(this, 'E1')">E1</div>
-        <div class="diff-btn" onclick="selectDifficulty(this, 'E2')">E2</div>
-        <div class="diff-btn" onclick="selectDifficulty(this, 'E3')">E3</div>
-        <div class="diff-btn" onclick="selectDifficulty(this, 'E4')">E4</div>
-        <div class="diff-btn" onclick="selectDifficulty(this, 'E5')">E5</div>
-      </div>
-      
-      <button class="btn-primary-large" onclick="alert('建立戰場！')">開啟 1v1 真人戰場</button>
-
-      <div class="section-divider" style="margin-top: 40px;"><span>當前戰場列表</span></div>
-      
-      <div class="room-list" id="pvp-room-list">
-        <div class="room-item">
-          <div class="room-info">
-            <span class="room-name">S005 的戰場</span>
-            <span class="room-meta">難度: E2 | 狀態: 等待中</span>
+      <div>
+        <div class="pvp-panel">
+          <div class="pvp-controls">
+            <select id="pvp-level" class="level-select">
+              <option value="E1">難度：E1</option>
+              <option value="E2">難度：E2</option>
+              <option value="E3">難度：E3</option>
+              <option value="E4">難度：E4</option>
+            </select>
+            <button class="btn-create-room" onclick="alert('建立房間：' + document.getElementById('pvp-level').value)">建立戰場</button>
           </div>
-          <button class="btn-join" onclick="alert('加入 S005 的戰場！')">加入</button>
+
+          <div class="radar-title">
+            <span>📡 附近戰場掃描中...</span>
+            <span style="color: #2ecc71;">2 個信號</span>
+          </div>
+          <div class="room-list" id="pvp-room-list">
+            <div class="room-item">
+              <div class="room-info">
+                <span class="room-name">S005 的戰場</span>
+                <span class="room-meta">難度: E2 | 狀態: 等待中</span>
+              </div>
+              <button class="btn-join" onclick="alert('加入 S005 的戰場！')">加入</button>
+            </div>
+            <div class="room-item" style="border-left-color: #e74c3c;">
+              <div class="room-info">
+                <span class="room-name">S012 的戰場</span>
+                <span class="room-meta">難度: E4 | 狀態: 對戰中</span>
+              </div>
+              <button class="btn-join" style="background: #e74c3c; color: white;" disabled>觀戰</button>
+            </div>
+          </div>
         </div>
       </div>
 
     </div>
-  </div>
+  </div> 
 
 
   <div id="shop-modal">
