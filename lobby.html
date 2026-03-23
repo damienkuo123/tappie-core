@@ -314,6 +314,47 @@
     .battle-title { color: white; font-size: 20px; font-weight: 900; margin: 0; letter-spacing: 2px; }
     .battle-content { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); }
 
+    /* =======================================================
+       ⚔️ 戰場 UI 設計：任務面板與科技控制台
+       ======================================================= */
+    /* 修正內容區，讓它可垂直滑動 */
+    .battle-content { flex: 1; padding: 20px 20px 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 30px; }
+    
+    /* 區塊標題 */
+    .section-title { font-size: 18px; font-weight: 900; color: #00d2d3; border-left: 4px solid #00d2d3; padding-left: 10px; margin: 0 0 15px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,210,211,0.4); }
+
+    /* 🚨 1. 活動戰場 Banner */
+    .event-banner { width: 100%; height: 120px; border-radius: 15px; position: relative; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; overflow: hidden; background-size: cover; background-position: center 20%; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+    .event-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; }
+    .locked-tag { background: rgba(0,0,0,0.8); color: var(--gold); padding: 5px 20px; border-radius: 8px; font-weight: 900; border: 2px solid var(--gold); transform: rotate(-5deg); font-size: 18px; letter-spacing: 4px; box-shadow: 0 0 15px rgba(241,196,15,0.3); }
+
+    /* 🤖 2. AI 模擬戰卡片群 */
+    .ai-grid { display: flex; gap: 15px; width: 100%; }
+    .ai-card-btn { flex: 1; aspect-ratio: 5/7; border-radius: 12px; background-size: cover; background-position: center; position: relative; cursor: pointer; transition: 0.2s; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+    .ai-card-btn:active { transform: scale(0.95); }
+    .ai-card-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent 50%); border-radius: inherit; }
+    .ai-level-tag { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); color: white; padding: 4px 0; width: 80%; text-align: center; border-radius: 6px; font-size: 13px; font-weight: 900; z-index: 2; letter-spacing: 1px; }
+    .ai-card-btn.easy { border-color: #2ecc71; } .ai-card-btn.easy .ai-level-tag { background: #27ae60; }
+    .ai-card-btn.mid { border-color: #f39c12; } .ai-card-btn.mid .ai-level-tag { background: #d35400; }
+    .ai-card-btn.hard { border-color: #e74c3c; } .ai-card-btn.hard .ai-level-tag { background: #c0392b; }
+
+    /* ⚔️ 3. 真人競技場控制台 */
+    .pvp-panel { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 15px; padding: 15px; backdrop-filter: blur(10px); }
+    .pvp-controls { display: flex; gap: 10px; margin-bottom: 15px; }
+    .level-select { flex: 1; background: rgba(0,0,0,0.6); color: white; border: 1px solid #00d2d3; border-radius: 10px; padding: 12px; font-size: 16px; font-weight: bold; outline: none; appearance: none; text-align: center; }
+    .btn-create-room { background: #00d2d3; color: #000; font-weight: 900; border: none; padding: 0 20px; border-radius: 10px; font-size: 16px; cursor: pointer; box-shadow: 0 0 15px rgba(0,210,211,0.4); transition: 0.2s; }
+    .btn-create-room:active { transform: scale(0.95); box-shadow: none; }
+    
+    /* 📡 雷達房間列表 */
+    .radar-title { font-size: 12px; color: #a4b0be; letter-spacing: 2px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .room-list { display: flex; flex-direction: column; gap: 10px; }
+    .room-item { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 12px 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border-left: 4px solid var(--gold); }
+    .room-info { display: flex; flex-direction: column; gap: 4px; }
+    .room-name { color: white; font-weight: bold; font-size: 15px; }
+    .room-meta { font-size: 11px; color: #bdc3c7; }
+    .btn-join { background: var(--gold); color: #000; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 900; cursor: pointer; }
+    .btn-join:active { transform: scale(0.9); }
+
   </style>
 </head>
 <body>
@@ -357,9 +398,74 @@
       <div class="btn-return-armory" onclick="goBackToArmory()">🔙</div>
       <h2 class="battle-title">戰術指揮中心</h2>
     </div>
+    <div id="battle-view">
+    <div class="battle-header">
+      <div class="btn-return-armory" onclick="goBackToArmory()">🔙</div>
+      <h2 class="battle-title">戰術指揮中心</h2>
+    </div>
+    
     <div class="battle-content">
-      <h3 style="color: var(--gold); letter-spacing: 2px;">📡 雷達掃描中...</h3>
-      <p style="font-size: 14px; text-align: center; max-width: 80%;">戰場選擇與 AI 挑戰清單將建置於此</p>
+      
+      <div>
+        <h3 class="section-title">突發事件</h3>
+        <div class="event-banner" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Glou-Glou.webp');" onclick="alert('活動尚未開啟！')">
+          <div class="event-overlay">
+            <div class="locked-tag">🔒 尚未開啟</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="section-title">模擬戰 (AI)</h3>
+        <div class="ai-grid">
+          <div class="ai-card-btn easy" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Hero_01.webp');" onclick="alert('進入初階戰鬥！')">
+            <div class="ai-level-tag">初 階</div>
+          </div>
+          <div class="ai-card-btn mid" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Aldo.webp');" onclick="alert('進入中階戰鬥！')">
+            <div class="ai-level-tag">中 階</div>
+          </div>
+          <div class="ai-card-btn hard" style="background-image: url('https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/Felix.webp');" onclick="alert('進入高階戰鬥！')">
+            <div class="ai-level-tag">高 階</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="section-title">競技場 (1v1 PvP)</h3>
+        <div class="pvp-panel">
+          <div class="pvp-controls">
+            <select id="pvp-level" class="level-select">
+              <option value="E1">難度：E1</option>
+              <option value="E2">難度：E2</option>
+              <option value="E3">難度：E3</option>
+              <option value="E4">難度：E4</option>
+            </select>
+            <button class="btn-create-room" onclick="alert('建立房間：' + document.getElementById('pvp-level').value)">建立戰場</button>
+          </div>
+
+          <div class="radar-title">
+            <span>📡 附近戰場掃描中...</span>
+            <span style="color: #2ecc71;">2 個信號</span>
+          </div>
+          <div class="room-list" id="pvp-room-list">
+            <div class="room-item">
+              <div class="room-info">
+                <span class="room-name">S005 的戰場</span>
+                <span class="room-meta">難度: E2 | 狀態: 等待中</span>
+              </div>
+              <button class="btn-join" onclick="alert('加入 S005 的戰場！')">加入</button>
+            </div>
+            <div class="room-item" style="border-left-color: #e74c3c;">
+              <div class="room-info">
+                <span class="room-name">S012 的戰場</span>
+                <span class="room-meta">難度: E4 | 狀態: 對戰中</span>
+              </div>
+              <button class="btn-join" style="background: #e74c3c; color: white;" disabled>觀戰</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
