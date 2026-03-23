@@ -1059,25 +1059,24 @@
         const opName = isMeHost ? (data.guestName || "挑戰者") : data.hostName;
 
         // 填入卡片背景圖與姓名 Tag
-        if(myImgUrl) document.getElementById('portal-my-card').style.backgroundImage = `url('${myImgUrl}')`;
-        if(opImgUrl) document.getElementById('portal-op-card').style.backgroundImage = `url('${opImgUrl}')`;
+        if(myImgUrl) document.getElementById('portal-my-bg').style.backgroundImage = `url('${myImgUrl}')`;
+        if(opImgUrl) document.getElementById('portal-op-bg').style.backgroundImage = `url('${opImgUrl}')`;
         document.getElementById('portal-my-name').innerText = myName;
         document.getElementById('portal-op-name').innerText = opName;
 
         // 🚀 資料載入完畢，觸發史詩級「卡牌滑入對峙」動畫！
-        const myCard = document.getElementById('portal-my-card');
-        const opCard = document.getElementById('portal-op-card');
+        // 注意：動畫現在要掛在外層的 wrapper 上
+        const myWrapper = document.getElementById('portal-my-wrapper');
+        const opWrapper = document.getElementById('portal-op-wrapper');
         const vsSpark = document.querySelector('.portal-vs-spark');
         
-        // 清除舊動畫狀態，強制瀏覽器重繪
-        myCard.classList.remove('clash-in-my');
-        opCard.classList.remove('clash-in-op');
+        myWrapper.classList.remove('clash-in-my');
+        opWrapper.classList.remove('clash-in-op');
         vsSpark.classList.remove('spark-active');
         void portal.offsetWidth; 
 
-        // 加上 Class，正式播放飛入與發光動畫
-        myCard.classList.add('clash-in-my');
-        opCard.classList.add('clash-in-op');
+        myWrapper.classList.add('clash-in-my');
+        opWrapper.classList.add('clash-in-op');
         vsSpark.classList.add('spark-active');
 
         // 秀出底部帥氣質感的「進入戰場」毛玻璃按鈕
