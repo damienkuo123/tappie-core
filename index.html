@@ -79,18 +79,19 @@
       letter-spacing: 8px;
     }
 
-    /* 對戰卡片對峙區 (改為絕對定位的錯位交疊佈局) */
+    /* 對戰卡片對峙區 (🚀 移除 preserve-3d，強制使用 z-index 防止 3D 穿模！) */
     .portal-clash-container {
       position: relative; width: 100%; max-width: 500px; height: 60vh; max-height: 600px;
-      margin: 15px auto; transform-style: preserve-3d;
+      margin: 15px auto; 
+      /* 🚀 絕對關鍵：不能加 preserve-3d，讓 z-index 發揮絕對壓制力 */
     }
 
     /* ========================================= */
     /* 🚀 頂級全息卡牌架構 (從 Lobby 完美移植) */
     /* ========================================= */
     .portal-card-wrapper {
-      position: absolute; /* 🚀 解除 Flex 拘束，允許任意重疊！ */
-      width: 55vw; max-width: 280px; /* 卡片放大 */
+      position: absolute; 
+      width: 55vw; max-width: 280px; 
       aspect-ratio: var(--card-aspect);
       perspective: 1000px; opacity: 0;
     }
@@ -101,21 +102,20 @@
     /* 🚀 對手卡片：在右下角沉穩迎擊 */
     #portal-op-wrapper { bottom: 0; right: 2%; z-index: 2; }
 
-    /* 🚀 動態進場：加入 Z 軸深度，解除卡片打架危機！ */
+    /* 🚀 動態進場：加入 Z 軸深度，加強遠近透視感！ */
     .clash-in-my { animation: slide-in-my 1.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
     @keyframes slide-in-my {
       0% { transform: translate3d(-30vw, -50px, -200px) rotateY(45deg) rotateZ(-20deg) scale(0.8); opacity: 0; filter: brightness(2) blur(10px); }
-      /* 🚀 我方卡片稍微往前凸出 (translateZ 50px) */
-      100% { transform: translate3d(5%, 5%, 50px) rotateY(15deg) rotateZ(-8deg) scale(1.05); opacity: 1; filter: brightness(1) blur(0px); } 
+      100% { transform: translate3d(5%, 5%, 0px) rotateY(15deg) rotateZ(-8deg) scale(1.05); opacity: 1; filter: brightness(1) blur(0px); } 
     }
 
     .clash-in-op { animation: slide-in-op 1.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
     @keyframes slide-in-op {
       0% { transform: translate3d(30vw, 50px, -500px) rotateY(-45deg) rotateZ(20deg) scale(0.8); opacity: 0; filter: brightness(2) blur(10px); }
-      /* 🚀 對手卡片被推向深淵！(translateZ -150px)，且尺寸稍微縮小營造遠近感 */
-      100% { transform: translate3d(-5%, -5%, -150px) rotateY(-15deg) rotateZ(8deg) scale(0.95); opacity: 1; filter: brightness(0.8) blur(0px); } 
+      /* 🚀 對手卡片被推向深淵！(translateZ -100px) 營造極強的空間感 */
+      100% { transform: translate3d(-5%, -5%, -100px) rotateY(-15deg) rotateZ(8deg) scale(0.95); opacity: 1; filter: brightness(0.8) blur(0px); } 
     }
-
+    
     /* ✨ VS 疊在正中央防護罩 */
     .portal-vs-spark {
       /* 確保 VS 漂浮在兩張卡片之間 */
@@ -1166,23 +1166,25 @@
         const myName = isMeHost ? data.hostName : (data.guestName || STUDENT_ID);
         const opName = isMeHost ? (data.guestName || "挑戰者") : data.hostName;
 
-        // 🚀 智能比對引擎：自動解碼 URL 並只比對「檔名」，無視伺服器參數與空格編碼！
+        // 🚀 終極精準比對引擎：直接比對乾淨的 URL 網址，保證 100% 命中特效！
         let myRarity = 'N', opRarity = 'N', myMask = '', opMask = '';
         
-        // 輔助函數：取得乾淨的檔名 (例如把 https://.../Hero%2001.webp?alt=media 變成 Hero 01.webp)
-        const getCleanFileName = (url) => { 
-            try { return decodeURIComponent(url).split('/').pop().split('?')[0]; } 
-            catch(e) { return ''; } 
-        };
-
         if (window.characterAssets) {
-            const myFile = getCleanFileName(myImgUrl);
-            const opFile = getCleanFileName(opImgUrl);
+            // 清理網址：解碼 %20 並去掉 ? 後面的參數，確保比對精準
+            const baseMy = myImgUrl ? decodeURIComponent(myImgUrl).split('?')[0].trim() : '';
+            const baseOp = opImgUrl ? decodeURIComponent(opImgUrl).split('?')[0].trim() : '';
 
             Object.values(window.characterAssets).forEach(char => {
-               const charFile = getCleanFileName(char.img);
-               if(charFile && myFile.includes(charFile)) { myRarity = char.rarity || 'N'; myMask = char.mask || ''; }
-               if(charFile && opFile.includes(charFile)) { opRarity = char.rarity || 'N'; opMask = char.mask || ''; }
+               const baseChar = char.img ? decodeURIComponent(char.img).split('?')[0].trim() : '';
+               
+               if(baseChar && baseChar === baseMy) { 
+                   myRarity = char.rarity || 'N'; 
+                   myMask = char.mask || ''; 
+               }
+               if(baseChar && baseChar === baseOp) { 
+                   opRarity = char.rarity || 'N'; 
+                   opMask = char.mask || ''; 
+               }
             });
         }
 
