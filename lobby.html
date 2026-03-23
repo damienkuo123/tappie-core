@@ -264,6 +264,34 @@
     .shop-limited-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; padding: 4px 8px; font-size: 10px; font-weight: 900; border-radius: 8px; box-shadow: 0 4px 10px rgba(231,76,60,0.4); z-index: 10; letter-spacing: 1px; animation: pulse 1.5s infinite; border: 1px solid white; }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
+    /* =======================================================
+       ⚔️ Phase 4: 戰鬥大廳 (SPA 視圖切換與導航)
+       ======================================================= */
+    .nav-buttons { display: flex; gap: 15px; width: 100%; max-width: 350px; margin-top: 5px; padding: 0 20px; box-sizing: border-box; }
+    .btn-nav { flex: 1; padding: 12px 0; border-radius: 20px; font-size: 14px; font-weight: 900; border: none; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    .btn-nav:active { transform: scale(0.95); }
+    .btn-back { background: rgba(255,255,255,0.1); color: white; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2); }
+    .btn-battle { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: 1px solid #ff7979; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+    /* 戰場視圖 (隱藏在右側，滑動進入) */
+    #battle-view {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
+      background: var(--bg-color);
+      background-image: radial-gradient(circle at 50% 0%, #34495e 0%, #0a0e17 100%), linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 30px 30px, 30px 30px;
+      z-index: 8000; display: flex; flex-direction: column;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform: translateX(100%);
+    }
+    #battle-view.active { transform: translateX(0); }
+    
+    .battle-header { padding: max(20px, env(safe-area-inset-top)) 20px 15px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); }
+    .btn-return-armory { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; transition: 0.2s; }
+    .btn-return-armory:active { transform: scale(0.9); }
+    .battle-title { color: white; font-size: 20px; font-weight: 900; margin: 0; letter-spacing: 2px; }
+    
+    .battle-content { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); }
+
   </style>
 </head>
 <body>
