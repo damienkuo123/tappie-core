@@ -1642,20 +1642,25 @@
     }
 
     setTimeout(() => {
-        // 抓取包在外層的 wrapper 來掛光球特效
+        // 抓取包在外層的 container 和 wrapper
+        const myContainer = myCard.closest('.my-container');
+        const opContainer = opCard.closest('.op-container');
         const myWrapper = myCard.closest('.arena-card-wrapper');
         const opWrapper = opCard.closest('.arena-card-wrapper');
 
         if (myNum > opNum) { 
           if(myCard) {
+            // 我方開火，加上後座力
+            if(myContainer) myContainer.classList.add('recoil-my');
+            
             if (isMyUlt) {
                 myCard.classList.add('ultimate-charging'); 
-                if(myWrapper) myWrapper.classList.add('blast-ultimate'); // 光球綁在 wrapper 上
+                if(myWrapper) myWrapper.classList.add('blast-ultimate');
                 if(arenaBg) arenaBg.classList.add('screen-flash-gold');
                 showSkillPopup("👊 技能重擊 +2 燈！", "#f1c40f");
             } else {
                 myCard.classList.add('charging-mana'); 
-                if(myWrapper) myWrapper.classList.add('blast-up'); // 光球綁在 wrapper 上
+                if(myWrapper) myWrapper.classList.add('blast-up');
                 if(arenaBg) arenaBg.classList.add('screen-flash-cyan'); 
             }
             if(isFinal) setTimeout(() => myCard.classList.add('winner-glory'), 800);
@@ -1665,14 +1670,17 @@
         else if (myNum < opNum) { 
           if (isMyUlt) showSkillPopup("❌ 技能被打斷...", "#e74c3c");
           if(opCard) {
+            // 對手開火，加上後座力
+            if(opContainer) opContainer.classList.add('recoil-op');
+            
             if (isOpUlt) {
                 opCard.classList.add('ultimate-charging'); 
-                if(opWrapper) opWrapper.classList.add('blast-ultimate-down'); // 光球綁在 wrapper 上
+                if(opWrapper) opWrapper.classList.add('blast-ultimate-down');
                 if(arenaBg) arenaBg.classList.add('screen-flash-gold');
                 showSkillPopup("⚠️ 對手發動技能重擊！", "#e74c3c");
             } else {
                 opCard.classList.add('charging-mana'); 
-                if(opWrapper) opWrapper.classList.add('blast-down'); // 光球綁在 wrapper 上
+                if(opWrapper) opWrapper.classList.add('blast-down');
                 if(arenaBg) arenaBg.classList.add('screen-flash-red'); 
             }
             if(isFinal) setTimeout(() => opCard.classList.add('winner-glory'), 800);
@@ -1687,15 +1695,16 @@
         updateCardDamage(opCard, myTotalWins);
 
         setTimeout(() => {
-          // 清除 wrapper 上的光球，不然下一局會卡住
+          // 清除光球與後座力，為下一局準備
           if(myWrapper) myWrapper.classList.remove('blast-up', 'blast-ultimate');
           if(opWrapper) opWrapper.classList.remove('blast-down', 'blast-ultimate-down');
+          if(myContainer) myContainer.classList.remove('recoil-my');
+          if(opContainer) opContainer.classList.remove('recoil-op');
           
           showImpactOverlay(myNum, opNum, isFinal, myImgUrl, opImgUrl);
         }, 1600); 
 
     }, delayBeforeAttack);
-  }
 
   // 2. 檢查雙方分數 (修復括號錯誤與整合抽獎系統)
   function checkBoth(roomId) {
