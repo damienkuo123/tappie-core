@@ -1683,9 +1683,9 @@
         // 🚀 動態字體縮小：如果單字超過 10 個字元，自動把字體縮小
         const wordEl = document.getElementById('target-word');
         if (battleQuizArr[currentBattleRound].en.length > 10) {
-            wordEl.style.fontSize = "clamp(20px, 8vw, 40px)";
+            wordEl.style.fontSize = "clamp(20px, 6vw, 40px)";
         } else {
-            wordEl.style.fontSize = "12vw";
+            wordEl.style.fontSize = "10vw";
         }
         document.getElementById('battle-timer').innerText = "";
         
