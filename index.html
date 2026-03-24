@@ -2204,13 +2204,15 @@
     };
   }
   // =======================================================
-  // 🌈 頂級 3D 互動閃卡引擎 (正宗 Poke-Holo 移植版)
+  // 🌈 頂級 3D 互動閃卡引擎 (全場域適配版)
   // =======================================================
   function initInteractiveHoloCards() {
-      // 🚀 精準抓取 Portal 傳送門的兩張大卡片
-      const cards = document.querySelectorAll('#portal-my-card, #portal-op-card');
+      // 🚀 抓取 Portal、戰場、結算畫面裡所有的 3D 卡片！
+      const cards = document.querySelectorAll('#portal-my-card, #portal-op-card, #my-card, #op-card, #impact-card');
       
       cards.forEach(card => {
+          const shineLayer = card.querySelector('.card__shine');
+          const glareLayer = card.querySelector('.card__glare');
           let bounds;
           let ticking = false;
 
@@ -2220,14 +2222,23 @@
               const center = { x: leftX - 0.5, y: topY - 0.5 };
               const distance = Math.sqrt(center.x**2 + center.y**2);
 
-              card.style.setProperty('--pointer-x', `${leftX * 100}%`);
-              card.style.setProperty('--pointer-y', `${topY * 100}%`);
-              card.style.setProperty('--pointer-from-center', Math.min(Math.max(distance * 2, 0), 1));
-              card.style.setProperty('--pointer-from-top', topY);
-              card.style.setProperty('--pointer-from-left', leftX);
-              
+              const pointerX = `${leftX * 100}%`;
+              const pointerY = `${topY * 100}%`;
+              const pointerFromCenter = Math.min(Math.max(distance * 2, 0), 1);
+
               card.style.setProperty('--rotate-x', `${center.y * -20}deg`); 
               card.style.setProperty('--rotate-y', `${center.x * 20}deg`);
+              
+              const targetLayers = [card, shineLayer, glareLayer];
+              targetLayers.forEach(layer => {
+                  if(layer) {
+                      layer.style.setProperty('--pointer-x', pointerX);
+                      layer.style.setProperty('--pointer-y', pointerY);
+                      layer.style.setProperty('--pointer-from-center', pointerFromCenter);
+                      layer.style.setProperty('--pointer-from-top', topY);
+                      layer.style.setProperty('--pointer-from-left', leftX);
+                  }
+              });
               ticking = false;
           }
           
@@ -2248,9 +2259,15 @@
               card.style.transition = "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
               card.style.setProperty('--rotate-x', '0deg');
               card.style.setProperty('--rotate-y', '0deg');
-              card.style.setProperty('--pointer-from-center', '0.5'); // 預設給一點環境反光
-              card.style.setProperty('--pointer-x', '50%');
-              card.style.setProperty('--pointer-y', '50%');
+              
+              const targetLayers = [card, shineLayer, glareLayer];
+              targetLayers.forEach(layer => {
+                  if(layer) {
+                      layer.style.setProperty('--pointer-from-center', '0.5'); 
+                      layer.style.setProperty('--pointer-x', '50%');
+                      layer.style.setProperty('--pointer-y', '50%');
+                  }
+              });
               setTimeout(() => { card.style.transition = "none"; }, 500);
           }
 
