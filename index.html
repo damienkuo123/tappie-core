@@ -324,24 +324,19 @@
     .my-score { flex-direction: column-reverse; } 
     .score-divider { width: 5px; height: 40px; background: rgba(255,255,255,0.3); border-radius: 3px; }
 
-    /* 🚀 右側垂直回合指示器：強制固定寬度與高度，讓文字只能直排 */
+    /* 🚀 修復：右側垂直回合指示器 */
     .vertical-round-track {
-      position: absolute; right: 12px; top: 45%; transform: translateY(-50%);
+      position: absolute; right: 10px; top: 45%; transform: translateY(-50%);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.6); padding: 15px 8px; border-radius: 20px; 
+      background: rgba(0,0,0,0.6); padding: 25px 8px; border-radius: 20px; 
       border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(10px);
-      z-index: 50; 
-      /* 關鍵：設定高度讓直排文字有空間伸展，限制寬度不讓它變成橫的 */
-      height: 300px; width: 35px;
+      z-index: 50; width: 35px; box-sizing: border-box; /* 鎖死寬度，靠 padding 撐開高度 */
     }
-    
     #round-num {
-      writing-mode: vertical-rl; /* 讓文字變成直排 */
-      text-orientation: upright; /* 中文保持正向 */
-      color: #f1c40f; font-size: 15px !important; font-weight: bold; letter-spacing: 4px;
+      writing-mode: vertical-rl; text-orientation: upright; 
+      color: #f1c40f; font-size: 16px !important; font-weight: bold; letter-spacing: 4px;
       margin: 0; text-shadow: 0 2px 5px rgba(0,0,0,0.8);
-      /* 關鍵：讓文字不會自動換行 */
-      white-space: nowrap; height: 100%; text-align: center;
+      white-space: nowrap; line-height: 1;
     }
 
     /* 圓點再放大，發光更強 */
