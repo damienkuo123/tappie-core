@@ -543,6 +543,26 @@
     .score-vs { font-size: 20px; color: #576574; font-style: italic; font-weight: 900; opacity: 0; transform: scale(0); }
     .active .score-vs { animation: score-pop 0.4s 0.8s forwards; }
 
+    /* ========================================= */
+    /* 💬 大招立繪切入 (Cut-in) 系統 CSS */
+    /* ========================================= */
+    #cutin-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; z-index: 9000; pointer-events: none; overflow: hidden; }
+    #cutin-overlay.active { display: block; }
+    #cutin-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; }
+    .active #cutin-bg { animation: cutinFade 1.5s forwards; }
+    #cutin-lines { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: repeating-radial-gradient(circle at center, transparent 0, transparent 4px, rgba(255,255,255,0.1) 5px, rgba(255,255,255,0.1) 6px); opacity: 0; }
+    .active #cutin-lines { animation: speedlines 0.2s linear infinite, cutinFade 1.5s forwards; }
+    @keyframes speedlines { 0% { transform: scale(1); } 100% { transform: scale(1.5); } }
+    #cutin-char { position: absolute; top: 50%; left: 100%; width: 150vw; height: 40vh; transform: translateY(-50%); background-size: contain; background-repeat: no-repeat; background-position: center; }
+    .active #cutin-char { animation: charSlide 1.5s cubic-bezier(0.1, 0.8, 0.1, 1) forwards; }
+    @keyframes charSlide { 0% { left: 100%; transform: translate(0, -50%) skewX(-15deg); opacity: 0; } 15% { left: 50%; transform: translate(-50%, -50%) skewX(0deg); opacity: 1; } 85% { left: 45%; transform: translate(-50%, -50%) skewX(0deg); opacity: 1; } 100% { left: -100%; transform: translate(-50%, -50%) skewX(15deg); opacity: 0; } }
+    #cutin-text { position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 45px; font-weight: 900; font-style: italic; white-space: nowrap; }
+    .active #cutin-text { animation: textSmash 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    @keyframes textSmash { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 80% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
+    @keyframes cutinFade { 0% { opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+    .theme-fire #cutin-bg { background: radial-gradient(circle, #b33939 0%, #000 80%); } .theme-fire #cutin-text { color: #ff5252; text-shadow: 0 0 20px #ff5252, 0 5px 15px #000; } .theme-fire #cutin-char { filter: drop-shadow(0 0 25px #ff5252); }
+    .theme-tech #cutin-bg { background: radial-gradient(circle, #0652DD 0%, #000 80%); } .theme-tech #cutin-text { color: #00d2d3; text-shadow: 0 0 20px #00d2d3, 0 5px 15px #000; } .theme-tech #cutin-char { filter: drop-shadow(0 0 25px #00d2d3); }
+    .theme-magic #cutin-bg { background: radial-gradient(circle, #10ac84 0%, #000 80%); } .theme-magic #cutin-text { color: #1dd1a1; text-shadow: 0 0 20px #1dd1a1, 0 5px 15px #000; } .theme-magic #cutin-char { filter: drop-shadow(0 0 25px #1dd1a1); }
 
     /* ========================================= */
     /* 🎁 史詩級全息盲盒抽獎系統 (聲控解鎖版) */
@@ -772,7 +792,8 @@
     <div id="round-num">第 1 局 / 先得 5 分獲勝</div>
   </div>
 
-  <div class="glass-panel op-name-panel" style="margin-bottom: 12px; padding: 10px 25px; border: 2px solid rgba(255,255,255,0.2);">
+  <div class="arena-player-container op-container">
+    <div class="glass-panel op-name-panel" style="margin-bottom: 12px; padding: 10px 25px; border: 2px solid rgba(255,255,255,0.2);">
       <div style="display:flex; align-items:center; gap:10px;">
         <span style="font-size:12px; color:#a4b0be; font-weight:900; letter-spacing:2px;">OPPONENT</span>
         <span id="op-name" style="color:#eb3b5a; font-weight:900; font-size:18px; text-shadow: 0 0 10px rgba(235,59,90,0.6);">連線中...</span>
@@ -787,7 +808,6 @@
         </div></div></div>
       </div>
     </div>
-  </div>
 
   <div class="arena-stage-center">
     <h1 id="target-word" style="margin: 5px 0;">準備中...</h1>
