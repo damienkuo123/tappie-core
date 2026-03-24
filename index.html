@@ -1517,6 +1517,12 @@
       
       battleBtn.classList.remove('active', 'ult-active');
       
+      // 🚀 關鍵修復：放開按鈕的瞬間，強制拔除卡片的發光特效！
+      const myCard = document.getElementById('my-card');
+      if (myCard) {
+          myCard.classList.remove('charging-mana', 'ultimate-charging');
+      }
+      
       // 🚀 修復 2：放開按鈕瞬間，隱藏控制台，顯示「評分中...」
       document.getElementById('battle-controls').style.visibility = 'hidden';
       document.getElementById('battle-timer').innerText = "評分中...";
