@@ -1513,7 +1513,11 @@
         };
       };
     };
+    // 🚀 加上這兩行！只要手指滑出按鈕或被系統打斷，強制觸發放開邏輯，瞬間熄火！
+    battleBtn.onpointerleave = battleBtn.onpointerup;
+    battleBtn.onpointercancel = battleBtn.onpointerup;
   }
+  
 
   // 🗡️ 大招動畫播放器 (接收後端主題，如果沒有就隨機)
   function playCutinAnimation(avatarUrl, isMyUlt) {
