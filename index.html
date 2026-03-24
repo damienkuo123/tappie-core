@@ -1435,13 +1435,10 @@
       mediaRecorder.stop(); 
       
       battleBtn.classList.remove('active', 'ult-active');
-      const myCard = document.getElementById('my-card');
-      if (myCard) myCard.classList.remove('charging-mana', 'ultimate-charging');
-
-      // 🚀 完美 UX 體驗：放開按鈕瞬間，按鈕消失，顯示評分中
-      document.getElementById('battle-controls').style.display = 'none';
+      
+      // 🚀 修復 2：放開按鈕瞬間，隱藏控制台，顯示「評分中...」
+      document.getElementById('battle-controls').style.visibility = 'hidden';
       document.getElementById('battle-timer').innerText = "評分中...";
-      document.getElementById('battle-timer').classList.add('scoring-anim');
       document.getElementById('battle-info').innerText = "AI 正在分析您的發音...";
 
       let dots = 0;
