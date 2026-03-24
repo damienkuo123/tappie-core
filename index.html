@@ -484,6 +484,16 @@
     .card.dmg-4 .card__rotator { box-shadow: inset 0 0 60px rgba(192, 57, 43, 0.8) !important; }
     .card.dmg-4 .card__front::after { content: ''; position: absolute; inset:0; opacity: 1; background: linear-gradient(35deg, transparent 49%, #fff 49.5%, transparent 50%), linear-gradient(-55deg, transparent 49%, #fff 49.5%, transparent 50%), linear-gradient(15deg, transparent 49%, #fff 49.5%, transparent 50%), linear-gradient(-80deg, transparent 49%, #fff 49.5%, transparent 50%); z-index: 15; pointer-events: none; border-radius: var(--card-radius); }
 
+    /* 🔥 終極爆炸消失 (戰敗碎裂掉落) */
+    .card.loser-shatter { animation: shatter-destroy 1.2s 0.6s ease-out forwards !important; }
+    @keyframes shatter-destroy {
+      0% { transform: scale(1); filter: brightness(1); opacity: 1; }
+      10% { transform: scale(1.2); filter: brightness(3) drop-shadow(0 0 50px #fff); } 
+      25% { transform: scale(1.1) skewX(15deg); filter: brightness(2) drop-shadow(0 0 80px #ff4757); opacity: 1; } 
+      40% { transform: scale(0.8) rotate(-10deg) translateY(20px); filter: grayscale(0.5) blur(2px); opacity: 0.8; } 
+      100% { transform: scale(0.2) rotate(45deg) translateY(300px); filter: blur(20px); opacity: 0; } 
+    }
+    
     /* 🚀 強化受擊特效：加上強烈紅光與震動 */
     .card.take-damage { animation: shakeDamage 0.5s 0.5s ease-in-out; }
     @keyframes shakeDamage { 
