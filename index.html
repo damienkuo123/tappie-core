@@ -353,7 +353,7 @@
     .arena-player-container { position: absolute; left: 50%; display: flex; flex-direction: column; align-items: center; width: 100%; transition: opacity 0.3s; }
     
     /* 遠景對手：z-index 設為 2，保證永遠在下層 */
-    .op-container { top: max(-5vh, env(safe-area-inset-top)); transform: translateX(-50%) scale(0.6) translateZ(-200px); z-index: 2; }
+    .op-container { top: max(-25vh, env(safe-area-inset-top)); transform: translateX(-50%) scale(0.6) translateZ(-200px); z-index: 2; }
     
     /* 我方近景：z-index 設為 20 (甚至更高)，保證永遠壓在對手上面！ */
     .my-container { bottom: 0vh; transform: translateX(-50%) scale(1.05) translateZ(50px); z-index: 20; pointer-events: auto; }
@@ -395,7 +395,7 @@
 
     /* 🚀 控制台：疊加在我方卡片正上方！ */
     #battle-controls { 
-      position: absolute; bottom: 12vh; left: 50%; transform: translateX(-50%); 
+      position: absolute; bottom: 5vh; left: 50%; transform: translateX(-50%); 
       display: flex; flex-direction: column; align-items: center; z-index: 60; gap: 15px; width: 100%;
     }
     #skill-btn { background: linear-gradient(135deg, #f39c12, #e74c3c); color: white; border: 2px solid #f1c40f; border-radius: 20px; padding: 10px 30px; font-size: 18px; font-weight: 900; box-shadow: 0 5px 15px rgba(231, 76, 60, 0.5); cursor: pointer; transition: all 0.3s; animation: float-btn 2s infinite ease-in-out; white-space: nowrap; pointer-events: auto; }
