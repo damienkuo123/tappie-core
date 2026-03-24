@@ -1816,6 +1816,9 @@
         updateCardDamage(myCard, opTotalWins);
         updateCardDamage(opCard, myTotalWins);
 
+        // 🚀 如果是最後一局 (isFinal)，多等 0.8 秒，讓卡片徹底碎裂掉出螢幕後，結算畫面才彈出！
+        let impactDelay = isFinal ? 2400 : 1600;
+
         setTimeout(() => {
           // 清除光球與後座力殘留
           if(myCard) myCard.classList.remove('charging-mana', 'ultimate-charging');
