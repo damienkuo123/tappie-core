@@ -1789,50 +1789,55 @@
       }).catch(() => isChecking = false);
   }
 
-  // 🚀 重新打造的顯示畫面函數，支援最終決戰 (Final Match) 的神級展現
   function showImpactOverlay(myNum, opNum, isFinal, myImgUrl, opImgUrl) {
     const o = document.getElementById('impact-overlay');
     const r = document.getElementById('impact-result'); 
     const sub = document.getElementById('impact-subtitle');
-    const standStage = document.getElementById('impact-stand-stage'); 
+    const impactCard = document.getElementById('impact-card');
+    const impactCardBg = document.getElementById('impact-card-bg');
 
-    // 清除舊狀態
     r.className = '';
-    // 🚀 清除所有的 class，確保乾淨啟動
     o.classList.remove('fade-out', 'active', 'theme-win', 'theme-lose', 'is-final'); 
-    standStage.style.backgroundImage = 'none';
     void o.offsetWidth; // 強制重繪
 
-    // 填入分數
     document.getElementById('impact-my-score').innerText = myNum;
     document.getElementById('impact-op-score').innerText = opNum;
     sub.innerText = isFinal ? "FINAL MATCH RESULT" : "回合結果";
     
-    // 👑 如果是拿到 5 分的最終決戰，加上專屬的 is-final 標籤！
-    if (isFinal) {
-        o.classList.add('is-final');
-    }
+    if (isFinal) o.classList.add('is-final');
 
-    // 判定勝負與霸氣背景展現
+    // 🚀 根據勝負，套用贏家的全息卡片資料！
     if (myNum > opNum) { 
       r.innerText = isFinal ? "對戰獲勝" : "WIN"; 
-      r.classList.add('result-win');
-      o.classList.add('theme-win'); // 觸發我方勝利動畫方向
-      if (myImgUrl) standStage.style.backgroundImage = `url('${myImgUrl}')`; 
+      r.classList.add('result-win'); o.classList.add('theme-win'); 
+      if (myImgUrl) impactCardBg.style.backgroundImage = `url('${myImgUrl}')`; 
+      impactCard.setAttribute('data-rarity', window.currentMyRarity || 'N');
+      if (window.currentMyMask) {
+          impactCard.classList.add('masked');
+          impactCard.style.setProperty('--mask', window.currentMyMask.includes('url(') ? window.currentMyMask : `url('${window.currentMyMask}')`);
+      } else { impactCard.classList.remove('masked'); }
     }
     else if (myNum < opNum) { 
       r.innerText = isFinal ? "對戰失敗" : "LOSE"; 
-      r.classList.add('result-lose');
-      o.classList.add('theme-lose'); // 觸發對手勝利動畫方向
-      if (opImgUrl) standStage.style.backgroundImage = `url('${opImgUrl}')`; 
+      r.classList.add('result-lose'); o.classList.add('theme-lose'); 
+      if (opImgUrl) impactCardBg.style.backgroundImage = `url('${opImgUrl}')`; 
+      impactCard.setAttribute('data-rarity', window.currentOpRarity || 'N');
+      if (window.currentOpMask) {
+          impactCard.classList.add('masked');
+          impactCard.style.setProperty('--mask', window.currentOpMask.includes('url(') ? window.currentOpMask : `url('${window.currentOpMask}')`);
+      } else { impactCard.classList.remove('masked'); }
     }
     else { 
-      r.innerText = "DRAW"; 
-      r.classList.add('result-draw');
-      o.classList.add('theme-win'); 
+      r.innerText = "DRAW"; r.classList.add('result-draw'); o.classList.add('theme-win'); 
+      // 平手預設顯示我方
+      if (myImgUrl) impactCardBg.style.backgroundImage = `url('${myImgUrl}')`; 
+      impactCard.setAttribute('data-rarity', window.currentMyRarity || 'N');
+      impactCard.classList.remove('masked');
     }
     
     o.classList.add('active'); 
+    // 啟動結算畫面的 3D 感應
+    setTimeout(() => { initInteractiveHoloCards(); }, 200);
   }
 
   
