@@ -1974,9 +1974,9 @@
                           const opponentName = document.getElementById('op-name').innerText;
                           initGacha(opponentName);
                       } else {
-                          // 我方敗北... 沒資格抽獎，摸摸鼻子回首頁
+                          // 我方敗北... 跳轉回對戰大廳
                           alert("挑戰失敗，再接再厲！");
-                          window.location.href = `${GAS_URL}?id=${STUDENT_ID}`; 
+                          window.location.href = `${GAS_URL}?id=${STUDENT_ID}&mode=lobby`;
                       }
                   } 
                   else { 
@@ -2455,10 +2455,11 @@
         const avatarsParam = window.wonAvatars.length > 0 ? `&avatars=${window.wonAvatars.join(',')}` : '';
         const finalUrl = `${GAS_URL}?action=claim_gacha&id=${STUDENT_ID}&roomId=${ROOM_ID}&winnerId=${STUDENT_ID}&addPoints=${window.wonPoints}${avatarsParam}`;
         
+        // 成功或失敗都跳轉回對戰大廳
         fetch(finalUrl, { mode: 'no-cors' }).then(() => {
-            window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
+            window.location.href = `${GAS_URL}?id=${STUDENT_ID}&mode=lobby`;
         }).catch(() => {
-            window.location.href = `${GAS_URL}?id=${STUDENT_ID}`;
+            window.location.href = `${GAS_URL}?id=${STUDENT_ID}&mode=lobby`;
         });
     };
   }
