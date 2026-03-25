@@ -2474,8 +2474,36 @@
       const cards = document.querySelectorAll('#portal-my-card, #portal-op-card, #my-card, #op-card, #impact-card, .gacha-card .card');
       
       cards.forEach(card => {
-          const shineLayer = card.querySelector('.card__shine');
-          const glareLayer = card.querySelector('.card__glare');
+          // 🚀 致命修復：必須用 querySelectorAll 抓出正面與背面的「所有」特效圖層！
+          const targetLayers = [card, ...card.querySelectorAll('.card__shine'), ...card.querySelectorAll('.card__glare')];
+          let bounds;
+          let ticking = false;
+
+          function updateCard(x, y) {
+              const leftX = x / bounds.width;
+              const topY = y / bounds.height;
+              const center = { x: leftX - 0.5, y: topY - 0.5 };
+              const distance = Math.sqrt(center.x**2 + center.y**2);
+
+              const pointerX = `${leftX * 100}%`;
+              const pointerY = `${topY * 100}%`;
+              const pointerFromCenter = Math.min(Math.max(distance * 2, 0), 1);
+
+              card.style.setProperty('--rotate-x', `${center.y * -20}deg`); 
+              card.style.setProperty('--rotate-y', `${center.x * 20}deg`);
+              
+              // 🚀 讓所有圖層都吃到滑鼠參數
+              targetLayers.forEach(layer => {
+                  if(layer) {
+                      layer.style.setProperty('--pointer-x', pointerX);
+                      layer.style.setProperty('--pointer-y', pointerY);
+                      layer.style.setProperty('--pointer-from-center', pointerFromCenter);
+                      layer.style.setProperty('--pointer-from-top', topY);
+                      layer.style.setProperty('--pointer-from-left', leftX);
+                  }
+              });
+              ticking = false;
+          }
           let bounds;
           let ticking = false;
 
