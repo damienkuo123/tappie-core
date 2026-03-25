@@ -2393,8 +2393,8 @@
               
               if (alreadyOwnedInAccount || alreadyGotInThisGacha) {
                   const charName = characterAssets[charId] ? characterAssets[charId].name : prizeToAdd.label;
-                  prizeToAdd.realLabel = `(重複) ${charName} → 轉為 500 點`; 
-                  window.wonPoints += 500; 
+                  prizeToAdd.realLabel = `(重複) ${charName} → 轉為 300 點`; 
+                  window.wonPoints += 300; 
               } else {
                   prizeToAdd.realLabel = characterAssets[charId] ? characterAssets[charId].name : prizeToAdd.label;
                   window.wonAvatars.push(charId); 
@@ -2440,7 +2440,7 @@
 
     // 顯示所有抽到的獎項真名 (含重複提示)
     gachaWonItems.forEach(item => {
-        html += `<div style="font-size: 18px; line-height: 1.6; font-weight: bold;">${item.realLabel}</div>`;
+        html += `<div style="font-size: 14px; line-height: 1.6; font-weight: bold;">${item.realLabel}</div>`;
     });
 
     listEl.innerHTML = html;
