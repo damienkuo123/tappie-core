@@ -713,7 +713,8 @@
       position: absolute; inset: 0; transform-style: preserve-3d; backface-visibility: hidden; border-radius: var(--card-radius);
     }
     .gacha-front { transform: rotateY(0deg) translateZ(0.01px); }
-    .gacha-back { transform: rotateY(180deg) translateZ(0.01px); background: #1c2331; border: 2px solid #576574; }
+    /* 移除干擾的 border，將顏色與邊框全權交給內部的 .card__bg 負責 */
+    .gacha-back { transform: rotateY(180deg) translateZ(0.01px); }
 
     /* 盲盒魔法陣移入 bg 層，防止蓋住 3D 光芒 */
     .gacha-front .card__bg { background: linear-gradient(145deg, #1e272b 0%, #0b0f19 100%); border: 2px solid rgba(0, 210, 211, 0.3); border-radius: var(--card-radius); }
