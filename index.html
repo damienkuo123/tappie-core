@@ -2293,10 +2293,24 @@
 
         // 🚀 3. 獎池分流：活動用專屬獎池，一般用常規獎池
         if (isEventMode) {
-            boxRarity = 'SSR'; // 活動盲盒強制擁有最華麗的 SSR 外觀
+            // 從圖鑑中抓取 Boss 的真實稀有度 (如果沒填則預設 SSR)
+            let bossRarity = 'SSR';
+            let prizeClass = 'prize-SSR';
+            let prizeGlow = 'crack-gold';
+
+            // 動態判斷對應的光澤與卡框
+            if (EVENT_AVATAR && window.characterAssets && window.characterAssets[EVENT_AVATAR]) {
+                bossRarity = window.characterAssets[EVENT_AVATAR].rarity || 'SSR';
+                if (bossRarity === 'SR') { prizeClass = 'prize-SR'; prizeGlow = 'crack-purple'; }
+                else if (bossRarity === 'R') { prizeClass = 'prize-R'; prizeGlow = 'crack-white'; }
+                else if (bossRarity === 'N') { prizeClass = 'prize-N'; prizeGlow = 'crack-white'; }
+            }
+
+            boxRarity = bossRarity; // 盲盒外觀直接跟隨 Boss 真實稀有度
+
             if (Math.random() < 0.3) {
-                // 🚀 動態套用傳進來的活動角色 ID！
-                prize = { type: 'avatar', value: EVENT_AVATAR, label: '活動限定', class: 'prize-SSR', glow: 'crack-gold' };
+                // 🚀 完全動態套用 Boss 的真實稀有度與光芒特效！
+                prize = { type: 'avatar', value: EVENT_AVATAR, label: '活動限定', class: prizeClass, glow: prizeGlow };
             } else {
                 // 70% 機率中活動點數 (800點)
                 prize = { type: 'points', value: 800, label: '活動點數', class: 'prize-SR', glow: 'crack-purple' };
