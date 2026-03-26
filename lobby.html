@@ -1127,8 +1127,12 @@
     resetIdleTimer();
 
     
+    let currentEventWords = []; // 存儲目前的活動題庫
+
+    // 🚀 檢查並更新突發事件的按鈕狀態、圖片與題庫
     function checkEventStatus() {
       const eventBanner = document.querySelector('.event-banner');
+      const vocabBtn = document.getElementById('event-vocab-btn');
       if (!eventBanner) return; 
 
       const overlay = eventBanner.querySelector('.event-overlay');
@@ -1139,22 +1143,74 @@
         .then(res => res.json())
         .then(data => {
           if (data.status === 'success') {
-            if (overlay) {
-                overlay.innerHTML = `<div class="locked-tag" style="background: rgba(231,76,60,0.9); color: white; border-color: white; animation: pulse 2s infinite; box-shadow: 0 0 20px rgba(231,76,60,0.8);">✨ ${data.eventName} ✨</div>`;
+            // 🚀 1. 抓取 Boss 專屬圖片，如果找不到就用預設的
+            let bossImg = 'https://cdn.jsdelivr.net/gh/damienkuo123/marian-app@main/assets/event-bg.webp'; 
+            if (data.eventAvatar && characterAssets[data.eventAvatar]) {
+                bossImg = characterAssets[data.eventAvatar].img;
             }
+            eventBanner.style.backgroundImage = `url('${bossImg}')`;
+
+            // 🚀 2. 組合毛玻璃文字與右下角的「截止日期」標籤
+            let dateHtml = data.endDate ? `<div style="position:absolute; bottom:10px; right:15px; background:rgba(0,0,0,0.75); color:#f1c40f; font-size:12px; padding:5px 10px; border-radius:12px; border:1px solid rgba(241,196,15,0.5); font-weight:bold;">⏳ 截止: ${data.endDate}</div>` : '';
+            
+            if (overlay) {
+                overlay.innerHTML = `<div class="locked-tag" style="background: rgba(142,68,173,0.9); color: white; border-color: white; animation: pulse 2s infinite; box-shadow: 0 0 20px rgba(142,68,173,0.8);">✨ ${data.eventName} ✨</div>` + dateHtml;
+            }
+            
             eventBanner.style.pointerEvents = 'auto';
             eventBanner.style.opacity = '1';
-            
-            // 🚀 關鍵：將 eventAvatar 傳遞給 startEvent！
             eventBanner.onclick = () => startEvent(data.eventCode, data.eventAvatar);
+
+            // 🚀 3. 儲存題庫，並顯示情報按鈕
+            if (data.words) currentEventWords = data.words;
+            if (vocabBtn) vocabBtn.style.display = 'block';
+
           } else {
+            // 😴 沒活動：固定為預設圖、關閉情報按鈕
+            eventBanner.style.backgroundImage = `url('https://cdn.jsdelivr.net/gh/damienkuo123/marian-app@main/assets/event-bg.webp')`;
             if (overlay) overlay.innerHTML = `<div class="locked-tag" style="color: #bdc3c7; border-color: #bdc3c7;">🔒 現在不開放</div>`;
             eventBanner.style.opacity = '0.5';
             eventBanner.style.pointerEvents = 'none';
+            if (vocabBtn) vocabBtn.style.display = 'none';
           }
         }).catch(err => {
           if (overlay) overlay.innerHTML = `<div class="locked-tag">⚠️ 連線失敗</div>`;
         });
+    }
+
+    // 🚀 打開單字情報彈窗
+    function openEventVocab() {
+        const listEl = document.getElementById('vocab-list');
+        listEl.innerHTML = "";
+        
+        if (currentEventWords.length === 0) {
+            listEl.innerHTML = "<div style='text-align:center; color:#bdc3c7; padding: 20px;'>暫無題庫資料</div>";
+        } else {
+            currentEventWords.forEach(word => {
+                listEl.innerHTML += `
+                    <div class="vocab-row">
+                        <div>
+                            <div class="vocab-en">${word.en}</div>
+                            <div class="vocab-zh">${word.zh}</div>
+                        </div>
+                        <button class="vocab-play" onclick="playEventWord('${word.en}')">🔊</button>
+                    </div>
+                `;
+            });
+        }
+        document.getElementById('vocab-modal').classList.add('active');
+    }
+
+    function closeEventVocab() {
+        document.getElementById('vocab-modal').classList.remove('active');
+    }
+
+    // 🚀 發音功能
+    function playEventWord(text) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US';
+        window.speechSynthesis.speak(msg);
     }
 
     // 🚀 接收並傳遞 eventAvatarId (修復難度名稱與連線設定)
