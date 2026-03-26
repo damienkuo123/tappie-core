@@ -1570,20 +1570,32 @@
         const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
         const myNameEl = document.getElementById('my-name');
         if (myNameEl) myNameEl.innerText = isMeHost ? data.hostName : (data.guestName || "挑戰者");
-        document.getElementById('op-name').innerText = isMeHost ? (data.guestName || "對手") : data.hostName;
 
         window.myTheme = isMeHost ? data.hostTheme : data.guestTheme;
         window.opTheme = isMeHost ? data.guestTheme : data.hostTheme;
 
-        // 取得雙方圖片網址
+        // 取得雙方圖片網址 (🚀 對手變數改成 let 才能被覆蓋)
         const myImgUrl = isMeHost ? data.hostImg : data.guestImg;
-        const opImgUrl = isMeHost ? data.guestImg : data.hostImg;
+        let opImgUrl = isMeHost ? data.guestImg : data.hostImg;
 
         // 取得雙方 Rarity 和 Mask
         const finalMyRarity = isMeHost ? (data.hostRarity || 'N') : (data.guestRarity || 'N');
-        const finalOpRarity = isMeHost ? (data.guestRarity || 'N') : (data.hostRarity || 'N');
+        let finalOpRarity = isMeHost ? (data.guestRarity || 'N') : (data.hostRarity || 'N');
         const finalMyMask = isMeHost ? (data.hostMask || '') : (data.guestMask || '');
-        const finalOpMask = isMeHost ? (data.guestMask || '') : (data.hostMask || '');
+        let finalOpMask = isMeHost ? (data.guestMask || '') : (data.hostMask || '');
+
+        let finalOpName = isMeHost ? (data.guestName || "對手") : data.hostName;
+
+        // 🚀 核心攔截：如果是活動模式，強制把上面取得的對手資料覆蓋為「活動 Boss」！
+        if (isEventMode && EVENT_AVATAR && window.characterAssets && window.characterAssets[EVENT_AVATAR]) {
+            const boss = window.characterAssets[EVENT_AVATAR];
+            finalOpName = `[活動] ${boss.name}`;
+            opImgUrl = boss.img; 
+            finalOpRarity = boss.rarity || 'SSR'; 
+            finalOpMask = boss.mask || ''; 
+        }
+
+        document.getElementById('op-name').innerText = finalOpName;
 
         // 存為全域變數供結算畫面使用
         window.currentMyRarity = finalMyRarity; window.currentMyMask = finalMyMask;
@@ -1598,21 +1610,11 @@
             myCardEl.classList.add('masked');
             myCardEl.style.setProperty('--mask', finalMyMask.includes('url(') ? finalMyMask : `url('${finalMyMask}')`);
         } else { myCardEl.classList.remove('masked'); }
-
-        // 🚀 如果是活動模式，強制覆蓋對手的資料為「活動 Boss」！
-        if (isEventMode && EVENT_AVATAR && window.characterAssets && window.characterAssets[EVENT_AVATAR]) {
-            const boss = window.characterAssets[EVENT_AVATAR];
-            document.getElementById('op-name').innerText = `[活動] ${boss.name}`;
-            opImgUrl = boss.img; // 替換圖片
-            finalOpRarity = boss.rarity || 'SSR'; // 替換稀有度
-            finalOpMask = boss.mask || ''; // 替換遮罩
-        }
         
-        // 🚀 寫入對手戰場卡片 (接下來原本的代碼就會自動把 Boss 畫出來了)
+        // 🚀 寫入對手戰場卡片
         const opCardEl = document.getElementById('op-card');
         const opCardBg = document.getElementById('op-card-bg');
-        let finalOpBg = opImgUrl;
-        if (opCardBg && finalOpBg) opCardBg.style.backgroundImage = `url('${finalOpBg}')`;
+        if (opCardBg && opImgUrl) opCardBg.style.backgroundImage = `url('${opImgUrl}')`;
         opCardEl.setAttribute('data-rarity', finalOpRarity);
         if (finalOpMask) {
             opCardEl.classList.add('masked');
