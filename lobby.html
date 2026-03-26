@@ -385,6 +385,21 @@
     .bar { width: 3px; background: var(--gold); animation: signal-grow 1s infinite alternate; }
     @keyframes signal-grow { 0% { height: 20%; } 100% { height: 100%; } }
 
+    /* 🚀 活動情報按鈕與發音彈窗樣式 */
+    .event-info-btn {
+      background: rgba(142, 68, 173, 0.2); border: 1px solid rgba(142, 68, 173, 0.5); color: #fff;
+      border-radius: 12px; padding: 12px; width: 100%; margin-top: 10px; font-size: 15px; font-weight: bold; cursor: pointer;
+      display: none; transition: 0.3s; backdrop-filter: blur(5px);
+    }
+    .event-info-btn:active { transform: scale(0.95); }
+    
+    .vocab-list-container { max-height: 50vh; overflow-y: auto; text-align: left; margin-top: 15px; padding-right: 5px; }
+    .vocab-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0,0,0,0.4); border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
+    .vocab-en { font-size: 20px; color: #f1c40f; font-weight: 900; letter-spacing: 1px; }
+    .vocab-zh { font-size: 13px; color: #bdc3c7; margin-top: 4px; }
+    .vocab-play { background: #3498db; border: none; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; }
+    .vocab-play:active { transform: scale(0.9); background: #2980b9; }
+
   </style>
 </head>
 <body>
