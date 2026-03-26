@@ -937,7 +937,7 @@
     // ⚔️ 戰場連線核心引擎
     // =======================================================
 
-    // 1. 刷新雷達房間列表 (加上了雷達掃描圈圈)
+    // 1. 刷新雷達房間列表 (加上了雷達掃描圈圈與完美防呆)
     function refreshLobby() {
       fetch(`${GAS_URL}?action=get_lobby&t=${new Date().getTime()}`)
         .then(res => res.json())
@@ -963,19 +963,23 @@
             const isMyRoom = (room.hostId === STUDENT_ID);
             const remain = Math.max(0, 120 - Math.floor((now - room.startTime) / 1000));
 
+            // 🚀 關鍵防護：把按鈕的 HTML 獨立出來判斷
+            let btnHtml = '';
+            if (isMyRoom) {
+                // 如果是自己的房間，不加上 onclick，並變成灰色等待狀態
+                btnHtml = `<button class="btn-join" style="background: #7f8c8d; color: white; cursor: not-allowed;" disabled>⏳ 等待對手</button>`;
+            } else {
+                // 如果是別人的房間，才加上 onclick 觸發加入
+                btnHtml = `<button class="btn-join" onclick="joinBattle('${room.roomId}')">⚔️ 加入</button>`;
+            }
+
             return `
               <div class="room-item" style="${isMyRoom ? 'border-left-color: #2ecc71;' : ''}">
                 <div class="room-info">
                   <span class="room-name">${room.hostName} 的戰場</span>
                   <span class="room-meta">難度: ${room.difficulty} | ⏱ ${remain}s</span>
                 </div>
-                <button class="btn-join" 
-                        style="${isMyRoom ? 'background: #2ecc71; color: white;' : ''}" 
-                        ${isMyRoom ? 'disabled' : ''} 
-                        onclick="joinBattle('${room.roomId}')">
-                  ${isMyRoom ? '我的戰場' : '加入'}
-                </button>
-              </div>
+                ${btnHtml} </div>
             `;
           }).join('');
         })
