@@ -1223,18 +1223,25 @@
       .then(data => {
         const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
 
-        // 判定雙方圖片與名稱
+        // 判定雙方圖片與名稱 (🚀 對手變數改成 let 才能被覆蓋)
         const myImgUrl = isMeHost ? data.hostImg : data.guestImg;
-        const opImgUrl = isMeHost ? data.guestImg : data.hostImg;
+        let opImgUrl = isMeHost ? data.guestImg : data.hostImg;
         const myName = isMeHost ? data.hostName : (data.guestName || STUDENT_ID);
-        const opName = isMeHost ? (data.guestName || "挑戰者") : data.hostName;
+        let opName = isMeHost ? (data.guestName || "挑戰者") : data.hostName;
 
-        // 🚀 終極解法：直接相信後端傳來的 Rarity 和 Mask，不再做多餘的前端比對！
-        // 如果後端沒傳，才給預設值 'N'
         const finalMyRarity = isMeHost ? (data.hostRarity || 'N') : (data.guestRarity || 'N');
-        const finalOpRarity = isMeHost ? (data.guestRarity || 'N') : (data.hostRarity || 'N');
+        let finalOpRarity = isMeHost ? (data.guestRarity || 'N') : (data.hostRarity || 'N');
         const finalMyMask = isMeHost ? (data.hostMask || '') : (data.guestMask || '');
-        const finalOpMask = isMeHost ? (data.guestMask || '') : (data.hostMask || '');
+        let finalOpMask = isMeHost ? (data.guestMask || '') : (data.hostMask || '');
+
+        // 🚀 核心攔截：如果是突發事件，直接把上面的對手變數強制換成 Boss！
+        if (isEventMode && EVENT_AVATAR && window.characterAssets && window.characterAssets[EVENT_AVATAR]) {
+            const boss = window.characterAssets[EVENT_AVATAR];
+            opName = `[活動] ${boss.name}`;
+            opImgUrl = boss.img;
+            finalOpRarity = boss.rarity || 'SSR';
+            finalOpMask = boss.mask || '';
+        }
 
         console.log("【偵測】我方 Rarity:", finalMyRarity, "對手 Rarity:", finalOpRarity);
 
