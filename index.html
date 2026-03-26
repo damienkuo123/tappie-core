@@ -6,6 +6,14 @@
   <title>瑪麗安口說挑戰室</title>
   <style>
     :root {
+      /* 🚀 關鍵修復 1：把今日挑戰的專屬顏色加回來！沒有這些，按鈕會全部隱形破圖！ */
+      --primary-blue: #0066cc; 
+      --marian-yellow: #ff9900; 
+      --marian-red: #d63031; 
+      --marian-green: #27ae60; 
+      --dark-gray: #2d3436;
+
+      /* 🌟 抽卡系統與戰場的 3D 特效變數 (維持原樣) */
       --bg-color: #1a1e29;
       --gold: #f1c40f;
 
@@ -1047,9 +1055,16 @@
   const params = new URLSearchParams(window.location.search);
   const STUDENT_ID = params.get('id') || "S001";
   const TARGET_UNIT = params.get('unit') || "";
-  const isEventMode = new URLSearchParams(window.location.search).get('isEvent') === 'true';
-  const EVENT_AVATAR = params.get('eventAvatar') || 'A006'; // 🚀 抓取網址傳來的活動角色 ID
-  const MODE = params.get('mode') || "challenge";
+  
+  // 🚀 判斷是否為突發事件 (直接用上面宣告好的 params 來抓就好，效能更好)
+  const isEventMode = params.get('isEvent') === 'true';
+  
+  // 🚀 這是你設定的活動 Boss，絕對不能少！
+  const EVENT_AVATAR = params.get('eventAvatar') || 'A006'; 
+  
+  // 🚀 關鍵修復：如果是突發事件，強制給予 'battle' 模式；若不是，就讀取原本的 mode，都沒讀到才去 'challenge'
+  const MODE = isEventMode ? 'battle' : (params.get('mode') || "challenge");
+  
   const ROOM_ID = params.get('roomId');
 
   let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
