@@ -563,6 +563,7 @@
     const GITHUB_APP_URL = "https://damienkuo123.github.io/marian-app/";
 
     async function initLobby() {
+      checkEventStatus();
       try {
         const res = await fetch(`${GAS_URL}?action=get_lobby_data&id=${STUDENT_ID}`);
         const data = await res.json();
