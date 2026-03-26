@@ -2201,14 +2201,22 @@
     Object.values(BOX_COVERS).forEach(src => { new Image().src = src; });
     Object.values(characterAssets).forEach(c => { new Image().src = c.img; });
     
+    // 🚀 偵測是否為突發事件模式 (看網址有沒有 &isEvent=true)
+    const isEventMode = new URLSearchParams(window.location.search).get('isEvent') === 'true';
+    
     const overlay = document.getElementById('gacha-overlay');
     const board = document.getElementById('gacha-board');
     const picksSpan = document.getElementById('picks-left');
     
-    // 設定次數
-    if (opponentName.includes("初階")) gachaPicksLeft = 1;
-    else if (opponentName.includes("中階")) gachaPicksLeft = 2;
-    else gachaPicksLeft = 3; 
+    // 🚀 1. 設定抽獎次數
+    if (isEventMode) {
+        gachaPicksLeft = 1; // 活動模式強制只有 1 次機會！
+    } else {
+        // 一般對戰依照難度給予次數
+        if (opponentName.includes("初階")) gachaPicksLeft = 1;
+        else if (opponentName.includes("中階")) gachaPicksLeft = 2;
+        else gachaPicksLeft = 3; 
+    }
 
     picksSpan.innerText = gachaPicksLeft;
     gachaWonItems = [];
@@ -2216,12 +2224,30 @@
     focusedCardIndex = -1;
     board.innerHTML = ""; 
 
-    // 生成 6 張帶有獨立稀有度的 3D 盲盒卡片
+    // 🚀 2. 決定要產生幾張卡片
+    const cardCount = isEventMode ? 1 : 6;
     gachaCardsData = [];
-    for(let i = 0; i < 6; i++) {
+    
+    for(let i = 0; i < cardCount; i++) {
         let randomWord = battleQuizArr.length > 0 ? battleQuizArr[Math.floor(Math.random() * battleQuizArr.length)].en : "OPEN";
-        let boxRarity = getBoxRarity();
-        let prize = drawPrizeByBox(boxRarity);
+        let boxRarity, prize;
+
+        // 🚀 3. 獎池分流：活動用專屬獎池，一般用常規獎池
+        if (isEventMode) {
+            boxRarity = 'SSR'; // 活動盲盒強制擁有最華麗的 SSR 外觀
+            if (Math.random() < 0.3) {
+                // 30% 機率中活動專屬角色 (A006)
+                prize = { type: 'avatar', value: 'A006', label: '活動限定', class: 'prize-SSR', glow: 'crack-gold' };
+            } else {
+                // 70% 機率中活動點數 (800點)
+                prize = { type: 'points', value: 800, label: '活動點數', class: 'prize-SR', glow: 'crack-purple' };
+            }
+        } else {
+            // 一般模式
+            boxRarity = getBoxRarity();
+            prize = drawPrizeByBox(boxRarity);
+        }
+        
         gachaCardsData.push({ id: i, word: randomWord, boxRarity: boxRarity, prize: prize, flipped: false });
     }
 
@@ -2302,6 +2328,13 @@
     
     // 🚀 必須在此刻重新綁定 3D 感應，因為卡片是剛生成的！
     setTimeout(() => { initInteractiveHoloCards(); }, 100);
+
+    // 🚀 4. 如果是活動模式，生成完畢後等 0.8 秒，自動將唯一的卡片彈出到「展示模式」！
+    if (isEventMode) {
+        setTimeout(() => {
+            focusCard(0);
+        }, 800);
+    }
   }
 
   // 聚焦卡片
