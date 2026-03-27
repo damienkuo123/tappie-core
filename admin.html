@@ -38,10 +38,14 @@
         .status-dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; margin-right: 12px; box-shadow: 0 0 10px #22c55e; animation: blink 1.5s infinite; }
         #msg { margin: 0; font-weight: bold; letter-spacing: 1px; color: white; font-size: 14px; }
 
-        /* 👨‍🏫 學生操作面板 (復刻經典排版) */
+        /* 👨‍🏫 學生操作面板 */
         #action-ui { display: none; animation: fadeIn 0.4s ease-out; }
         .stu-name { font-size: 26px; font-weight: 900; margin: 0 0 5px 0; color: white; letter-spacing: 1px;}
-        .stu-points { font-size: 42px; font-weight: 900; color: #2ecc71; margin: 0 0 20px 0; text-shadow: 0 0 15px rgba(46, 204, 113, 0.4); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+        .stu-points { font-size: 42px; font-weight: 900; color: #2ecc71; margin: 0 0 5px 0; text-shadow: 0 0 15px rgba(46, 204, 113, 0.4); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+        
+        /* 📝 點數明細按鈕 */
+        .history-btn { font-size: 13px; color: #bdc3c7; text-decoration: underline; cursor: pointer; display: block; margin-bottom: 20px; transition: 0.2s; }
+        .history-btn:hover { color: #ffd700; }
 
         .control-panel { background: rgba(0,0,0,0.4); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
         .panel-title { font-weight: bold; margin: 0 0 12px 0; font-size: 15px; letter-spacing: 1px; text-align: left; }
@@ -60,6 +64,15 @@
 
         .btn-return { background: transparent; border: 1px solid #95a5a6; color: #bdc3c7; padding: 12px; border-radius: 12px; cursor: pointer; transition: 0.2s; font-weight: bold; }
         .btn-return:active { background: rgba(255,255,255,0.1); color: white; transform: scale(0.95); }
+
+        /* 📋 點數明細深色彈窗 */
+        #logModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-content { background: rgba(30, 10, 10, 0.95); width: 85%; max-width: 350px; border-radius: 25px; padding: 25px; text-align: left; border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
+        .modal-title { text-align: center; color: #ffd700; margin-top: 0; margin-bottom: 15px; font-size: 20px; font-weight: 900; letter-spacing: 1px; }
+        .log-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 14px; color: #ecf0f1; }
+        .log-time { color: #7f8c8d; font-size: 12px; margin-right: 8px; }
+        .log-plus { color: #2ecc71 !important; font-weight: bold; }
+        .log-minus { color: #e74c3c !important; font-weight: bold; }
 
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 70% { transform: scale(1.3); opacity: 0; } 100% { transform: scale(1); opacity: 0; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -99,6 +112,8 @@
             <h2 class="stu-name" id="stu-name">-</h2>
             <div class="stu-points" id="stu-points">0 PTS</div>
             
+            <span class="history-btn" onclick="toggleLogs(true)">📝 查看點數歷史明細</span>
+            
             <div class="control-panel">
                 <p class="panel-title" style="color:#2ecc71;">▲ 獎勵加分</p>
                 <div class="btn-flex-row">
@@ -132,6 +147,15 @@
         </div>
 
         <input type="text" id="scanner" inputmode="none" autofocus style="opacity: 0; position: absolute; top: -100px;">
+    </div>
+
+    <div id="logModal" onclick="toggleLogs(false)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 class="modal-title">📝 最近點數紀錄</h3>
+            <div id="log-container" style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
+                </div>
+            <button class="btn-action btn-gray" style="width: 100%; margin-top: 20px; padding: 12px;" onclick="toggleLogs(false)">關閉明細</button>
+        </div>
     </div>
 
     <script>
@@ -171,14 +195,8 @@
 
         let scanTimer;
         
-        // =======================================================
-        // 🚀 升級 2：智慧焦點鎖定 (絕對不搶走手動輸入框的焦點)
-        // =======================================================
-        // ❌ 刪除了 document.addEventListener('click', ...) 防止點擊時虛擬鍵盤彈出
-        
         setInterval(() => {
             const active = document.activeElement;
-            // 只有當老師「沒有」在點擊自訂分數的輸入框時，才把焦點還給隱藏掃描器
             if (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA') {
                 scanner.focus();
             }
@@ -224,6 +242,7 @@
                 .catch(err => showError("⚠️ 網路連線異常"));
         }
 
+        // 🚀 修改：載入資料時同步把 log 明細渲染出來
         function loadStudentData(uid) {
             fetch(`${GAS_URL}?action=get_dashboard_data&id=${uid}&secret=${ADMIN_SECRET}`)
                 .then(res => res.json())
@@ -236,8 +255,29 @@
                     
                     currentPointsValue = Number(data.currentPoints);
                     document.getElementById('stu-points').innerText = `${currentPointsValue} PTS`;
+
+                    // 處理點數明細渲染
+                    const logContainer = document.getElementById('log-container');
+                    if (!data.recentLogs || data.recentLogs.length === 0) {
+                        logContainer.innerHTML = `<p style="text-align:center; color:#7f8c8d;">尚無紀錄</p>`;
+                    } else {
+                        logContainer.innerHTML = data.recentLogs.map(log => {
+                            let valClass = log.val >= 0 ? "log-plus" : "log-minus";
+                            let valText = log.val >= 0 ? `+${log.val}` : log.val;
+                            return `
+                            <div class="log-row">
+                                <span><span class="log-time">${log.time}</span> ${log.reason || '系統變更'}</span>
+                                <span class="${valClass}">${valText} 點</span>
+                            </div>`;
+                        }).join('');
+                    }
                 })
                 .catch(err => showError("⚠️ 無法讀取資料"));
+        }
+
+        // 開關明細彈窗函數
+        function toggleLogs(show) {
+            document.getElementById('logModal').style.display = show ? 'flex' : 'none';
         }
 
         function send(val, btnElement) {
@@ -260,6 +300,9 @@
                     
                     ptsEl.style.transform = "scale(1.3)";
                     setTimeout(() => ptsEl.style.transform = "scale(1)", 300);
+
+                    // 🚀 老師加扣分後，背景自動刷新一次資料，確保「歷史明細」是最新的！
+                    loadStudentData(currentStudentId);
 
                     allBtns.forEach(b => { b.style.pointerEvents = 'auto'; b.style.opacity = '1'; });
                     btnElement.innerText = originalText;
@@ -299,7 +342,6 @@
             msg.style.color = "white";
             window.history.replaceState(null, null, 'admin.html');
             
-            // 由於已經移除了點擊強制的 focus，我們在按返回時手動觸發一次 focus
             scanner.focus();
         }
 
