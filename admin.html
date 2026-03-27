@@ -302,6 +302,9 @@
             msg.innerText = "🟢 系統就緒，請感應學生卡";
             msg.style.color = "white";
             
+            // 🚀 確保網址是乾淨的，不會影響下次掃描
+            window.history.replaceState(null, null, 'admin.html');
+            
             scanner.focus();
         }
 
