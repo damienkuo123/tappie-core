@@ -164,41 +164,27 @@
         const msg = document.getElementById('msg');
         const card = document.getElementById('mainCard');
         const badge = document.getElementById('statusBadge');
+        const scanner = document.getElementById('scanner');
 
         // =======================================================
-        // 🚀 無痕換人攔截器 (背景連線版)
+        // 🚀 恢復你原本最穩定的：原生輸入框焦點鎖定
         // =======================================================
-        (function() {
-            let rawBuffer = "";
-            let lastPress = Date.now();
+        document.addEventListener('click', () => scanner.focus());
+        setInterval(() => scanner.focus(), 1000);
 
-            const focusHunter = document.createElement('input');
-            focusHunter.type = "text";
-            focusHunter.style.position = "fixed";
-            focusHunter.style.top = "-500px"; 
-            focusHunter.style.opacity = "0";
-            document.body.appendChild(focusHunter);
-
-            setInterval(() => { focusHunter.focus(); }, 1000);
-
-            focusHunter.addEventListener('keydown', function(e) {
-                const now = Date.now();
-                if (now - lastPress > 300) rawBuffer = ""; 
-                lastPress = now;
-
-                if (e.key.length === 1) rawBuffer += e.key;
-
-                // 當按下 Enter 或讀取到足夠長度時觸發
-                if (e.key === 'Enter' || rawBuffer.length >= 10) {
-                    const finalID = rawBuffer.trim();
-                    if (finalID.length >= 6) {
-                        verifyCard(finalID);
-                    }
-                    rawBuffer = ""; focusHunter.value = "";
+        scanner.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const val = scanner.value.trim();
+                if (val) {
+                    verifyCard(val); // 把乾淨的卡號交給驗證系統
                 }
-            });
-        })();
+                scanner.value = ""; // 清空準備下一次刷卡
+            }
+        });
 
+        // =======================================================
+        // 🚀 背景 API 連線 (無痕跳轉)
+        // =======================================================
         function verifyCard(cardId) {
             // 1. 切換至載入狀態 UI
             card.className = 'container loading';
@@ -212,7 +198,7 @@
                     if (data.success) {
                         msg.innerText = "✅ 驗證成功，傳送中...";
                         msg.style.color = "#2ecc71";
-                        // 直接由 GitHub 跳轉至 Dashboard，完美避開 GAS 的 HTML
+                        // 直接由 GitHub 跳轉至 Dashboard
                         setTimeout(() => {
                             window.location.href = `dashboard.html?id=${data.uid}`;
                         }, 300);
