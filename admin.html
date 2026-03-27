@@ -168,14 +168,38 @@
         
         const params = new URLSearchParams(window.location.search);
         
+        // ⏳ 設定授權有效期限：這裡設為 2 小時 (2 * 60 * 60 * 1000 毫秒)
+        const AUTH_EXPIRE_MS = 2 * 60 * 60 * 1000; 
+
+        // 1. 如果有刷教師卡，記錄密碼與「當下時間」
         if (params.get('secret')) {
             localStorage.setItem('marian_auth', params.get('secret'));
+            localStorage.setItem('marian_auth_time', Date.now().toString()); 
             window.history.replaceState(null, null, 'admin.html');
         }
 
+        // 2. 檢查鑰匙是否過期
+        const authTime = localStorage.getItem('marian_auth_time');
+        if (authTime && (Date.now() - parseInt(authTime) > AUTH_EXPIRE_MS)) {
+            // 時間超過，立刻銷毀鑰匙
+            localStorage.removeItem('marian_auth');
+            localStorage.removeItem('marian_auth_time');
+            alert("⏳ 安全防護：管理員登入已過期，請重新感應教師卡！");
+        }
+
+        // 3. 檢查最終權限
         const ADMIN_SECRET = localStorage.getItem('marian_auth');
         if (ADMIN_SECRET !== "marian2026") {
             document.getElementById('unauth-mask').style.display = 'flex';
+        }
+
+        // 🔒 手動登出機制
+        function adminLogout() {
+            if (confirm("確定要登出中控台嗎？登出後需重新感應教師卡。")) {
+                localStorage.removeItem('marian_auth');
+                localStorage.removeItem('marian_auth_time');
+                window.location.reload(); // 重新整理網頁，直接觸發封鎖畫面
+            }
         }
 
         let currentStudentId = null;
