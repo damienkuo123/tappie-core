@@ -244,12 +244,6 @@
         badge.classList.remove('hidden');
       }
 
-      // 管理員模式
-      if (ADMIN_SECRET === "marian2026" || localStorage.getItem('marian_auth') === "marian2026") {
-        localStorage.setItem('marian_auth', "marian2026");
-        document.getElementById('admin-zone').classList.remove('hidden');
-      }
-
       // 👑 美語資優生專屬功能
       if (data.studentType === "美語資優生") {
         document.getElementById('elite-zone').classList.remove('hidden');
