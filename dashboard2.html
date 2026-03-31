@@ -170,7 +170,7 @@
 <body>
   <div id="loading-screen">
     <div class="spinner"></div>
-    <h3 style="color: var(--primary-blue); letter-spacing: 2px;">同步學習數據中...</h3>
+    <h3 style="color: var(--primary-blue); letter-spacing: 2px;">讀取學生資料中...</h3>
   </div>
 
   <div id="main-view">
@@ -181,7 +181,6 @@
       <h1 id="student-name" class="student-name">-</h1>
       <div class="points-container">
         <div id="current-points" class="points">0</div>
-        <div class="points-label">Total Points</div>
       </div>
       <span class="history-btn" onclick="toggleLogs(true)">📋 查看點數明細</span>
     </div>
@@ -191,7 +190,7 @@
       <div class="action-grid">
         <div id="hw-box" class="hw-box hw-active">
           <div class="action-icon">🎯</div>
-          <div id="hw-title" class="action-title">今日挑戰</div>
+          <div id="hw-title" class="action-title">今日口說</div>
           <div id="current-unit" class="action-sub">-</div>
           <div id="hw-score-info" class="hidden" style="font-size:11px; color:var(--marian-green); margin-top:-5px; margin-bottom:8px; font-weight:bold;">
             最佳 <span id="last-score">0</span> 分 | 獲得 <span id="awarded-points">0</span> 點
@@ -208,7 +207,7 @@
       </div>
 
       <div class="glass-panel mission-container">
-        <h3 class="section-title">🚩 連續打卡任務</h3>
+        <h3 class="section-title">🚩 連續口說任務</h3>
         
         <div class="mission-status-box">
           <div>
@@ -237,7 +236,7 @@
       </div>
 
       <div class="glass-panel leaderboard" style="padding: 15px 25px;">
-        <button id="lb-toggle-btn" class="btn-glory" onclick="toggleLB()">🏆 查看本週榮譽榜</button>
+        <button id="lb-toggle-btn" class="btn-glory" onclick="toggleLB()">🏆 查看單元口說榜</button>
         <div id="lb-panel" class="lb-panel">
           <h2 style="color:var(--primary-blue); font-size: 16px; margin: 10px 0 15px 0; text-align:center;">
             <span id="lb-unit-name"></span> 排行榜
