@@ -1161,7 +1161,8 @@
   // 🚀 隱藏載入畫面的共用函數
   function hideLoadingScreen() {
     const loader = document.getElementById('loading-screen');
-    if (loader) {
+    // 🔴 關鍵修改 3：檢查 display 是不是 flex (代表是對戰模式有開啟它)
+    if (loader && loader.style.display === 'flex') {
       loader.style.opacity = '0';
       setTimeout(() => loader.style.display = 'none', 600);
     }
