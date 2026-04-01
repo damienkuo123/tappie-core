@@ -552,18 +552,20 @@
       100% { top: 75vh; transform: translate3d(-50%, 0, 50px) scale(5); opacity: 0; filter: drop-shadow(0 0 80px #f1c40f); } 
     }
 
-    /* 🩸 戰損碎裂系統 */
+    /* 🩸 戰損碎裂系統 (修復充能衝突版) */
     .card.dmg-1 .card__bg { border-color: #f1c40f !important; }
     .card.dmg-1 .card__front::after { content: ''; position: absolute; inset:0; opacity: 0.6; background: linear-gradient(35deg, transparent 49%, rgba(255,255,255,0.8) 49.5%, transparent 50%); z-index: 15; pointer-events: none; border-radius: var(--card-radius); }
-    .card.dmg-2 .card__bg { border-color: #e67e22 !important; filter: saturate(0.8); }
-    .card.dmg-2 .card__rotator { box-shadow: inset 0 0 20px rgba(230, 126, 34, 0.5) !important; }
+    
+    /* 🚀 將 box-shadow 從 .card__rotator 轉移到 .card__bg，避免吃掉充能發光特效 */
+    .card.dmg-2 .card__bg { border-color: #e67e22 !important; filter: saturate(0.8); box-shadow: inset 0 0 20px rgba(230, 126, 34, 0.5) !important; }
     .card.dmg-2 .card__front::after { content: ''; position: absolute; inset:0; opacity: 0.8; background: linear-gradient(35deg, transparent 49%, rgba(255,255,255,0.8) 49.5%, transparent 50%), linear-gradient(-55deg, transparent 49%, rgba(255,255,255,0.8) 49.5%, transparent 50%); z-index: 15; pointer-events: none; border-radius: var(--card-radius); }
-    .card.dmg-3 .card__bg { border-color: #e74c3c !important; filter: saturate(0.6) contrast(1.2); }
-    .card.dmg-3 .card__rotator { box-shadow: inset 0 0 40px rgba(231, 76, 60, 0.6) !important; }
+    
+    .card.dmg-3 .card__bg { border-color: #e74c3c !important; filter: saturate(0.6) contrast(1.2); box-shadow: inset 0 0 40px rgba(231, 76, 60, 0.6) !important; }
     .card.dmg-3 .card__front::after { content: ''; position: absolute; inset:0; opacity: 1; background: linear-gradient(35deg, transparent 49%, rgba(255,255,255,0.9) 49.5%, transparent 50%), linear-gradient(-55deg, transparent 49%, rgba(255,255,255,0.9) 49.5%, transparent 50%), linear-gradient(15deg, transparent 49%, rgba(255,255,255,0.9) 49.5%, transparent 50%); z-index: 15; pointer-events: none; border-radius: var(--card-radius); }
-    .card.dmg-4 .card__bg { border: 3px dashed #c0392b !important; filter: grayscale(0.5) sepia(0.5) hue-rotate(-30deg); }
-    .card.dmg-4 .card__rotator { box-shadow: inset 0 0 60px rgba(192, 57, 43, 0.8) !important; }
+    
+    .card.dmg-4 .card__bg { border: 3px dashed #c0392b !important; filter: grayscale(0.5) sepia(0.5) hue-rotate(-30deg); box-shadow: inset 0 0 60px rgba(192, 57, 43, 0.8) !important; }
     .card.dmg-4 .card__front::after { content: ''; position: absolute; inset:0; opacity: 1; background: linear-gradient(35deg, transparent 49%, #fff 49.5%, transparent 50%), linear-gradient(-55deg, transparent 49%, #fff 49.5%, transparent 50%), linear-gradient(15deg, transparent 49%, #fff 49.5%, transparent 50%), linear-gradient(-80deg, transparent 49%, #fff 49.5%, transparent 50%); z-index: 15; pointer-events: none; border-radius: var(--card-radius); }
+    
 
     /* 🔥 終極爆炸消失 (戰敗碎裂掉落) */
     .card.loser-shatter { animation: shatter-destroy 1.2s 0.6s ease-out forwards !important; }
