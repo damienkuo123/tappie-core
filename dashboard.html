@@ -374,24 +374,55 @@
         document.getElementById('review-zone').classList.remove('hidden');
 
         // 今日挑戰 Box
-        document.getElementById('current-unit').innerText = data.currentUnit;
+        const unitText = data.currentUnit || "未排定";
+        document.getElementById('current-unit').innerText = unitText;
         const hwBox = document.getElementById('hw-box');
         const oralBtn = document.getElementById('oral-btn');
-        oralBtn.href = `arena.html?id=${STUDENT_ID}`;
+        const hwIcon = document.getElementById('hw-icon');
+        const hwTitle = document.getElementById('hw-title');
+        const hwScoreInfo = document.getElementById('hw-score-info');
         
-        if (data.isCompleted) {
+        if (unitText === "未排定") {
+          // 🛑 狀態 1：未排定 (灰色休眠模式)
+          hwBox.className = "hw-box"; // 移除發光底座
+          hwIcon.innerText = '⏳';
+          hwIcon.style.color = '#7f8c8d';
+          hwIcon.style.background = 'rgba(0,0,0,0.05)';
+          hwTitle.innerText = "今日無任務";
+          hwScoreInfo.classList.add('hidden');
+          
+          oralBtn.className = "btn btn-disabled";
+          oralBtn.innerText = "尚未開放";
+          oralBtn.removeAttribute('href'); // 拔掉網址，確保絕對點不進去
+          
+        } else if (data.isCompleted) {
+          // ✅ 狀態 2：已完成 (綠色通關模式)
+          oralBtn.href = `arena.html?id=${STUDENT_ID}`; 
           hwBox.className = "hw-box hw-done";
-          document.getElementById('hw-icon').innerText = '✅';
-          document.getElementById('hw-icon').style.color = 'var(--marian-green)';
-          document.getElementById('hw-icon').style.background = 'rgba(46,204,113,0.12)';
-          document.getElementById('hw-title').innerText = "今日已完成";
-          document.getElementById('hw-score-info').classList.remove('hidden');
+          hwIcon.innerText = '✅';
+          hwIcon.style.color = 'var(--marian-green)';
+          hwIcon.style.background = 'rgba(46,204,113,0.12)';
+          hwTitle.innerText = "今日已完成";
+          
+          hwScoreInfo.classList.remove('hidden');
           document.getElementById('last-score').innerText = data.lastScore;
           document.getElementById('awarded-points').innerText = data.awardedPoints;
+          
           oralBtn.className = "btn btn-green";
           oralBtn.innerText = "再次練習";
+          
         } else {
+          // 🎯 狀態 3：未完成 (黃色備戰模式)
+          oralBtn.href = `arena.html?id=${STUDENT_ID}`; 
           hwBox.className = "hw-box hw-active";
+          hwIcon.innerText = '🎯';
+          hwIcon.style.color = '#e67e22';
+          hwIcon.style.background = 'linear-gradient(135deg, rgba(255,255,255,1), rgba(255,255,255,0.5))';
+          hwTitle.innerText = "今日口說挑戰";
+          hwScoreInfo.classList.add('hidden');
+          
+          oralBtn.className = "btn btn-yellow";
+          oralBtn.innerText = "開啟挑戰";
         }
 
         // 單元任務
