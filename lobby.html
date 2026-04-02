@@ -545,6 +545,32 @@
       header { padding: max(30px, env(safe-area-inset-top)) 40px 20px; }
       .user-points { font-size: 36px; }
       .btn-shop { font-size: 16px; padding: 16px 32px; border-radius: 25px; }
+
+      /* =======================================================
+         ⚔️ 戰場介面 (Battle View) 平板適應
+         ======================================================= */
+      .battle-content {
+        max-width: 800px; /* 從 600px 放大，吃掉兩邊黑邊 */
+        padding: 40px 40px 100px;
+      }
+      
+      .battle-title {
+        font-size: 28px; /* 標題稍微放大 */
+      }
+
+      /* AI 橫幅與突發事件放大，增強史詩感 */
+      .ai-banner, .event-banner {
+        height: 180px; /* 高度拉長，讓圖片顯示更多 */
+        border-radius: 30px; 
+      }
+      .ai-banner-text h4 { font-size: 32px; }
+      .ai-banner-text p { font-size: 15px; padding: 6px 14px; }
+      
+      /* PvP 難度按鈕稍微放大 */
+      .diff-btn { width: 90px; height: 80px; font-size: 24px; }
+      
+      /* 開啟 1v1 戰場大按鈕加高 */
+      .btn-portal-epic { height: 80px; font-size: 24px; border-radius: 25px; }
     }
 
   </style>
