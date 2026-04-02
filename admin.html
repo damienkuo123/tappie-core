@@ -504,7 +504,6 @@
             const inputVal = document.getElementById('customMinus').value;
             const val = parseInt(inputVal);
             if (!isNaN(val) && val > 0) {
-                if (val >= 101 && !confirm(`確定要扣除 ${val} 點？`)) return;
                 send(-val, btnElement);
                 document.getElementById('customMinus').value = '';
             }
