@@ -336,6 +336,21 @@
       <button onclick="logoutToPortal()" class="btn-logout">🚪 登出系統</button>
     </div>
 
+    <div class="glass-panel" style="margin-top: 30px; padding: 25px; border: 2px solid rgba(241, 196, 15, 0.4); text-align: center;">
+    <h3 style="color: var(--gold); margin: 0 0 10px 0; letter-spacing: 2px;">📩 訂閱每週 AI 學習戰報</h3>
+    <p style="font-size: 14px; color: #a4b0be; margin-bottom: 20px;">每週五自動寄送孩子的發音診斷與進步軌跡至您的信箱。</p>
+    
+    <div style="display: flex; gap: 10px; max-width: 400px; margin: 0 auto;">
+      <input type="email" id="parent-email-input" placeholder="請輸入家長 Email" 
+             style="flex: 1; padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.5); color: white; font-size: 16px;">
+      <button onclick="subscribeEmail()" 
+              style="background: linear-gradient(135deg, #00b894, #05c46b); color: white; border: none; padding: 0 25px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);">
+        訂閱
+      </button>
+    </div>
+    <div id="email-msg" style="margin-top: 15px; font-size: 14px; font-weight: bold; color: #2ecc71;"></div>
+  </div>
+
   </div>
 
   <div id="logModal" onclick="toggleLogs(false)">
@@ -378,6 +393,38 @@
         .catch(err => { alert("連線失敗，請檢查網路狀態！"); console.error(err); });
     };
 
+
+    // 發送 Email 訂閱請求給後端
+    function subscribeEmail() {
+      const email = document.getElementById('parent-email-input').value.trim();
+      const msgEl = document.getElementById('email-msg');
+      
+      if (!email || !email.includes('@')) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.innerText = "⚠️ 請輸入正確的 Email 格式！";
+        return;
+      }
+  
+      msgEl.style.color = '#f1c40f';
+      msgEl.innerText = "⏳ 正在綁定中...";
+  
+      fetch(`${GAS_URL}?action=subscribe_email&id=${STUDENT_ID}&email=${encodeURIComponent(email)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            msgEl.style.color = '#2ecc71';
+            msgEl.innerText = "✅ 訂閱成功！每週五見囉！";
+          } else {
+            msgEl.style.color = '#e74c3c';
+            msgEl.innerText = "❌ 訂閱失敗，請稍後再試。";
+          }
+        })
+        .catch(err => {
+          msgEl.style.color = '#e74c3c';
+          msgEl.innerText = "⚠️ 網路錯誤，請檢查連線。";
+        });
+    }
+    
     function renderDashboard(data) {
       document.getElementById('student-name').innerText = data.studentName;
       document.getElementById('current-points').innerText = data.currentPoints;
