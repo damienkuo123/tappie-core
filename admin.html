@@ -297,7 +297,7 @@
             }, 200);
         });
 
-        // 🚀 修改後：直接呼叫極速版 API，一發入魂！
+        // 🚀 終極優化：只發送一次 API！直接傳送 cardId 給極速版後端
         function fetchStudent(cardId) {
             if (actionUI.style.display === 'block') return;
             
@@ -305,12 +305,13 @@
             msg.innerText = "⏳ 讀取學生資料中...";
             msg.style.color = "#ffd700";
 
+            // 直接呼叫 get_admin_student_data，不經過 verify_card！
             fetch(`${GAS_URL}?action=get_admin_student_data&cardId=${encodeURIComponent(cardId)}&secret=${ADMIN_SECRET}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
                         currentStudentId = data.uid;
-                        renderAdminData(data); // 呼叫統一的渲染函數
+                        renderAdminUI(data); // 呼叫統一的渲染函數
                     } else {
                         showError("❌ 查無此學生");
                     }
@@ -318,13 +319,13 @@
                 .catch(err => showError("⚠️ 網路連線異常"));
         }
 
-        // 🚀 修改後：如果是透過 URL id 進來的，一樣呼叫極速版 API
+        // 🚀 URL 帶有 ID 進入時 (從其他頁面跳轉過來)
         function loadStudentData(uid) {
             fetch(`${GAS_URL}?action=get_admin_student_data&id=${uid}&secret=${ADMIN_SECRET}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        renderAdminData(data); // 呼叫統一的渲染函數
+                        renderAdminUI(data); // 呼叫統一的渲染函數
                     } else {
                         showError("❌ 無法讀取資料");
                     }
@@ -332,8 +333,8 @@
                 .catch(err => showError("⚠️ 網路連線異常"));
         }
 
-        // 🚀 新增：將 UI 渲染獨立成一個函數，讓程式碼更乾淨
-        function renderAdminData(data) {
+        // 🎨 將渲染 UI 獨立出來，避免重複寫兩次代碼
+        function renderAdminUI(data) {
             card.className = 'container';
             scanUI.style.display = 'none';
             actionUI.style.display = 'block';
