@@ -910,6 +910,85 @@
       box-shadow: 0 0 15px rgba(241, 196, 15, 0.3);
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* =======================================================
+       🚀 平板與大螢幕自動適應 (Responsive Design)
+       ======================================================= */
+    @media (min-width: 768px) {
+      /* ----------------------------------
+         1. 傳送門 (Portal) 畫面放大
+         ---------------------------------- */
+      .portal-clash-container {
+        max-width: 700px;
+        height: 65vh;
+        max-height: 800px;
+      }
+      
+      .portal-card-wrapper {
+        max-width: 380px; /* 卡片從 280px 放大 */
+      }
+      
+      .portal-vs-spark {
+        width: 180px; height: 180px; font-size: 70px; /* VS 火花放大 */
+      }
+
+      /* 🚀 關鍵修復：把按鈕大幅往上提，並放大尺寸，絕對不被工具列擋住！ */
+      .btn-cyber {
+        bottom: 80px; 
+        font-size: 24px;
+        padding: 22px 60px;
+        border-radius: 40px;
+      }
+
+      /* ----------------------------------
+         2. 戰鬥室 (Arena) 畫面放大
+         ---------------------------------- */
+      .arena-card-wrapper {
+        max-width: 420px; /* 戰場卡片從 300px 放大 */
+      }
+
+      /* 🚀 對手卡片：把 top 往下調一點以免被切頭，並把 scale 放大 */
+      .op-container {
+        top: -8vh; /* 從 -18vh 降下來 */
+        transform: translateX(-50%) scale(0.85) translateZ(-200px);
+      }
+      /* 覆寫對手的後座力動畫以匹配新尺寸 */
+      @keyframes recoilOpAnim {
+        0%, 100% { transform: translateX(-50%) scale(0.85) translateZ(-200px); }
+        20% { transform: translateX(-50%) scale(0.8) translateZ(-250px) rotateX(-15deg) translateY(-30px); }
+      }
+
+      /* 🚀 我方卡片：稍微往上提，並放大 scale */
+      .my-container {
+        bottom: 8vh;
+        transform: translateX(-50%) scale(1.1) translateZ(50px);
+      }
+      /* 覆寫我方的後座力動畫以匹配新尺寸 */
+      @keyframes recoilMyAnim {
+        0%, 100% { transform: translateX(-50%) scale(1.1) translateZ(50px); }
+        20% { transform: translateX(-50%) scale(1.05) translateZ(0px) rotateX(15deg) translateY(30px); }
+      }
+
+      /* 題目文字與倒數計時器放大 */
+      .arena-stage-center { top: 32vh; }
+      #target-word { font-size: 8vw; padding: 0 60px; }
+      #battle-timer { font-size: 55px; }
+
+      /* 錄音按鈕與技能按鈕放大 */
+      #battle-controls { bottom: 10vh; }
+      #battle-record-btn { width: 130px; height: 130px; font-size: 60px; border-width: 6px; }
+      #skill-btn { font-size: 22px; padding: 15px 45px; border-radius: 25px; }
+
+      /* ----------------------------------
+         3. 結算畫面 (Impact Overlay) 放大
+         ---------------------------------- */
+      .impact-card-wrapper {
+        max-width: 480px; /* 結算卡片從 400px 放大 */
+      }
+      #impact-result { font-size: 120px; }
+      .score-number { font-size: 80px; }
+      .impact-score-board { padding: 25px 60px; }
+    }
     
   </style>
 </head>
