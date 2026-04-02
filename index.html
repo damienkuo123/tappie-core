@@ -139,6 +139,44 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* =======================================================
+           🚀 平板與大螢幕自動適應 (Responsive Design)
+           ======================================================= */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 550px; /* 卡片加寬 */
+                padding: 80px 50px; /* 內距加大，呼吸感更強 */
+                border-radius: 50px;
+            }
+            .logo-wrapper {
+                width: 160px;
+                height: 160px;
+                margin-bottom: 40px;
+            }
+            .logo-wrapper img {
+                width: 120px !important; /* Logo 放大 */
+            }
+            h1 {
+                font-size: 3.5em; /* 標題放大 */
+                margin-bottom: 15px;
+            }
+            .subtitle {
+                font-size: 1.5em;
+                margin-bottom: 50px;
+            }
+            .status-badge {
+                padding: 18px 36px;
+            }
+            .status-dot {
+                width: 14px;
+                height: 14px;
+                margin-right: 15px;
+            }
+            #msg {
+                font-size: 20px; /* 狀態文字放大 */
+            }
+        }
     </style>
 </head>
 <body>
