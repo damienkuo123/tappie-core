@@ -169,35 +169,38 @@
         let scanTimer; // 用來計算打字停頓的計時器
 
         // =======================================================
-        // 🚀 無痕焦點鎖定系統 (每秒強制抓回焦點)
+        // 🚀 終極無痕掃描系統 (Global Keystroke Catcher)
+        // 解決平板阻擋 focus 問題，不依賴任何輸入框！
         // =======================================================
-        document.addEventListener('click', () => scanner.focus());
-        setInterval(() => scanner.focus(), 1000);
+        let rawBuffer = "";
+        let lastPressTime = Date.now();
 
-        // =======================================================
-        // 🚀 雙重觸發機制：支援「Enter觸發」與「停頓觸發」
-        // =======================================================
-        
-        // 機制 1：如果有按 Enter，立刻送出
-        scanner.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                clearTimeout(scanTimer); // 取消停頓計時器
-                const val = scanner.value.trim();
-                if (val.length >= 6) verifyCard(val);
-                scanner.value = "";
+        document.addEventListener('keydown', function(e) {
+            const now = Date.now();
+            
+            // 1. 測速防呆：人類打字很慢，NFC 掃描極快！
+            // 如果兩次按鍵間隔超過 100 毫秒 (0.1秒)，就判定這不是機器掃描，清空緩衝區
+            if (now - lastPressTime > 100) {
+                rawBuffer = "";
             }
-        });
+            lastPressTime = now;
 
-        // 機制 2：如果讀卡機不按 Enter，靠「打字停頓 0.2 秒」自動送出
-        scanner.addEventListener('input', function() {
-            clearTimeout(scanTimer);
-            scanTimer = setTimeout(() => {
-                const val = scanner.value.trim();
+            // 2. 收集字元：只接收單一字元，過濾掉 Shift, Ctrl 等控制按鍵
+            if (e.key.length === 1) {
+                rawBuffer += e.key;
+            }
+
+            // 3. 雙重觸發機制：收到 Enter 鍵，或字串長度達到你的卡號標準 (假設為10)
+            if (e.key === 'Enter' || rawBuffer.length >= 10) {
+                const val = rawBuffer.trim();
+                
+                // 只要長度大於 6，就送出驗證！
                 if (val.length >= 6) {
-                    verifyCard(val);
-                    scanner.value = ""; // 送出後清空
+                    verifyCard(val); // 呼叫你原本的登入驗證函數
                 }
-            }, 200); // 停頓 200 毫秒就視為感應完畢
+                
+                rawBuffer = ""; // 驗證完畢，立刻清空槍膛準備下一發
+            }
         });
 
         // =======================================================
