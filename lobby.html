@@ -509,6 +509,44 @@
     }
     .close-btn-modal:active { color: #fff; transform: scale(0.8); }
 
+    /* =======================================================
+       🚀 平板與大螢幕自動適應 (Responsive Design)
+       ======================================================= */
+    @media (min-width: 768px) {
+      /* 1. 讓畫廊區塊自動撐開，完美填補中間的黑色空洞 */
+      .gallery-container { 
+        flex: 1; 
+        min-height: 550px; 
+      }
+      
+      /* 2. 放大 3D 卡片與選取框 (放大約 1.3 倍) */
+      .holo-card-wrapper { width: 330px; height: 460px; }
+      .center-target-box { width: 370px; height: 510px; border-width: 3px; }
+      .center-target-box::after { font-size: 16px; bottom: -45px; }
+      
+      /* 3. 🎯 核心校準：卡片變寬為 330px，所以置中 padding 要改成 50vw 減去一半 (165px) */
+      .carousel-track { 
+        padding: 60px calc(50vw - 165px); 
+        gap: 60px; 
+      }
+      
+      /* 4. 放大英雄名稱與標籤，更有史詩感 */
+      .hero-info-zone { margin-top: 30px; }
+      .hero-name { font-size: 54px; letter-spacing: 8px; margin-top: 15px; }
+      .badge { font-size: 15px; padding: 8px 24px; }
+      
+      /* 5. 放大底部按鈕區 */
+      .action-zone { gap: 20px; padding-bottom: max(60px, env(safe-area-inset-bottom)); }
+      .btn-equip, .nav-buttons { max-width: 480px; }
+      .btn-equip { padding: 22px 0; font-size: 22px; border-radius: 28px; }
+      .btn-nav { padding: 20px 0; font-size: 18px; border-radius: 28px; }
+      
+      /* 6. 頂部資訊列微調 */
+      header { padding: max(30px, env(safe-area-inset-top)) 40px 20px; }
+      .user-points { font-size: 36px; }
+      .btn-shop { font-size: 16px; padding: 16px 32px; border-radius: 25px; }
+    }
+
   </style>
 </head>
 <body>
