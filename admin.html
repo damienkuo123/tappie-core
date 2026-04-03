@@ -129,7 +129,23 @@
         .tm-back { color: var(--primary-color); font-size: 24px; cursor: pointer; padding: 5px 15px 5px 0; font-weight: bold; }
         .tm-title { font-size: 20px; font-weight: 900; color: white; flex: 1; text-align: center; margin-right: 34px; letter-spacing: 2px; }
         
-        .tm-calendar-zone { flex: 0.8; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: #7f8c8d; font-size: 16px; font-weight: bold; flex-direction: column; gap: 10px; }
+        /* 🚀 智慧日曆甘特圖專屬樣式 */
+        .tm-calendar-zone { 
+            flex: 0.85; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.1); 
+            display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; 
+            position: relative; overflow: hidden; width: 100%;
+        }
+        .sc-scroll-box { width: 100%; overflow-x: auto; scroll-behavior: smooth; height: 100%; }
+        .sc-scroll-box::-webkit-scrollbar { display: none; }
+        .sc-date-header { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px 0; background: rgba(0,0,0,0.1); }
+        .sc-day-col { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px dashed rgba(255,255,255,0.05); }
+        .sc-weekday { font-size: 11px; color: #94a3b8; margin-bottom: 4px; font-weight: bold; }
+        .sc-date-num { font-size: 15px; font-weight: 900; color: white; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .sc-today { background: #ffd700; color: #0f172a; box-shadow: 0 2px 8px rgba(255,215,0,0.4); }
+        .sc-tracks-container { position: relative; width: 100%; margin-top: 10px; padding-bottom: 15px; }
+        .sc-track-bar { position: absolute; height: 28px; display: flex; align-items: center; padding: 0 10px; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 12px; font-weight: bold; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: 0.2s; }
+        .sc-track-bar:active { transform: scale(0.98); }
+        
         
         .tm-filter-bar { padding: 12px 20px; display: flex; gap: 10px; background: rgba(0,0,0,0.2); }
         .tm-select { flex: 1; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 16px; font-weight: bold; outline: none; appearance: none; text-align: center; }
@@ -173,13 +189,7 @@
         .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: white; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; transition: 0.2s; position: relative; border: 1px solid transparent; }
         .cal-day:active:not(.disabled) { transform: scale(0.9); }
         .cal-day.empty { background: transparent; cursor: default; pointer-events: none; }
-        
-        /* 🚀 智慧排程橫向時間軸 */
-        .tm-timeline { display: flex; overflow-x: auto; width: 100%; padding: 15px 20px; gap: 12px; scroll-behavior: smooth; }
-        .tm-timeline::-webkit-scrollbar { display: none; }
-        .tm-time-item { min-width: 140px; background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .tm-time-date { font-size: 11px; color: #f1c40f; margin-bottom: 5px; font-weight: bold; letter-spacing: 1px;}
-        .tm-time-unit { font-size: 15px; font-weight: 900; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
 
         /* 🚫 防撞期與過期樣式 */
         .cal-day.disabled { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); cursor: not-allowed; }
