@@ -306,18 +306,16 @@
             <div class="tm-title">學習任務排定</div>
         </div>
         
-        <div class="tm-calendar-zone" style="padding: 15px; box-sizing: border-box;">
-            <div class="cal-header" style="width: 100%; margin-bottom: 10px;">
+        <div class="tm-calendar-zone" style="padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div class="cal-header" style="width: 100%; max-width: 350px; margin-bottom: 10px;">
                 <button class="cal-nav-btn" onclick="changeTopMonth(-1)">❮</button>
                 <div id="top-cal-month-title" class="cal-month-title" style="font-size: 16px;"></div>
                 <button class="cal-nav-btn" onclick="changeTopMonth(1)">❯</button>
             </div>
-            <div class="cal-weekdays" style="width: 100%;">
+            <div class="cal-weekdays" style="width: 100%; max-width: 350px;">
                 <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
             </div>
-            <div id="top-cal-grid" class="cal-grid" style="width: 100%;"></div>
-        </div>
-            <div style="font-size: 13px; color: #64748b; margin-top: 5px;">將支援動態防撞期與視覺化排程</div>
+            <div id="top-cal-grid" class="cal-grid" style="width: 100%; max-width: 350px;"></div>
         </div>
         
         <div class="tm-filter-bar">
@@ -990,12 +988,12 @@
 
             let html = '';
             pageTasks.forEach(task => {
-                // 🚀 核心修復：強制將單引號轉碼為 %27，徹底解決按鈕失效問題！
+                // 🚀 核心修復：強制將單引號轉碼，確保按鈕百分之百可以按
                 const wordsJsonStr = encodeURIComponent(JSON.stringify(task.words)).replace(/'/g, "%27");
                 const safeClassId = task.classId.replace(/'/g, "\\'");
                 const safeUnit = task.unit.replace(/'/g, "\\'");
                 
-                
+                // 🚀 清除重複，只留一張卡片
                 html += `
                 <div class="task-card">
                     <div class="task-info">
@@ -1004,13 +1002,14 @@
                         <div style="font-size:12px; color:#94a3b8; margin-top:4px; font-weight:bold;">共 ${task.words.length} 個單字</div>
                     </div>
                     <div class="task-actions">
-                        <button class="btn-icon" title="編輯任務" onclick="openTaskEditor(${task.row}, '${task.classId}', '${task.unit}', '${wordsJsonStr}')">✏️</button>
-                        <button class="btn-icon btn-schedule" title="排定日期" onclick="openCalendarModal(${task.row}, '${task.classId}', '${task.unit}')">📅</button>
+                        <button class="btn-icon" title="編輯任務" onclick="openTaskEditor(${task.row}, '${safeClassId}', '${safeUnit}', '${wordsJsonStr}')">✏️</button>
+                        <button class="btn-icon btn-schedule" title="排定日期" onclick="openCalendarModal(${task.row}, '${safeClassId}', '${safeUnit}')">📅</button>
                     </div>
                 </div>`;
             });
             listZone.innerHTML = html;
         }
+        
 
         // --- 📝 動態任務編輯器邏輯 ---
         function openTaskEditor(row, classId, unit, wordsJsonStr) {
