@@ -837,7 +837,7 @@
 
         function closeTaskManager() {
             document.getElementById('taskManagerView').style.display = 'none';
-            document.getElementById('mainCard').style.display = 'flex';
+            document.getElementById('mainCard').style.display = 'block'; // 🚀 改為 block，解決擠向左邊的問題
         }
 
         function fetchTaskData() {
