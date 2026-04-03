@@ -18,7 +18,7 @@
             color: white; overflow: hidden;
         }
 
-        /* 🚀 下拉選單 UI 設計 */
+        /* 🚀 頂部導航與下拉選單 */
         .top-nav { position: fixed; top: max(15px, env(safe-area-inset-top)); left: 15px; right: 15px; display: flex; justify-content: space-between; z-index: 100; }
         .nav-btn { cursor: pointer; color: #fff; font-size: 15px; font-weight: bold; transition: 0.2s; border: 1px solid rgba(255,255,255,0.25); padding: 10px 16px; border-radius: 12px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); letter-spacing: 1px; position: relative; }
         .nav-btn:active { transform: scale(0.9); }
@@ -28,7 +28,7 @@
         .dropdown-item { padding: 15px; color: white; text-align: left; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); transition: 0.2s; display: flex; align-items: center; gap: 8px; }
         .dropdown-item:last-child { border-bottom: none; }
         .dropdown-item:hover { background: rgba(255,215,0,0.2); color: #ffd700; }
-        .super-only { display: none; /* 預設隱藏進階功能 */ }
+        .super-only { display: none; }
 
         .container { position: relative; background: var(--card-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); padding: 35px 20px; border-radius: 35px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.05); text-align: center; max-width: 420px; width: 90%; animation: fadeIn 0.8s ease-out; transition: all 0.3s ease; box-sizing: border-box; max-height: 85vh; overflow-y: auto; margin-top: 20px; }
         .container::-webkit-scrollbar { display: none; }
@@ -44,7 +44,7 @@
 
         #action-ui { display: none; animation: fadeIn 0.4s ease-out; }
         .stu-name { font-size: 30px; font-weight: 900; margin: 0 0 5px 0; color: white; letter-spacing: 2px;}
-        .stu-points { font-size: 50px; font-weight: 900; color: #2ecc71; margin: 0 0 5px 0; text-shadow: 0 0 15px rgba(46, 204, 113, 0.4);}
+        .stu-points { font-size: 50px; font-weight: 900; color: #2ecc71; margin: 0 0 5px 0; text-shadow: 0 0 15px rgba(46, 204, 113, 0.4); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
         .history-btn { font-size: 15px; color: #cbd5e1; text-decoration: underline; cursor: pointer; display: inline-block; margin-bottom: 25px; transition: 0.2s; padding: 5px 15px; }
         
         .control-panel { background: rgba(0,0,0,0.3); border-radius: 25px; padding: 25px 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
@@ -52,11 +52,14 @@
         .btn-flex-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
         .btn-action { flex: 1; padding: 15px 0; border-radius: 14px; border: none; font-size: 18px; font-weight: 900; cursor: pointer; transition: 0.2s; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .btn-action:active { transform: scale(0.95); box-shadow: none; }
+        
         .btn-green { background: linear-gradient(135deg, #27ae60, #2ecc71); }
         .btn-gray { background: #64748b; }
         .btn-red { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+        
         .custom-input-group { display: flex; gap: 10px; }
         .custom-input { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.5); color: white; font-size: 18px; text-align: center; }
+        .custom-input::placeholder { color: #94a3b8; }
         
         .btn-return { background: transparent; border: 1px solid #94a3b8; color: #e2e8f0; padding: 15px; border-radius: 15px; cursor: pointer; transition: 0.2s; font-weight: bold; font-size: 18px; width:100%;}
         
@@ -66,6 +69,11 @@
         .modal-title { text-align: center; color: #ffd700; margin-top: 0; margin-bottom: 20px; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
         .modal-scroll-area { overflow-y: auto; padding-right: 5px; flex: 1; }
         .modal-scroll-area::-webkit-scrollbar { display: none; }
+
+        .log-row { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 16px; color: #f8fafc; }
+        .log-time { color: #94a3b8; font-size: 13px; margin-right: 10px; }
+        .log-plus { color: #2ecc71 !important; font-weight: bold; }
+        .log-minus { color: #e74c3c !important; font-weight: bold; }
 
         /* 手風琴 UI (進度與專欄共用) */
         .accordion-group { background: rgba(0,0,0,0.3); border-radius: 18px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; overflow: hidden; transition: 0.3s; }
@@ -189,6 +197,7 @@
     </div>
 
     <script>
+        // ⚠️ 記得替換為你的 GAS 網址！
         const GAS_URL = "https://script.google.com/macros/s/AKfycbyWm-WnRO5h3dliEPR36Cq1hCf5DgM4GIgJqXVUREclhtYOHjxq9DptApmQPkU5p5Ys/exec";
         const params = new URLSearchParams(window.location.search);
         
@@ -210,15 +219,18 @@
             document.querySelectorAll('.super-only').forEach(el => el.style.display = 'flex');
         }
 
-        // 🟢 全域變數宣告 (必須放在前面，跳轉邏輯才讀得到)
-        let currentStudentId = null, currentPointsValue = 0, scanTimer;
+        // 🟢 全域變數宣告
+        let currentStudentId = null;
+        let currentPointsValue = 0; 
+        let scanTimer;
+
         const scanner = document.getElementById('scanner');
         const card = document.getElementById('mainCard');
         const msg = document.getElementById('msg');
         const scanUI = document.getElementById('scan-ui');
         const actionUI = document.getElementById('action-ui');
 
-        // 🚀 關鍵修復：補回遺失的「URL 跳轉掃描接收邏輯」！
+        // 🚀 URL 跳轉掃描接收邏輯
         const TARGET_ID = params.get('id');
         if (TARGET_ID) {
             currentStudentId = TARGET_ID;
@@ -229,39 +241,65 @@
             loadStudentData(currentStudentId);
         }
 
-        // 🟢 選單切換
+        // 🟢 選單切換邏輯 (加入安全防呆)
         function toggleMenu() {
             const menu = document.getElementById('menu-dropdown');
             menu.classList.toggle('show');
         }
+        
         window.onclick = function(event) {
-            // 使用 closest 更安全，避免點擊文字時失效
-            if (!event.target.closest('.nav-btn')) {
-                document.getElementById('menu-dropdown').classList.remove('show');
+            // 確認點擊的不是導航按鈕內部的任何元素才關閉選單
+            if (event.target && event.target.closest && !event.target.closest('.nav-btn')) {
+                const menu = document.getElementById('menu-dropdown');
+                if (menu) menu.classList.remove('show');
             }
         }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        function closeModal(id) { 
+            document.getElementById(id).style.display = 'none'; 
+        }
 
         // --- 📊 學習進度邏輯 ---
         function openProgressModal() {
             document.getElementById('progressModal').style.display = 'flex';
             document.getElementById('progress-container').innerHTML = '<p style="text-align:center; color:#ffd700;">⏳ 正在彙整全校資料...</p>';
-            fetch(`${GAS_URL}?action=get_all_progress&secret=${ADMIN_SECRET}`).then(res=>res.json()).then(data=>{
-                if(data.error) return document.getElementById('progress-container').innerHTML = `<p color='red'>${data.error}</p>`;
-                let html = '';
-                for (const classId in data) {
-                    const info = data[classId]; info.students.sort((a, b) => a.count - b.count);
-                    let stuHtml = info.students.map(s => `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed rgba(255,255,255,0.1);"><span style="color:#e2e8f0;font-weight:bold;">${s.name}</span><span style="color:${s.count>=10?'#f1c40f':(s.count>=5?'#2ecc71':'#e74c3c')};font-weight:900;">${s.count} 次</span></div>`).join('');
-                    html += `
-                    <div class="accordion-group" onclick="this.classList.toggle('active')">
-                        <div class="accordion-header"><span>🏷️ ${classId}</span><span style="font-size:14px;">${info.unit} ▾</span></div>
-                        <div class="accordion-body">${stuHtml}</div>
-                    </div>`;
-                }
-                document.getElementById('progress-container').innerHTML = html || '<p style="text-align:center; color:#7f8c8d;">目前尚無班級資料</p>';
-            }).catch(err => {
-                document.getElementById('progress-container').innerHTML = '<p style="text-align:center; color:#e74c3c;">⚠️ 連線失敗</p>';
-            });
+            
+            fetch(`${GAS_URL}?action=get_all_progress&secret=${ADMIN_SECRET}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.error) return document.getElementById('progress-container').innerHTML = `<p style="color:#e74c3c;">${data.error}</p>`;
+                    
+                    let html = '';
+                    for (const classId in data) {
+                        const info = data[classId]; 
+                        info.students.sort((a, b) => a.count - b.count);
+                        
+                        let stuHtml = info.students.map(s => {
+                            let badgeClass = "c-safe"; let icon = "✅";
+                            if (s.count < 5) { badgeClass = "c-danger"; icon = "⚠️"; }
+                            else if (s.count >= 10) { badgeClass = "c-good"; icon = "🔥"; }
+
+                            return `
+                            <div class="stu-row" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed rgba(255,255,255,0.1);">
+                                <span class="s-name" style="color:#e2e8f0; font-weight:bold;">${s.name}</span>
+                                <span class="s-count" style="color:${s.count>=10?'#f1c40f':(s.count>=5?'#2ecc71':'#e74c3c')}; font-weight:900;">${icon} ${s.count} 次</span>
+                            </div>`;
+                        }).join('');
+
+                        html += `
+                        <div class="accordion-group" onclick="this.classList.toggle('active')">
+                            <div class="accordion-header">
+                                <span>🏷️ ${classId}</span>
+                                <span style="font-size:14px;">${info.unit} ▾</span>
+                            </div>
+                            <div class="accordion-body">${stuHtml}</div>
+                        </div>`;
+                    }
+                    document.getElementById('progress-container').innerHTML = html || '<p style="text-align:center; color:#7f8c8d;">目前尚無班級資料</p>';
+                })
+                .catch(err => {
+                    document.getElementById('progress-container').innerHTML = '<p style="text-align:center; color:#e74c3c;">⚠️ 連線失敗</p>';
+                });
         }
 
         // --- 📝 專欄管理邏輯 (超級管理員專屬) ---
@@ -273,33 +311,37 @@
         function loadNewsletters() {
             const container = document.getElementById('newsletter-container');
             container.innerHTML = '<p style="text-align:center; color:#6c5ce7;">⏳ 正在讀取庫存文章...</p>';
-            fetch(`${GAS_URL}?action=get_newsletters&secret=${ADMIN_SECRET}`).then(res=>res.json()).then(data=>{
-                if(data.error) return container.innerHTML = `<p color='red'>${data.error}</p>`;
-                let html = '';
-                data.forEach((item, index) => {
-                    let titleMatch = item.content.match(/<h3[^>]*>(.*?)<\/h3>/i);
-                    let title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '') : `文章 #${index+1}`;
+            
+            fetch(`${GAS_URL}?action=get_newsletters&secret=${ADMIN_SECRET}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.error) return container.innerHTML = `<p style="color:#e74c3c;">${data.error}</p>`;
                     
-                    html += `
-                    <div class="accordion-group">
-                        <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
-                            <span>📄 ${title.substring(0, 15)}...</span><span>▾</span>
-                        </div>
-                        <div class="accordion-body" id="nl-body-${item.row}">
-                            <div style="background:white; color:#333; padding:15px; border-radius:10px; font-size:14px; margin-bottom:15px;">${item.content}</div>
-                            <div style="display:flex; gap:10px;">
-                                <button class="btn-action" style="background:#3498db; font-size:14px; padding:10px;" onclick="startEdit(${item.row})">✏️ 編輯</button>
-                                <button class="btn-action" style="background:#e74c3c; font-size:14px; padding:10px;" onclick="deleteNewsletter(${item.row})">🗑️ 刪除</button>
+                    let html = '';
+                    data.forEach((item, index) => {
+                        let titleMatch = item.content.match(/<h3[^>]*>(.*?)<\/h3>/i);
+                        let title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '') : `文章 #${index+1}`;
+                        
+                        html += `
+                        <div class="accordion-group">
+                            <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
+                                <span>📄 ${title.substring(0, 15)}...</span><span>▾</span>
                             </div>
-                        </div>
-                    </div>`;
+                            <div class="accordion-body" id="nl-body-${item.row}">
+                                <div style="background:white; color:#333; padding:15px; border-radius:10px; font-size:14px; margin-bottom:15px;">${item.content}</div>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn-action" style="background:#3498db; font-size:14px; padding:10px;" onclick="startEdit(${item.row})">✏️ 編輯</button>
+                                    <button class="btn-action" style="background:#e74c3c; font-size:14px; padding:10px;" onclick="deleteNewsletter(${item.row})">🗑️ 刪除</button>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                    container.innerHTML = html || '<p style="text-align:center;">目前沒有庫存文章</p>';
                 });
-                container.innerHTML = html || '<p style="text-align:center;">目前沒有庫存文章</p>';
-            });
         }
 
         function addNewsletter() {
-            document.getElementById('newsletter-container').innerHTML = '<p style="text-align:center; color:#00b894;">✨ AI 正在撰寫中，大約需要 10 秒鐘...</p>';
+            document.getElementById('newsletter-container').innerHTML = '<p style="text-align:center; color:#00b894;">✨ AI 正在撰寫中，大約需要 10~15 秒鐘...</p>';
             fetch(`${GAS_URL}?action=add_newsletter&secret=${ADMIN_SECRET}&content=AI_GENERATE`).then(()=>loadNewsletters());
         }
 
@@ -332,55 +374,183 @@
                 .then(() => loadNewsletters());
         }
 
-        // --- 物理掃描與加扣分維持原樣 ---
-        setInterval(() => { const active = document.activeElement; if (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA') scanner.focus(); }, 1000);
-        scanner.addEventListener('keydown', function(e) { if (e.key === 'Enter') { clearTimeout(scanTimer); const finalID = scanner.value.trim(); if (finalID.length >= 6) fetchStudent(finalID); scanner.value = ""; }});
-        scanner.addEventListener('input', function() { clearTimeout(scanTimer); scanTimer = setTimeout(() => { const finalID = scanner.value.trim(); if (finalID.length >= 6) { fetchStudent(finalID); scanner.value = ""; } }, 200);});
+        // ==========================================
+        // 🔄 物理掃描與加扣分引擎 (完整還原版)
+        // ==========================================
+        
+        setInterval(() => {
+            const active = document.activeElement;
+            if (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA') {
+                scanner.focus();
+            }
+        }, 1000);
+
+        scanner.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                clearTimeout(scanTimer);
+                const finalID = scanner.value.trim();
+                if (finalID.length >= 6) {
+                    fetchStudent(finalID);
+                }
+                scanner.value = "";
+            }
+        });
+
+        scanner.addEventListener('input', function() {
+            clearTimeout(scanTimer);
+            scanTimer = setTimeout(() => {
+                const finalID = scanner.value.trim();
+                if (finalID.length >= 6) {
+                    fetchStudent(finalID);
+                    scanner.value = "";
+                }
+            }, 200);
+        });
 
         function fetchStudent(cardId) {
             if (actionUI.style.display === 'block') return;
-            card.className = 'container loading'; msg.innerText = "⏳ 讀取學生資料中..."; msg.style.color = "#ffd700";
+            
+            card.className = 'container loading';
+            msg.innerText = "⏳ 讀取學生資料中...";
+            msg.style.color = "#ffd700";
+
             fetch(`${GAS_URL}?action=get_admin_student_data&cardId=${encodeURIComponent(cardId)}&secret=${ADMIN_SECRET}`)
-                .then(res => res.json()).then(data => { if (data.success) { currentStudentId = data.uid; renderAdminUI(data); } else { showError("❌ 查無此學生"); } }).catch(err => showError("⚠️ 網路連線異常"));
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        currentStudentId = data.uid;
+                        renderAdminUI(data); 
+                    } else {
+                        showError("❌ 查無此學生");
+                    }
+                })
+                .catch(err => showError("⚠️ 網路連線異常"));
         }
 
         function loadStudentData(uid) {
             fetch(`${GAS_URL}?action=get_admin_student_data&id=${uid}&secret=${ADMIN_SECRET}`)
-                .then(res => res.json()).then(data => { if (data.success) renderAdminUI(data); else showError("❌ 無法讀取資料"); }).catch(err => showError("⚠️ 網路連線異常"));
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        renderAdminUI(data); 
+                    } else {
+                        showError("❌ 無法讀取資料");
+                    }
+                })
+                .catch(err => showError("⚠️ 網路連線異常"));
         }
 
         function renderAdminUI(data) {
-            card.className = 'container'; scanUI.style.display = 'none'; actionUI.style.display = 'block'; document.getElementById('top-nav').style.display = 'none';
-            document.getElementById('stu-name').innerText = data.studentName; currentPointsValue = Number(data.currentPoints); document.getElementById('stu-points').innerText = `${currentPointsValue} PTS`;
+            card.className = 'container';
+            scanUI.style.display = 'none';
+            actionUI.style.display = 'block';
+            document.getElementById('top-nav').style.display = 'none'; 
+            
+            document.getElementById('stu-name').innerText = data.studentName;
+            
+            currentPointsValue = Number(data.currentPoints);
+            document.getElementById('stu-points').innerText = `${currentPointsValue} PTS`;
+
             const logContainer = document.getElementById('log-container');
-            if (!data.recentLogs || data.recentLogs.length === 0) { logContainer.innerHTML = `<p style="text-align:center; color:#7f8c8d;">尚無紀錄</p>`; } else {
-                logContainer.innerHTML = data.recentLogs.map(log => { let valClass = log.val >= 0 ? "log-plus" : "log-minus"; let valText = log.val >= 0 ? `+${log.val}` : log.val; return `<div class="log-row"><span><span class="log-time">${log.time}</span> ${log.reason || '系統變更'}</span><span class="${valClass}">${valText} 點</span></div>`; }).join('');
+            if (!data.recentLogs || data.recentLogs.length === 0) {
+                logContainer.innerHTML = `<p style="text-align:center; color:#7f8c8d;">尚無紀錄</p>`;
+            } else {
+                logContainer.innerHTML = data.recentLogs.map(log => {
+                    let valClass = log.val >= 0 ? "log-plus" : "log-minus";
+                    let valText = log.val >= 0 ? `+${log.val}` : log.val;
+                    return `
+                    <div class="log-row">
+                        <span><span class="log-time">${log.time}</span> ${log.reason || '系統變更'}</span>
+                        <span class="${valClass}">${valText} 點</span>
+                    </div>`;
+                }).join('');
             }
         }
 
-        function toggleLogs(show) { document.getElementById('logModal').style.display = show ? 'flex' : 'none'; }
+        function toggleLogs(show) { 
+            document.getElementById('logModal').style.display = show ? 'flex' : 'none'; 
+        }
 
         function send(val, btnElement) {
             if (!currentStudentId) return;
             if (val >= 101 && !confirm(`確定要一次給予 ${val} 點嗎？`)) return;
             if (val <= -101 && !confirm(`確定要一次扣除 ${Math.abs(val)} 點嗎？`)) return;
-            const allBtns = document.querySelectorAll('.btn-action'); allBtns.forEach(b => { b.style.pointerEvents = 'none'; b.style.opacity = '0.5'; });
-            const originalText = btnElement.innerText; btnElement.innerText = "⏳";
+
+            const allBtns = document.querySelectorAll('.btn-action');
+            allBtns.forEach(b => { b.style.pointerEvents = 'none'; b.style.opacity = '0.5'; });
+            
+            const originalText = btnElement.innerText;
+            btnElement.innerText = "⏳";
+
             fetch(`${GAS_URL}?action=admin_add_points&id=${currentStudentId}&val=${val}&secret=${ADMIN_SECRET}`)
-                .then(res => res.json()).then(resData => {
-                    currentPointsValue += val; const ptsEl = document.getElementById('stu-points'); ptsEl.innerText = `${currentPointsValue} PTS`;
-                    ptsEl.style.transform = "scale(1.3)"; setTimeout(() => ptsEl.style.transform = "scale(1)", 300);
+                .then(res => res.json())
+                .then(resData => {
+                    currentPointsValue += val;
+                    const ptsEl = document.getElementById('stu-points');
+                    ptsEl.innerText = `${currentPointsValue} PTS`;
+                    
+                    ptsEl.style.transform = "scale(1.3)";
+                    setTimeout(() => ptsEl.style.transform = "scale(1)", 300);
+
                     loadStudentData(currentStudentId);
-                    allBtns.forEach(b => { b.style.pointerEvents = 'auto'; b.style.opacity = '1'; }); btnElement.innerText = originalText;
-                }).catch(err => { alert("加扣分失敗，請檢查網路！"); allBtns.forEach(b => { b.style.pointerEvents = 'auto'; b.style.opacity = '1'; }); btnElement.innerText = originalText; });
+
+                    allBtns.forEach(b => { b.style.pointerEvents = 'auto'; b.style.opacity = '1'; });
+                    btnElement.innerText = originalText;
+                })
+                .catch(err => {
+                    alert("加扣分失敗，請檢查網路！");
+                    allBtns.forEach(b => { b.style.pointerEvents = 'auto'; b.style.opacity = '1'; });
+                    btnElement.innerText = originalText;
+                });
         }
 
-        function handleAdd(btnElement) { const val = parseInt(document.getElementById('customAdd').value); if (!isNaN(val) && val > 0) { send(val, btnElement); document.getElementById('customAdd').value = ''; } }
-        function handleMinus(btnElement) { const val = parseInt(document.getElementById('customMinus').value); if (!isNaN(val) && val > 0) { send(-val, btnElement); document.getElementById('customMinus').value = ''; } }
+        function handleAdd(btnElement) { 
+            const val = parseInt(document.getElementById('customAdd').value); 
+            if (!isNaN(val) && val > 0) { 
+                send(val, btnElement); 
+                document.getElementById('customAdd').value = ''; 
+            } 
+        }
 
-        function resetScanner() { currentStudentId = null; actionUI.style.display = 'none'; scanUI.style.display = 'block'; document.getElementById('top-nav').style.display = 'flex'; card.className = 'container'; msg.innerText = "🟢 系統就緒，請感應學生卡"; msg.style.color = "white"; window.history.replaceState(null, null, 'admin.html'); scanner.focus(); }
-        function showError(errorText) { card.className = 'container error'; msg.innerText = errorText; msg.style.color = "#e74c3c"; setTimeout(() => { if (actionUI.style.display !== 'block') { card.className = 'container'; msg.innerText = "🟢 系統就緒，請感應學生卡"; msg.style.color = "white"; } }, 2500); }
-        function adminLogout() { if (confirm("確定要登出嗎？")) { localStorage.removeItem('marian_auth'); window.location.reload(); } }
+        function handleMinus(btnElement) { 
+            const val = parseInt(document.getElementById('customMinus').value); 
+            if (!isNaN(val) && val > 0) { 
+                send(-val, btnElement); 
+                document.getElementById('customMinus').value = ''; 
+            } 
+        }
+
+        function resetScanner() { 
+            currentStudentId = null; 
+            actionUI.style.display = 'none'; 
+            scanUI.style.display = 'block'; 
+            document.getElementById('top-nav').style.display = 'flex'; 
+            card.className = 'container'; 
+            msg.innerText = "🟢 系統就緒，請感應學生卡"; 
+            msg.style.color = "white"; 
+            window.history.replaceState(null, null, 'admin.html'); 
+            scanner.focus(); 
+        }
+
+        function showError(errorText) { 
+            card.className = 'container error'; 
+            msg.innerText = errorText; 
+            msg.style.color = "#e74c3c"; 
+            setTimeout(() => { 
+                if (actionUI.style.display !== 'block') { 
+                    card.className = 'container'; 
+                    msg.innerText = "🟢 系統就緒，請感應學生卡"; 
+                    msg.style.color = "white"; 
+                } 
+            }, 2500); 
+        }
+
+        function adminLogout() { 
+            if (confirm("確定要登出嗎？")) { 
+                localStorage.removeItem('marian_auth'); 
+                window.location.reload(); 
+            } 
+        }
     </script>
 </body>
 </html>
