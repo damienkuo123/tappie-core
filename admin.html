@@ -129,12 +129,15 @@
         .tm-back { color: var(--primary-color); font-size: 24px; cursor: pointer; padding: 5px 15px 5px 0; font-weight: bold; }
         .tm-title { font-size: 20px; font-weight: 900; color: white; flex: 1; text-align: center; margin-right: 34px; letter-spacing: 2px; }
         
-        /* 🚀 智慧日曆甘特圖專屬樣式 */
+        /* 🚀 頂部方格月曆專屬樣式 */
         .tm-calendar-zone { 
-            flex: 0.85; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.1); 
-            display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; 
-            position: relative; overflow: hidden; width: 100%;
+            flex: none; /* 🚀 解除空間封印，不再被強制壓扁！ */
+            min-height: 330px; /* 給予足夠的絕對高度 */
+            background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.1); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            position: relative; width: 100%; padding-bottom: 20px;
         }
+        
         .sc-scroll-box { width: 100%; overflow-x: auto; scroll-behavior: smooth; height: 100%; }
         .sc-scroll-box::-webkit-scrollbar { display: none; }
         .sc-date-header { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px 0; background: rgba(0,0,0,0.1); }
@@ -913,7 +916,7 @@
             renderSmartCalendar();
         }
 
-        // 🚀 華麗回歸：方格式漂亮月曆 (頂部視圖版)
+        // 🚀 華麗回歸：方格式漂亮月曆 (頂部視圖版 - 具備自動配色與智慧去名)
         function renderSmartCalendar() {
             const filterClass = document.getElementById('tm-class-filter').value;
             const grid = document.getElementById('top-cal-grid');
@@ -939,6 +942,19 @@
             let classSchedules = allSchedulesData.filter(s => s.classId === filterClass && s.startDate);
             let todayStr = Utilities.formatDate(new Date(), "GMT+8", "yyyy-MM-dd");
 
+            // 🎨 建立專屬單元的「彩色調色盤」
+            const colorPalette = ['#3498db', '#e74c3c', '#9b59b6', '#00b894', '#e67e22', '#0984e3', '#fd79a8'];
+            let unitColorMap = {};
+            let colorIndex = 0;
+            
+            // 把該班級出現過的所有單元，依照順序發配顏色
+            classSchedules.forEach(s => {
+                if (!unitColorMap[s.unit]) {
+                    unitColorMap[s.unit] = colorPalette[colorIndex % colorPalette.length];
+                    colorIndex++;
+                }
+            });
+
             for (let i = 1; i <= daysInMonth; i++) {
                 let cellDate = new Date(year, month, i);
                 let dateStr = Utilities.formatDate(cellDate, "GMT+8", "yyyy-MM-dd");
@@ -948,18 +964,32 @@
                 if (isToday) classNames += " sc-today"; // 今日高亮
 
                 let innerHtml = `<span class="day-num" style="font-size:13px; margin-top:3px;">${i}</span>`;
+                let extraStyle = "";
                 
                 // 🚀 尋找這一天有沒有被排定任務
                 let sch = classSchedules.find(s => dateStr >= s.startDate && dateStr <= s.endDate);
                 
                 if (sch) {
-                    classNames += " in-range"; // 套用漂亮的藍色底框
-                    let shortUnit = sch.unit.length > 5 ? sch.unit.substring(0,4)+'..' : sch.unit;
-                    // 在格子裡面塞入單元名稱的標籤
-                    innerHtml += `<div class="cal-tiny-text" style="color:white; background:var(--primary-blue); border-radius:4px; padding:2px; margin-top:2px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">${shortUnit}</div>`;
+                    // 🧠 智慧去名：如果單元名稱開頭是班級代碼 (例如 E1 Unit1)，就把 E1 喀掉！
+                    let cleanUnit = sch.unit;
+                    if (cleanUnit.toUpperCase().startsWith(filterClass.toUpperCase())) {
+                        cleanUnit = cleanUnit.substring(filterClass.length).trim();
+                        // 順便濾掉可能多出來的連字號 (例如 "- Unit1")
+                        if (cleanUnit.startsWith('-')) cleanUnit = cleanUnit.substring(1).trim();
+                    }
+
+                    // 🎨 抓取專屬顏色，並把整個格子的背景跟邊框上色！
+                    let unitColor = unitColorMap[sch.unit];
+                    extraStyle = `style="background: ${unitColor}25; border: 1px solid ${unitColor}50;"`;
+
+                    // 保留最多 6 個字元，確保方格不會破版
+                    let shortUnit = cleanUnit.length > 6 ? cleanUnit.substring(0,5)+'..' : cleanUnit;
+                    
+                    // 中間的標籤，套用專屬的滿版底色
+                    innerHtml += `<div class="cal-tiny-text" style="color:white; background:${unitColor}; border-radius:4px; padding:2px; margin-top:2px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); width:90%;">${shortUnit}</div>`;
                 }
 
-                grid.innerHTML += `<div class="${classNames}">${innerHtml}</div>`;
+                grid.innerHTML += `<div class="${classNames}" ${extraStyle}>${innerHtml}</div>`;
             }
         }
 
