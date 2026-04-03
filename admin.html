@@ -897,7 +897,7 @@
                     </div>
                     <div class="task-actions">
                         <button class="btn-icon" title="編輯任務" onclick="openTaskEditor(${task.row}, '${task.classId}', '${task.unit}', '${wordsJsonStr}')">✏️</button>
-                        <button class="btn-icon btn-schedule" title="排定日期" onclick="alert('階段三排程功能開發中！預計開啟互動式月曆。')">📅</button>
+                        <button class="btn-icon btn-schedule" title="排定日期" onclick="openCalendarModal(${task.row}, '${task.classId}', '${task.unit}')">📅</button>
                     </div>
                 </div>`;
             });
@@ -997,6 +997,187 @@
                     saveBtn.style.pointerEvents = "auto";
                 });
         }
+
+        // =======================================================
+        // 📅 互動式防撞期日曆系統 (階段三核心邏輯)
+        // =======================================================
+        let calCurrentDate = new Date();
+        let calSelectingStart = null;
+        let calSelectingEnd = null;
+        let calTargetTask = { row: 0, classId: '', unit: '' };
+        let blockedDates = []; // 儲存該班級已經被佔用的日期
+
+        function openCalendarModal(row, classId, unit) {
+            calTargetTask = { row, classId, unit };
+            document.getElementById('cal-task-info').innerText = `班級：${classId} | 單元：${unit}`;
+            
+            calSelectingStart = null;
+            calSelectingEnd = null;
+            document.getElementById('cal-status-text').innerText = "請點擊選擇「開始日期」";
+            
+            // 🚀 防撞期系統：找出這個班級已經排定過的所有日期區間
+            blockedDates = [];
+            allSchedulesData.forEach(sch => {
+                if (sch.classId === classId && sch.startDate && sch.endDate) {
+                    let d = new Date(sch.startDate);
+                    let endD = new Date(sch.endDate);
+                    while (d <= endD) {
+                        blockedDates.push(Utilities.formatDate(d, "GMT+8", "yyyy-MM-dd"));
+                        d.setDate(d.getDate() + 1);
+                    }
+                }
+            });
+
+            calCurrentDate = new Date(); // 預設顯示當下月份
+            renderCalendar();
+            document.getElementById('calendarModal').style.display = 'flex';
+        }
+
+        function changeMonth(offset) {
+            calCurrentDate.setMonth(calCurrentDate.getMonth() + offset);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = calCurrentDate.getFullYear();
+            const month = calCurrentDate.getMonth();
+            document.getElementById('cal-month-title').innerText = `${year}年 ${month + 1}月`;
+
+            const firstDay = new Date(year, month, 1).getDay(); // 這個月第一天是星期幾
+            const daysInMonth = new Date(year, month + 1, 0).getDate(); // 這個月有幾天
+
+            const grid = document.getElementById('cal-grid');
+            grid.innerHTML = '';
+
+            // 填補月初的空白天數
+            for (let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div class="cal-day empty"></div>`;
+            }
+
+            // 產生日子
+            for (let i = 1; i <= daysInMonth; i++) {
+                let cellDate = new Date(year, month, i);
+                let dateStr = Utilities.formatDate(cellDate, "GMT+8", "yyyy-MM-dd");
+                
+                let classNames = "cal-day";
+                let isDisabled = blockedDates.includes(dateStr); // 是否被該班級的其他單元佔用
+
+                if (isDisabled) classNames += " disabled";
+
+                // 檢查是否被選中 (頭、尾、或是中間)
+                if (calSelectingStart && dateStr === calSelectingStart) classNames += " selected";
+                if (calSelectingEnd && dateStr === calSelectingEnd) classNames += " selected";
+                if (calSelectingStart && calSelectingEnd && dateStr > calSelectingStart && dateStr < calSelectingEnd) {
+                    classNames += " in-range";
+                }
+
+                // 如果今天有排任何班級的課，畫一個小黃點提示
+                let hasEvent = allSchedulesData.some(s => s.startDate <= dateStr && s.endDate >= dateStr);
+                let dotHtml = hasEvent ? `<div class="cal-dots-zone"><div class="cal-dot"></div></div>` : "";
+
+                // 點擊事件：如果 disabled 就傳 null
+                grid.innerHTML += `
+                    <div class="${classNames}" onclick="handleDateClick('${dateStr}', ${isDisabled})">
+                        ${i}
+                        ${dotHtml}
+                    </div>
+                `;
+            }
+        }
+
+        function handleDateClick(dateStr, isDisabled) {
+            if (isDisabled) {
+                // 如果點到不能點的，給個震動或提示
+                document.getElementById('cal-status-text').innerText = "❌ 此日期已被其他單元佔用！";
+                document.getElementById('cal-status-text').style.color = "#e74c3c";
+                setTimeout(() => { document.getElementById('cal-status-text').style.color = "#cbd5e1"; }, 1500);
+                return;
+            }
+
+            if (!calSelectingStart || (calSelectingStart && calSelectingEnd)) {
+                // 第一次點擊，或是重新選擇：設定為開始日
+                calSelectingStart = dateStr;
+                calSelectingEnd = null;
+                document.getElementById('cal-status-text').innerText = `開始日期：${dateStr}，請選擇「結束日期」`;
+            } else {
+                // 第二次點擊：設定為結束日 (必須大於開始日)
+                if (dateStr < calSelectingStart) {
+                    // 如果點的比開始日早，就把開始日換過來
+                    calSelectingStart = dateStr;
+                    document.getElementById('cal-status-text').innerText = `開始日期：${dateStr}，請選擇「結束日期」`;
+                } else {
+                    // 🚀 防跨越撞期檢查：確保 Start 到 End 中間沒有包到 Disabled 的日子
+                    let isValid = true;
+                    let tempD = new Date(calSelectingStart);
+                    let targetD = new Date(dateStr);
+                    while (tempD <= targetD) {
+                        if (blockedDates.includes(Utilities.formatDate(tempD, "GMT+8", "yyyy-MM-dd"))) {
+                            isValid = false; break;
+                        }
+                        tempD.setDate(tempD.getDate() + 1);
+                    }
+
+                    if (!isValid) {
+                        document.getElementById('cal-status-text').innerText = "❌ 區間內包含已排定任務，請重新選擇！";
+                        document.getElementById('cal-status-text').style.color = "#e74c3c";
+                        calSelectingStart = null; // 重置
+                        setTimeout(() => { document.getElementById('cal-status-text').style.color = "#cbd5e1"; document.getElementById('cal-status-text').innerText = "請點擊選擇「開始日期」"; }, 2000);
+                    } else {
+                        calSelectingEnd = dateStr;
+                        document.getElementById('cal-status-text').innerText = `✅ 已選擇：${calSelectingStart} ~ ${calSelectingEnd}`;
+                        document.getElementById('cal-status-text').style.color = "#2ecc71";
+                    }
+                }
+            }
+            renderCalendar(); // 重新畫日曆
+        }
+
+        function submitSchedule() {
+            if (!calSelectingStart || !calSelectingEnd) {
+                alert("請完整選擇「開始日期」與「結束日期」！");
+                return;
+            }
+
+            const btn = document.getElementById('save-cal-btn');
+            const ogText = btn.innerText;
+            btn.innerText = "⏳ 寫入排程中...";
+            btn.style.pointerEvents = "none";
+
+            const formData = new URLSearchParams();
+            formData.append('classId', calTargetTask.classId);
+            formData.append('unit', calTargetTask.unit);
+            formData.append('startDate', calSelectingStart);
+            formData.append('endDate', calSelectingEnd);
+            // row 我們送 0，讓後端用 appendRow 新增一筆紀錄
+            formData.append('row', 0); 
+
+            fetch(`${GAS_URL}?action=save_schedule&secret=${ADMIN_SECRET}`, { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        closeModal('calendarModal');
+                        fetchTaskData(); // 重新抓資料，刷新防呆清單
+                    } else {
+                        alert("排程失敗，請重試！");
+                    }
+                })
+                .catch(err => alert("連線超時！"))
+                .finally(() => {
+                    btn.innerText = ogText;
+                    btn.style.pointerEvents = "auto";
+                });
+        }
+        
+        // 幫 Utilities 補一個前端用的 FormatDate 函數 (因為前端沒有 Google 的 Utilities)
+        const Utilities = {
+            formatDate: function(date, tz, format) {
+                let d = new Date(date);
+                let yyyy = d.getFullYear();
+                let MM = String(d.getMonth() + 1).padStart(2, '0');
+                let dd = String(d.getDate()).padStart(2, '0');
+                return `${yyyy}-${MM}-${dd}`; // 簡化版的前端日期格式化
+            }
+        };
     </script>
 </body>
 </html>
