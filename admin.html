@@ -208,17 +208,25 @@
         .cal-dots-zone { display: flex; gap: 3px; position: absolute; bottom: 4px; }
         .cal-dot { width: 4px; height: 4px; border-radius: 50%; background: #f1c40f; }
         
-        /* 🚀 任務卡片刪除按鈕 */
-        .btn-del-task { position: absolute; top: 12px; right: 15px; background: transparent; color: #e74c3c; border: none; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; padding: 5px; }
-        .btn-del-task:active { transform: scale(0.8); }
+        /* 🚀 任務卡片刪除按鈕 (進化為右上角立體小紅點) */
+        .btn-del-task { 
+            position: absolute; top: -8px; right: -8px; 
+            background: #e74c3c; color: white; border: 2px solid var(--bg-dark); 
+            width: 28px; height: 28px; border-radius: 50%; 
+            font-size: 12px; font-weight: bold; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(231,76,60,0.4); z-index: 10; transition: 0.2s;
+        }
+        .btn-del-task:active { transform: scale(0.8); box-shadow: none; }
 
-        /* 🚀 連續彩帶專屬樣式 */
+        /* 🚀 連續彩帶專屬樣式 (撐滿寬度吃掉縫隙) */
         .cal-ribbon {
             color: white; font-size: 11px; font-weight: bold; height: 18px; line-height: 18px; 
             overflow: hidden; white-space: nowrap; text-align: left; padding-left: 6px; 
             position: relative; z-index: 5; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            /* 讓文字不可反白，增強 APP 體驗 */
             user-select: none; -webkit-user-select: none;
+            /* 👇 破案關鍵：強迫彩帶往左右撐滿，配合 JS 的負邊距完美接合 */
+            align-self: stretch; 
         }
     </style>
 </head>
