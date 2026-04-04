@@ -1046,10 +1046,16 @@
                     let mRight = isEnd ? '2px' : '-4px';
                     let bRad = `${isStart ? '4px' : '0'} ${isEnd ? '4px' : '0'} ${isEnd ? '4px' : '0'} ${isStart ? '4px' : '0'}`;
 
-                    // 只有在彩帶的「起點」才顯示文字，其他天留白延續顏色
-                    let displayText = isStart ? cleanUnit : '&nbsp;';
+                    // 🚀 智慧截斷：避免超長單元名稱 (如 Event 活動) 破壞畫面
+                    let safeDisplayText = cleanUnit;
+                    if (safeDisplayText.length > 5) {
+                        safeDisplayText = safeDisplayText.substring(0, 4) + '..';
+                    }
 
-                    innerHtml += `<div class="cal-ribbon" style="background:${unitColor}; border-radius:${bRad}; margin-left:${mLeft}; margin-right:${mRight};">${displayText}</div>`;
+                    // 只有在彩帶的「起點」才顯示文字，其他天留白延續顏色
+                    let displayText = isStart ? safeDisplayText : '&nbsp;';
+
+                    innerHtml += `<div class="cal-ribbon" style="background:${unitColor}; border-radius:${bRad}; margin-left:${mLeft}; margin-right:${mRight};" title="${cleanUnit}">${displayText}</div>`;
                 }
 
                 grid.innerHTML += `<div class="${classNames}" ${extraStyle} ${clickAction}>${innerHtml}</div>`;
