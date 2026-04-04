@@ -173,7 +173,14 @@
         .btn-icon:active { transform: scale(0.9); }
         .btn-schedule { background: rgba(46,204,113,0.2); border: 1px solid #2ecc71; color: #2ecc71; }
         
-        .tm-pagination { position: absolute; bottom: 0; left: 0; right: 0; padding: 15px 20px max(15px, env(safe-area-inset-bottom)); background: rgba(15,23,42,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+        /* 🚀 底部按鈕區：提高圖層到 30，徹底突破清單的遮擋！ */
+        .tm-pagination { 
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            padding: 15px 20px max(15px, env(safe-area-inset-bottom)); 
+            background: rgba(15,23,42,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
+            border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; 
+            z-index: 30; 
+        }
         .btn-page { background: transparent; color: white; border: none; font-size: 24px; padding: 5px 15px; cursor: pointer; transition: 0.2s; }
         .btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
         .btn-page:active:not(:disabled) { transform: scale(0.8); color: var(--primary-color); }
