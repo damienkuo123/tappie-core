@@ -726,6 +726,13 @@
                 newOrder.push(parseInt(item.getAttribute('data-row')));
             });
             
+            // 🛑 致命裝甲 1 號：如果畫面上找不到文章 (長度為 0)，絕對不允許送出！
+            // 這能防止你在載入畫面時手滑觸發拖曳存檔。
+            if (newOrder.length === 0) {
+                console.warn("⚠️ 攔截到異常的空排序，已終止存檔以保護資料！");
+                return;
+            }
+            
             const headerTitle = document.querySelector('#newsletterModal .modal-title');
             headerTitle.innerHTML = '⏳ 儲存新排序中...';
             
@@ -736,7 +743,6 @@
                 .then(res => res.json())
                 .then(data => {
                     headerTitle.innerHTML = '📝 專欄編輯系統';
-                    // 存檔完成後，重新讀取以確保行號綁定正確
                     loadNewsletters(); 
                 });
         }
