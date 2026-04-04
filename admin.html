@@ -1037,26 +1037,43 @@
                     let unitColor = unitColorMap[sch.unit];
                     extraStyle = `style="background: ${unitColor}15;"`;
 
-                    // 🎀 彩帶連接魔法：判斷是不是頭、尾，或是週日/週六 (視覺截斷點)
-                    let dOb = new Date(cellDate);
-                    let isStart = dateStr === sch.startDate || i === 1 || dOb.getDay() === 0;
-                    let isEnd = dateStr === sch.endDate || i === daysInMonth || dOb.getDay() === 6;
+                    // 🎀 跨越日期的彩帶核心演算法
+                    let dOb = new Date(year, month, i);
+                    let dayOfWeek = dOb.getDay();
+                    
+                    // 判斷是否為這個彩帶片段的「起點」 (任務第一天、或者是週日、或者是每月 1 號)
+                    let isSegmentStart = (dateStr === sch.startDate || i === 1 || dayOfWeek === 0);
 
-                    // 利用負邊距 (-4px) 穿越 grid 的 6px 縫隙，讓視覺相連！
-                    let mLeft = isStart ? '2px' : '-4px';
-                    let mRight = isEnd ? '2px' : '-4px';
-                    let bRad = `${isStart ? '4px' : '0'} ${isEnd ? '4px' : '0'} ${isEnd ? '4px' : '0'} ${isStart ? '4px' : '0'}`;
+                    if (isSegmentStart) {
+                        // 🚀 往後推算這個片段會跨越幾天 (遇到週六、月底、或任務結束就停止)
+                        let segmentLength = 1;
+                        let tempDate = new Date(year, month, i);
+                        let tempDateStr = Utilities.formatDate(tempDate, "GMT+8", "yyyy-MM-dd");
+                        
+                        while (tempDateStr < sch.endDate && tempDate.getDay() < 6 && tempDate.getDate() < daysInMonth) {
+                            tempDate.setDate(tempDate.getDate() + 1);
+                            tempDateStr = Utilities.formatDate(tempDate, "GMT+8", "yyyy-MM-dd");
+                            segmentLength++;
+                        }
 
-                    // 🚀 智慧截斷：避免超長單元名稱 (如 Event 活動) 破壞畫面
-                    let safeDisplayText = cleanUnit;
-                    if (safeDisplayText.length > 5) {
-                        safeDisplayText = safeDisplayText.substring(0, 4) + '..';
+                        // 🚀 射線魔法：計算絕對寬度 (N天 * 100% + 中間的 6px 縫隙)
+                        let wCalc = segmentLength === 1 ? '100%' : `calc(${segmentLength * 100}% + ${(segmentLength - 1) * 6}px)`;
+                        
+                        let isActualStart = (dateStr === sch.startDate);
+                        let isActualEnd = (tempDateStr === sch.endDate);
+                        // 圓角只出現在任務真正的頭尾
+                        let bRad = `${isActualStart ? '6px' : '0'} ${isActualEnd ? '6px' : '0'} ${isActualEnd ? '6px' : '0'} ${isActualStart ? '6px' : '0'}`;
+
+                        innerHtml += `
+                        <div style="position: relative; width: 100%; height: 18px; margin-top: 2px; z-index: 10;">
+                            <div class="cal-ribbon" style="position: absolute; top: 0; left: 0; width: ${wCalc}; background: ${unitColor}; border-radius: ${bRad};" title="${cleanUnit}">
+                                ${cleanUnit}
+                            </div>
+                        </div>`;
+                    } else {
+                        // 如果不是起點，放一個透明佔位符，讓格子高度保持一致，並保留底框的淡色背景
+                        innerHtml += `<div style="width: 100%; height: 18px; margin-top: 2px;"></div>`;
                     }
-
-                    // 只有在彩帶的「起點」才顯示文字，其他天留白延續顏色
-                    let displayText = isStart ? safeDisplayText : '&nbsp;';
-
-                    innerHtml += `<div class="cal-ribbon" style="background:${unitColor}; border-radius:${bRad}; margin-left:${mLeft}; margin-right:${mRight};" title="${cleanUnit}">${displayText}</div>`;
                 }
 
                 grid.innerHTML += `<div class="${classNames}" ${extraStyle} ${clickAction}>${innerHtml}</div>`;
