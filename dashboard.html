@@ -336,20 +336,35 @@
       <button onclick="logoutToPortal()" class="btn-logout">🚪 登出系統</button>
     </div>
 
-    <div class="glass-panel" style="margin-top: 30px; padding: 25px; border: 2px solid rgba(241, 196, 15, 0.4); text-align: center;">
-    <h3 style="color: var(--gold); margin: 0 0 10px 0; letter-spacing: 2px;">📩 訂閱每週 AI 學習戰報</h3>
-    <p style="font-size: 14px; color: #a4b0be; margin-bottom: 20px;">每週五自動寄送孩子的發音診斷與進步軌跡至您的信箱。</p>
-    
-    <div style="display: flex; gap: 10px; max-width: 400px; margin: 0 auto;">
-      <input type="email" id="parent-email-input" placeholder="請輸入家長 Email" 
-             style="flex: 1; padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.5); color: white; font-size: 16px;">
-      <button onclick="subscribeEmail()" 
-              style="background: linear-gradient(135deg, #00b894, #05c46b); color: white; border: none; padding: 0 25px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);">
-        訂閱
-      </button>
+    <div class="glass-panel" style="margin-top: 30px; padding: 0; text-align: center; overflow: hidden; border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 15px 35px rgba(241, 196, 15, 0.05), inset 0 1px 0 rgba(255,255,255,1);">
+      <div style="background: linear-gradient(135deg, rgba(241, 196, 15, 0.15), rgba(243, 156, 18, 0.02)); padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.4);">
+        <h3 style="color: var(--gold); margin: 0 0 5px 0; letter-spacing: 2px; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>📩</span> 每週 AI 學習戰報
+        </h3>
+        <p style="font-size: 13px; color: var(--text-sub); margin: 0; font-weight: bold;">自動寄送發音診斷與進步軌跡</p>
+      </div>
+      
+      <div style="padding: 25px 20px;">
+        <div id="email-display-zone" style="display: none; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,1); padding: 15px 20px; border-radius: 18px; margin-bottom: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+          <div style="text-align: left;">
+            <div style="font-size: 12px; color: var(--primary-blue); font-weight: 900; margin-bottom: 2px; letter-spacing: 1px;">目前綁定信箱</div>
+            <div id="parent-email-text" style="font-size: 16px; color: var(--text-main); font-weight: 900; letter-spacing: 1px;"></div>
+          </div>
+          <button onclick="toggleEmailEdit()" style="background: rgba(0, 102, 204, 0.1); color: var(--primary-blue); border: none; padding: 10px 16px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.2s;">✏️ 編輯</button>
+        </div>
+
+        <div id="email-edit-zone" style="display: flex; gap: 10px; max-width: 400px; margin: 0 auto;">
+          <input type="email" id="parent-email-input" placeholder="請輸入家長 Email" 
+                 style="flex: 1; padding: 15px 18px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.8); background: rgba(255,255,255,0.5); color: var(--text-main); font-size: 15px; font-weight: bold; outline: none; transition: 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);">
+          <button id="email-submit-btn" onclick="subscribeEmail()" 
+                  style="background: linear-gradient(135deg, #00b894, #05c46b); color: white; border: none; padding: 0 22px; border-radius: 16px; font-weight: 900; font-size: 15px; cursor: pointer; box-shadow: 0 6px 15px rgba(0, 184, 148, 0.3); transition: 0.2s; white-space: nowrap;">
+            訂閱
+          </button>
+        </div>
+        
+        <div id="email-msg" style="margin-top: 15px; font-size: 14px; font-weight: bold; color: #2ecc71; height: 20px;"></div>
+      </div>
     </div>
-    <div id="email-msg" style="margin-top: 15px; font-size: 14px; font-weight: bold; color: #2ecc71;"></div>
-  </div>
 
   </div>
 
@@ -368,6 +383,7 @@
     
     const params = new URLSearchParams(window.location.search);
     const STUDENT_ID = params.get('id');
+    let currentParentEmail = ""; // 🚀 儲存目前的 Email
 
     // 🚀 智慧導航 (Smart Routing)
     const storedAuth = localStorage.getItem('marian_auth');
@@ -396,34 +412,89 @@
     };
 
 
-    // 發送 Email 訂閱請求給後端
+    // 🚀 安全遮蔽 Email (例如: wil***@gmail.com)
+    function maskEmail(email) {
+      if (!email) return "";
+      const parts = email.split('@');
+      if (parts.length !== 2) return email;
+      const name = parts[0];
+      const domain = parts[1];
+      if (name.length <= 3) return name.charAt(0) + "***@" + domain;
+      return name.substring(0, 3) + "***@" + domain;
+    }
+
+    // 🚀 切換到「顯示模式」
+    function showEmailDisplay(email) {
+      document.getElementById('email-display-zone').style.display = 'flex';
+      document.getElementById('email-edit-zone').style.display = 'none';
+      document.getElementById('parent-email-text').innerText = maskEmail(email);
+      document.getElementById('email-msg').innerText = "";
+    }
+
+    // 🚀 切換到「編輯模式」
+    function toggleEmailEdit() {
+      document.getElementById('email-display-zone').style.display = 'none';
+      document.getElementById('email-edit-zone').style.display = 'flex';
+      document.getElementById('email-submit-btn').innerText = "確認";
+      document.getElementById('email-msg').innerText = "";
+      document.getElementById('parent-email-input').focus();
+    }
+
+    // 🚀 核心：發送 Email 訂閱或取消請求
     function subscribeEmail() {
-      const email = document.getElementById('parent-email-input').value.trim();
+      const emailInput = document.getElementById('parent-email-input');
+      let email = emailInput.value.trim();
       const msgEl = document.getElementById('email-msg');
+      const btn = document.getElementById('email-submit-btn');
       
-      if (!email || !email.includes('@')) {
+      // 判斷是否為「取消訂閱」動作 (清空並按下確認)
+      if (email === "") {
+         if (currentParentEmail !== "") {
+             if (!confirm("⚠️ 確定要取消訂閱 AI 學習戰報嗎？\n取消後您將不會再收到每週進度通知。")) {
+                 emailInput.value = currentParentEmail; // 恢復原狀
+                 return;
+             }
+         } else {
+             // 原本就沒訂閱，還按空字串
+             msgEl.style.color = '#e74c3c';
+             msgEl.innerText = "⚠️ 請輸入 Email 才能訂閱喔！";
+             return;
+         }
+      } else if (!email.includes('@')) {
         msgEl.style.color = '#e74c3c';
         msgEl.innerText = "⚠️ 請輸入正確的 Email 格式！";
         return;
       }
-  
+
       msgEl.style.color = '#f1c40f';
-      msgEl.innerText = "⏳ 正在綁定中...";
-  
+      msgEl.innerText = "⏳ 系統設定中...";
+      btn.style.pointerEvents = "none";
+
       fetch(`${GAS_URL}?action=subscribe_email&id=${STUDENT_ID}&email=${encodeURIComponent(email)}`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-            msgEl.style.color = '#2ecc71';
-            msgEl.innerText = "✅ 訂閱成功！每週五見囉！";
+            currentParentEmail = email;
+            if (email === "") {
+                msgEl.style.color = '#7f8c8d';
+                msgEl.innerText = "ℹ️ 已成功取消訂閱。";
+                btn.innerText = "訂閱";
+            } else {
+                msgEl.style.color = '#2ecc71';
+                msgEl.innerText = "✅ 綁定成功！每週五見囉！";
+                setTimeout(() => showEmailDisplay(email), 1500);
+            }
           } else {
             msgEl.style.color = '#e74c3c';
-            msgEl.innerText = "❌ 訂閱失敗，請稍後再試。";
+            msgEl.innerText = "❌ 設定失敗，請稍後再試。";
           }
         })
         .catch(err => {
           msgEl.style.color = '#e74c3c';
           msgEl.innerText = "⚠️ 網路錯誤，請檢查連線。";
+        })
+        .finally(() => {
+          btn.style.pointerEvents = "auto";
         });
     }
     
@@ -431,6 +502,17 @@
       document.getElementById('student-name').innerText = data.studentName;
       document.getElementById('current-points').innerText = data.currentPoints;
 
+      // 🚀 初始化 Email 模塊
+      if (data.parentEmail && data.parentEmail.includes('@')) {
+          currentParentEmail = data.parentEmail;
+          document.getElementById('parent-email-input').value = currentParentEmail;
+          showEmailDisplay(currentParentEmail);
+      } else {
+          document.getElementById('email-display-zone').style.display = 'none';
+          document.getElementById('email-edit-zone').style.display = 'flex';
+          document.getElementById('email-submit-btn').innerText = "訂閱";
+      }
+      
       if (data.leaderboard && data.leaderboard.length > 0 && data.leaderboard[0].uid === STUDENT_ID) {
         const badge = document.getElementById('honor-title');
         badge.innerText = `🏆 ${data.currentUnit} 口說強者`;
