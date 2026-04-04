@@ -504,6 +504,20 @@
             }
         }
 
+        // 🚀 新增：主動防禦背景監控 (每 10 秒鐘偷偷查驗一次時間)
+        if (ADMIN_SECRET && authTime) {
+            setInterval(() => {
+                const currentTime = new Date().getTime();
+                // 如果目前時間減去登入時間 > 1小時 (3600000毫秒)
+                if (currentTime - parseInt(authTime) > 3600000) {
+                    localStorage.removeItem('marian_auth');
+                    localStorage.removeItem('marian_auth_time');
+                    alert("⏱️ 閒置時間過長！為保護系統安全，已自動強制登出。請重新感應卡片！");
+                    window.location.reload(); // 瞬間重整網頁，立刻彈出黑色封鎖畫面！
+                }
+            }, 10000); // 10000 毫秒 = 10 秒
+        }
+
         // 🛡️ 將鑰匙傳給後端查驗，前端絕不進行明碼比對
         if (!ADMIN_SECRET) {
             document.getElementById('unauth-mask').style.display = 'flex';
