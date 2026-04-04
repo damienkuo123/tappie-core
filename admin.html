@@ -224,14 +224,15 @@
         }
         .btn-del-task:active { transform: scale(0.8); box-shadow: none; }
 
-        /* 🚀 連續彩帶專屬樣式 (撐滿寬度吃掉縫隙) */
+        /* 🚀 連續彩帶專屬樣式 (絕對定位跨越版) */
         .cal-ribbon {
-            color: white; font-size: 11px; font-weight: bold; height: 18px; line-height: 18px; 
-            overflow: hidden; white-space: nowrap; text-align: left; padding-left: 6px; 
-            position: relative; z-index: 5; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            color: white; font-size: 12px; font-weight: bold; height: 18px; line-height: 18px; 
+            overflow: hidden; white-space: nowrap; text-overflow: ellipsis; 
+            text-align: center; /* 🚀 絕對置中 */
+            padding: 0 4px; box-sizing: border-box; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             user-select: none; -webkit-user-select: none;
-            /* 👇 破案關鍵：強迫彩帶往左右撐滿，配合 JS 的負邊距完美接合 */
-            align-self: stretch; 
+            pointer-events: none; /* 🚀 防穿透點擊干擾，讓底下的格子負責接收點擊 */
         }
 
         /* 🚀 拖動拉桿樣式 (裝甲防護版) */
