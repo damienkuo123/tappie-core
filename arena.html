@@ -1987,6 +1987,9 @@
       roundSubmitted = true; clearInterval(currentLimitTimer);
       mediaRecorder.stop(); 
       
+      // 🚀 戰鬥區：關閉瀏覽器耳朵
+      if (recognition) recognition.stop(); 
+      
       battleBtn.classList.remove('active', 'ult-active');
       
       // 🚀 關鍵修復：放開按鈕的瞬間，強制拔除卡片的發光特效！
