@@ -1611,11 +1611,24 @@
           fetch(`${GAS_URL}?action=evaluate_speech&word=${encodeURIComponent(quizData[currentIndex].en)}`, { method: 'POST', body: base64 })
             .then(res => res.json()).then(data => {
               clearInterval(gradingInterval);
+              
+              // 🚀 數據解析
               scores[currentIndex] = data.score;
               if(!window.feedbacks) window.feedbacks = [];
-              window.feedbacks[currentIndex] = data.feedback;
-              document.getElementById('feedback').innerHTML = `得分：${data.score}<br><small>${data.feedback}</small>`;
+              window.feedbacks[currentIndex] = data.feedback || "";
+
+              // 分數顏色區分
+              let color = data.score >= 80 ? 'var(--marian-green)' : (data.score >= 60 ? '#f39c12' : 'var(--marian-red)');
+              
+              document.getElementById('feedback').innerHTML = `<span style="color:${color}; font-size:32px; font-weight:900;">${data.score} 分</span><br><small style="color:#2d3436; font-size:16px;">${data.feedback}</small>`;
+              
               document.getElementById('status').innerText = "評分完成！";
+              isGrading = false;
+              rb.style.opacity = "1";
+              
+              document.getElementById('prev-btn').disabled = currentIndex === 0;
+              document.getElementById('next-btn').disabled = false;
+              document.getElementById('back-summary-btn').disabled = false;
               isGrading = false;
               rb.style.opacity = "1";
               
