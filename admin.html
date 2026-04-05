@@ -416,6 +416,94 @@
         </div>
     </div>
 
+    <div id="studentManagerView" style="display: none; position: fixed; inset: 0; background: var(--bg-dark); z-index: 200; flex-direction: column; animation: fadeIn 0.3s; overflow: hidden;">
+        <div class="tm-header">
+            <div class="tm-back" onclick="closeStudentManager()">❮ 返回</div>
+            <div class="tm-title">學生資料管理</div>
+            <button id="sm-batch-toggle-btn" class="btn-action" style="background:rgba(255,255,255,0.1); font-size:14px; padding:6px 12px; flex:none; width:auto;" onclick="toggleBatchMode()">批量修改</button>
+        </div>
+        
+        <div class="tm-filter-bar" style="flex-direction: column; z-index: 20; padding-top: 20px;">
+            <div class="sm-search-bar">
+                <input type="text" id="sm-search" class="sm-search-input" placeholder="🔍 搜尋姓名 / UID / 班級..." oninput="changeStuFilter()">
+            </div>
+            <select id="sm-class-filter" class="tm-select" onchange="changeStuFilter()">
+                <option value="">🏫 顯示全部學生</option>
+            </select>
+        </div>
+
+        <div class="sm-batch-bar">
+            <span style="color:#f1c40f; font-weight:bold; font-size:14px;" id="sm-batch-count">已勾選 0 位學生</span>
+            <button class="btn-action" style="background:#f1c40f; color:#0f172a; font-size:14px; padding:6px 15px; width:auto;" onclick="openBatchEditor()">設定修改內容 ➔</button>
+        </div>
+        
+        <div id="sm-list-zone" class="tm-list-zone"></div>
+        
+        <div class="tm-pagination">
+            <button id="sm-prev-btn" class="btn-page" onclick="changeStuPage(-1)">❮</button>
+            <button class="btn-new-task" onclick="openStudentEditor(0, '', '', '一般生', '')">➕ 新增學生資訊</button>
+            <button id="sm-next-btn" class="btn-page" onclick="changeStuPage(1)">❯</button>
+        </div>
+    </div>
+
+    <div id="studentEditorModal" class="modal-overlay" onclick="closeModal('studentEditorModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="stu-editor-title" class="modal-title">新增學生</h3>
+            <div class="modal-scroll-area">
+                <label style="color:#94a3b8; font-size:13px; font-weight:bold;">學生姓名 (Name)</label>
+                <input type="text" id="edit-stu-name" class="word-input" style="width:100%; box-sizing:border-box; margin-bottom:15px; text-align:left;" placeholder="請輸入姓名">
+                
+                <label style="color:#94a3b8; font-size:13px; font-weight:bold;">卡片內碼 (UID)</label>
+                <input type="text" id="edit-stu-uid" class="word-input" style="width:100%; box-sizing:border-box; margin-bottom:15px; text-align:left;" placeholder="請輸入 UID">
+                
+                <label style="color:#94a3b8; font-size:13px; font-weight:bold;">學生類別</label>
+                <select id="edit-stu-type" class="word-input" style="width:100%; box-sizing:border-box; margin-bottom:15px; text-align:left;" onchange="toggleStuClassInput('edit-stu-type', 'edit-stu-class-container')">
+                    <option value="一般生">一般生</option>
+                    <option value="美語資優生">美語資優生</option>
+                </select>
+
+                <div id="edit-stu-class-container" style="display:none;">
+                    <label style="color:#f1c40f; font-size:13px; font-weight:bold;">班級代碼 (ClassID)</label>
+                    <input type="text" id="edit-stu-class" class="word-input" style="width:100%; box-sizing:border-box; margin-bottom:15px; text-align:left;" placeholder="請輸入班級代碼">
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button id="save-stu-btn" class="btn-action" style="background:#2ecc71; font-size:18px; padding:15px;" onclick="saveStudentData()">💾 儲存</button>
+                <button class="btn-action btn-gray" style="font-size:18px; padding:15px;" onclick="closeModal('studentEditorModal')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="batchEditorModal" class="modal-overlay" onclick="closeModal('batchEditorModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 class="modal-title" style="color:#f1c40f;">⚡ 批量修改學生資料</h3>
+            <p style="text-align:center; color:#cbd5e1; font-size:13px; margin-top:0;">⚠️ 留空的欄位代表「不進行修改」</p>
+            <div class="modal-scroll-area">
+                <label style="color:#94a3b8; font-size:13px; font-weight:bold;">統一修改：學生類別</label>
+                <select id="batch-stu-type" class="word-input" style="width:100%; box-sizing:border-box; margin-bottom:15px; text-align:left;" onchange="toggleStuClassInput('batch-stu-type', 'batch-stu-class-container')">
+                    <option value="">-- 不修改 --</option>
+                    <option value="一般生">一般生</option>
+                    <option value="美語資優生">美語資優生</option>
+                </select>
+
+                <div id="batch-stu-class-container" style="display:none;">
+                    <label style="color:#f1c40f; font-size:13px; font-weight:bold;">統一修改：班級代碼</label>
+                    <input type="text" id="batch-stu-class" class="word-input" style="width:100%; box-sizing:border-box; margin-bottom:15px; text-align:left;" placeholder="不修改請留空">
+                </div>
+
+                <hr style="border: 0.5px dashed rgba(255,255,255,0.1); margin: 20px 0;">
+                <p style="color:#e74c3c; font-size:12px; margin-bottom:5px; font-weight:bold;">※ 以下欄位通常不建議批量修改，除非您要將這批學生設為相同的假資料</p>
+                
+                <input type="text" id="batch-stu-name" class="word-input" style="width:100%; box-sizing:border-box; margin-bottom:10px; text-align:left;" placeholder="統一修改姓名 (不修改請留空)">
+                <input type="text" id="batch-stu-uid" class="word-input" style="width:100%; box-sizing:border-box; margin-bottom:10px; text-align:left;" placeholder="統一修改 UID (不修改請留空)">
+            </div>
+            <div style="display:flex; gap:10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button id="save-batch-btn" class="btn-action" style="background:#f1c40f; color:#0f172a; font-size:18px; padding:15px;" onclick="saveBatchStudentData()">🚀 確認批量修改</button>
+                <button class="btn-action btn-gray" style="font-size:18px; padding:15px;" onclick="closeModal('batchEditorModal')">取消</button>
+            </div>
+        </div>
+    </div>
+
     <div id="taskEditorModal" class="modal-overlay" onclick="closeModal('taskEditorModal')">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-height: 90vh; width: 95%; padding: 25px 20px;">
             <h3 id="task-editor-title" class="modal-title">新增任務單元</h3>
@@ -1706,6 +1794,270 @@
         resizer.addEventListener('touchstart', startResizing);
         window.addEventListener('touchmove', resize);
         window.addEventListener('touchend', stopResizing);
+
+        // =======================================================
+        // 🧑‍🎓 學生管理系統 (階段四核心邏輯)
+        // =======================================================
+        let allStudentsData = [];
+        let filteredStudents = [];
+        let currentStuPage = 1;
+        const STU_PER_PAGE = 10;
+        let editingStuRow = 0; 
+        
+        let isBatchMode = false;
+        let selectedStuRows = new Set(); // 跨頁記錄打勾的學生
+
+        function openStudentManager() {
+            document.getElementById('menu-dropdown').classList.remove('show');
+            document.getElementById('mainCard').style.display = 'none';
+            document.getElementById('studentManagerView').style.display = 'flex';
+            fetchStudentList();
+        }
+
+        function closeStudentManager() {
+            document.getElementById('studentManagerView').style.display = 'none';
+            document.getElementById('mainCard').style.display = 'block';
+            // 離開時重置批量狀態
+            isBatchMode = false;
+            selectedStuRows.clear();
+            document.getElementById('sm-list-zone').classList.remove('batch-mode-active');
+            document.getElementById('sm-batch-toggle-btn').innerText = "批量修改";
+        }
+
+        function fetchStudentList() {
+            const listZone = document.getElementById('sm-list-zone');
+            listZone.innerHTML = '<p style="text-align:center; color:#ffd700; margin-top:40px; font-size:18px; font-weight:bold;">⏳ 讀取學生資料庫中...</p>';
+            
+            fetch(`${GAS_URL}?action=get_student_list&secret=${ADMIN_SECRET}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) return listZone.innerHTML = `<p style="color:#e74c3c;">${data.error}</p>`;
+                    
+                    allStudentsData = data;
+                    
+                    // 建立班級下拉選單
+                    const classSet = new Set();
+                    allStudentsData.forEach(s => { classSet.add(s.classId); });
+                    const filterSelect = document.getElementById('sm-class-filter');
+                    const currentFilter = filterSelect.value;
+                    filterSelect.innerHTML = '<option value="">🏫 顯示全部學生</option>';
+                    Array.from(classSet).sort().forEach(cls => {
+                        filterSelect.innerHTML += `<option value="${cls}" ${currentFilter === cls ? 'selected' : ''}>${cls}</option>`;
+                    });
+
+                    changeStuFilter(); 
+                });
+        }
+
+        function changeStuFilter() {
+            const filterClass = document.getElementById('sm-class-filter').value;
+            const searchStr = document.getElementById('sm-search').value.trim().toLowerCase();
+            
+            filteredStudents = allStudentsData.filter(s => {
+                // 下拉選單過濾
+                if (filterClass && s.classId !== filterClass) return false;
+                
+                // 搜尋列過濾 (比對 Name, UID, Type, ClassId)
+                if (searchStr) {
+                    const match = s.name.toLowerCase().includes(searchStr) || 
+                                  s.uid.toLowerCase().includes(searchStr) || 
+                                  s.type.includes(searchStr) || 
+                                  s.classId.toLowerCase().includes(searchStr);
+                    if (!match) return false;
+                }
+                return true;
+            });
+            
+            currentStuPage = 1;
+            renderStudentList();
+        }
+
+        function changeStuPage(direction) {
+            currentStuPage += direction;
+            renderStudentList();
+        }
+
+        function renderStudentList() {
+            const listZone = document.getElementById('sm-list-zone');
+            const prevBtn = document.getElementById('sm-prev-btn');
+            const nextBtn = document.getElementById('sm-next-btn');
+
+            if (filteredStudents.length === 0) {
+                listZone.innerHTML = '<p style="text-align:center; color:#7f8c8d; margin-top:40px; font-weight:bold;">找不到符合的學生資料</p>';
+                prevBtn.disabled = true; nextBtn.disabled = true;
+                return;
+            }
+
+            const totalPages = Math.ceil(filteredStudents.length / STU_PER_PAGE);
+            prevBtn.disabled = (currentStuPage === 1);
+            nextBtn.disabled = (currentStuPage === totalPages);
+
+            const startIdx = (currentStuPage - 1) * STU_PER_PAGE;
+            const pageStus = filteredStudents.slice(startIdx, startIdx + STU_PER_PAGE);
+
+            let html = '';
+            pageStus.forEach(stu => {
+                const isChecked = selectedStuRows.has(stu.row) ? 'checked' : '';
+                
+                // 點擊卡片觸發的行為：如果在批量模式就打勾，如果在一般模式就開啟編輯
+                const cardClickAction = isBatchMode 
+                    ? `onclick="document.getElementById('chk-${stu.row}').click()"` 
+                    : `onclick="openStudentEditor(${stu.row}, '${stu.uid}', '${stu.name}', '${stu.type}', '${stu.classId === '無' ? '' : stu.classId}')"`;
+
+                html += `
+                <div class="task-card" style="cursor:pointer;" ${cardClickAction}>
+                    <input type="checkbox" id="chk-${stu.row}" class="stu-checkbox" value="${stu.row}" ${isChecked} onclick="event.stopPropagation(); toggleStuSelection(${stu.row}, this.checked)">
+                    <div class="task-info">
+                        <div class="task-class" style="border-color:${stu.type==='美語資優生'?'#f1c40f':'#3498db'}; color:${stu.type==='美語資優生'?'#f1c40f':'#3498db'};">
+                            ${stu.type} ${stu.classId !== '無' ? ' | ' + stu.classId : ''}
+                        </div>
+                        <div class="task-unit" style="font-size:20px;">${stu.name}</div>
+                        <div style="font-size:12px; color:#94a3b8; margin-top:4px; font-weight:bold;">UID: ${stu.uid}</div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="btn-icon btn-schedule" title="編輯資料">✏️</button>
+                    </div>
+                </div>`;
+            });
+            listZone.innerHTML = html;
+        }
+
+        // --- ⚙️ 單一學生編輯 ---
+        function toggleStuClassInput(selectId, containerId) {
+            const type = document.getElementById(selectId).value;
+            document.getElementById(containerId).style.display = (type === '美語資優生') ? 'block' : 'none';
+        }
+
+        function openStudentEditor(row, uid, name, type, classId) {
+            if (isBatchMode) return; // 批量模式下不允許點開單一編輯
+            
+            editingStuRow = row;
+            document.getElementById('stu-editor-title').innerText = row === 0 ? '✨ 新增學生' : '✏️ 編輯學生資料';
+            document.getElementById('edit-stu-uid').value = uid;
+            document.getElementById('edit-stu-name').value = name;
+            document.getElementById('edit-stu-type').value = type;
+            document.getElementById('edit-stu-class').value = classId;
+            
+            toggleStuClassInput('edit-stu-type', 'edit-stu-class-container');
+            document.getElementById('studentEditorModal').style.display = 'flex';
+        }
+
+        function saveStudentData() {
+            const uid = document.getElementById('edit-stu-uid').value.trim();
+            const name = document.getElementById('edit-stu-name').value.trim();
+            const type = document.getElementById('edit-stu-type').value;
+            const classId = document.getElementById('edit-stu-class').value.trim();
+            
+            if (!uid || !name) { alert("UID 與姓名為必填欄位！"); return; }
+            if (type === "美語資優生" && !classId) { alert("美語資優生必須填寫班級代碼！"); return; }
+
+            const btn = document.getElementById('save-stu-btn');
+            btn.innerText = "⏳ 儲存中..."; btn.style.pointerEvents = "none";
+
+            const stuData = { row: editingStuRow, uid: uid, name: name, type: type, classId: classId };
+            const formData = new URLSearchParams();
+            formData.append('data', JSON.stringify(stuData));
+
+            fetch(`${GAS_URL}?action=save_student_data&secret=${ADMIN_SECRET}`, { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        closeModal('studentEditorModal');
+                        fetchStudentList(); 
+                    } else { alert(data.error || "儲存失敗！"); }
+                })
+                .finally(() => { btn.innerText = "💾 儲存"; btn.style.pointerEvents = "auto"; });
+        }
+
+        // --- ⚡ 批量修改邏輯 ---
+        function toggleBatchMode() {
+            isBatchMode = !isBatchMode;
+            const listZone = document.getElementById('sm-list-zone');
+            const toggleBtn = document.getElementById('sm-batch-toggle-btn');
+            
+            if (isBatchMode) {
+                listZone.classList.add('batch-mode-active');
+                toggleBtn.innerText = "取消批量";
+                toggleBtn.style.background = "rgba(231, 76, 60, 0.2)";
+                toggleBtn.style.color = "#e74c3c";
+            } else {
+                listZone.classList.remove('batch-mode-active');
+                toggleBtn.innerText = "批量修改";
+                toggleBtn.style.background = "rgba(255,255,255,0.1)";
+                toggleBtn.style.color = "white";
+                selectedStuRows.clear();
+                updateBatchCount();
+            }
+            renderStudentList(); // 重新渲染以顯示/隱藏 Checkbox
+        }
+
+        function toggleStuSelection(row, isChecked) {
+            if (isChecked) selectedStuRows.add(row);
+            else selectedStuRows.delete(row);
+            updateBatchCount();
+        }
+
+        function updateBatchCount() {
+            document.getElementById('sm-batch-count').innerText = `已勾選 ${selectedStuRows.size} 位學生`;
+        }
+
+        function openBatchEditor() {
+            if (selectedStuRows.size === 0) { alert("請先勾選至少一位學生！"); return; }
+            
+            // 重置表單
+            document.getElementById('batch-stu-type').value = "";
+            document.getElementById('batch-stu-class').value = "";
+            document.getElementById('batch-stu-name').value = "";
+            document.getElementById('batch-stu-uid').value = "";
+            toggleStuClassInput('batch-stu-type', 'batch-stu-class-container');
+            
+            document.getElementById('batchEditorModal').style.display = 'flex';
+        }
+
+        function saveBatchStudentData() {
+            const type = document.getElementById('batch-stu-type').value;
+            const classId = document.getElementById('batch-stu-class').value.trim();
+            const name = document.getElementById('batch-stu-name').value.trim();
+            const uid = document.getElementById('batch-stu-uid').value.trim();
+            
+            if (!type && !classId && !name && !uid) {
+                alert("您沒有設定任何修改內容！"); return;
+            }
+
+            if (type === "美語資優生" && !classId) {
+                alert("若將整批學生設為美語資優生，請務必統一填寫「班級代碼」！"); return;
+            }
+
+            if (!confirm(`確定要對選取的 ${selectedStuRows.size} 位學生執行批量修改嗎？\n(無法復原)`)) return;
+
+            const btn = document.getElementById('save-batch-btn');
+            btn.innerText = "⏳ 執行中..."; btn.style.pointerEvents = "none";
+
+            const updates = {};
+            if (type) updates.type = type;
+            if (classId) updates.classId = classId;
+            if (name) updates.name = name;
+            if (uid) updates.uid = uid;
+
+            const payload = {
+                rows: Array.from(selectedStuRows),
+                updates: updates
+            };
+
+            const formData = new URLSearchParams();
+            formData.append('data', JSON.stringify(payload));
+
+            fetch(`${GAS_URL}?action=batch_save_students&secret=${ADMIN_SECRET}`, { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        closeModal('batchEditorModal');
+                        toggleBatchMode(); // 關閉批量模式
+                        fetchStudentList(); // 重新讀取
+                    } else { alert(data.error || "批量修改失敗！"); }
+                })
+                .finally(() => { btn.innerText = "🚀 確認批量修改"; btn.style.pointerEvents = "auto"; });
+        }
         
     </script>
 </body>
