@@ -1670,6 +1670,8 @@
     rb.onpointerup = () => {
       if (!mediaRecorder || mediaRecorder.state !== "recording") return;
       rb.classList.remove('active');
+      // 🚀 關閉瀏覽器耳朵
+      if (recognition) recognition.stop();
       if (maxVolume < 30) { 
         tooQuietFlag = true; 
         document.getElementById('status').innerText = "太小聲了，再大聲點！";
