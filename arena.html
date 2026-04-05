@@ -1610,7 +1610,33 @@
               scores[currentIndex] = data.score;
               if(!window.feedbacks) window.feedbacks = [];
               window.feedbacks[currentIndex] = data.feedback;
-              document.getElementById('feedback').innerHTML = `得分：${data.score}<br><small>${data.feedback}</small>`;
+              
+              // 🚀 1. Elsa Speak 級錯字標紅系統
+              const originalText = quizData[currentIndex].en;
+              const words = originalText.split(/\s+/);
+              if (data.errorWords && data.errorWords.length > 0) {
+                  const highlightedHTML = words.map((w, idx) => {
+                      return data.errorWords.includes(idx) ? `<span style="color: var(--marian-red); text-shadow: 0 0 10px rgba(214,48,49,0.3);">${w}</span>` : w;
+                  }).join(" ");
+                  document.getElementById('word-display').innerHTML = highlightedHTML;
+              }
+
+              // 🚀 2. 動態嘴型圖片切換系統
+              const mouthShape = data.mouthShape || "relax"; 
+              const mouthImages = {
+                  "open_wide": "https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/open_wide.png",
+                  "round_lips": "https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/round_lips.png",
+                  "teeth_on_lip": "https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/teeth_on_lip.png",
+                  "tongue_up": "https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/tongue_up.png",
+                  "relax": "https://raw.githubusercontent.com/damienkuo123/marian-app/refs/heads/main/assets/relax.png"
+              };
+              document.getElementById('mouth-guide-img').src = mouthImages[mouthShape] || mouthImages["relax"];
+              document.getElementById('visual-feedback-zone').style.display = 'flex';
+
+              // 🚀 3. 渲染高質感回饋文字 (IPA 已經在 GAS 後端包進 feedback 裡了！)
+              let scoreColor = data.score >= 80 ? 'var(--marian-green)' : (data.score >= 60 ? '#f39c12' : 'var(--marian-red)');
+              document.getElementById('feedback').innerHTML = `<span style="color:${scoreColor}; font-size:28px;">${data.score} 分</span><br><span style="font-size:15px;">${data.feedback}</span>`;
+              
               document.getElementById('status').innerText = "評分完成！";
               isGrading = false;
               rb.style.opacity = "1";
