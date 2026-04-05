@@ -1544,7 +1544,21 @@
     document.getElementById('idx-display').innerText = currentIndex + 1;
     document.getElementById('word-display').innerText = current.en;
     document.getElementById('zh-display').innerText = current.zh;
-    document.getElementById('feedback').innerText = scores[currentIndex] !== null ? "得分：" + scores[currentIndex] : "";
+    
+    // 🚀 核心修復：切換題目時，徹底隱藏教練面版與殘留圖片
+    const visualZone = document.getElementById('visual-feedback-zone');
+    if (visualZone) visualZone.style.display = 'none';
+    
+    // 判斷這題有沒有分數，有的話顯示，沒有的話清空
+    if (scores[currentIndex] !== null) {
+        // 如果已經錄過音，把分數跟評語塞回去 (不顯示圖片以免太複雜，只留文字)
+        let fText = (window.feedbacks && window.feedbacks[currentIndex]) ? window.feedbacks[currentIndex] : "";
+        document.getElementById('feedback').innerHTML = `<span style="font-size:28px;">${scores[currentIndex]} 分</span><br><span style="font-size:15px;">${fText}</span>`;
+        if (visualZone) visualZone.style.display = 'flex'; // 把框框顯示出來
+    } else {
+        document.getElementById('feedback').innerHTML = "";
+    }
+    
     document.getElementById('record-btn').style.display = 'block';
     document.getElementById('progress-fill').style.width = (((currentIndex + 1) / quizData.length) * 100) + "%";
     if (isReReading) {
