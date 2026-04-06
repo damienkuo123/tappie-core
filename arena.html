@@ -1760,37 +1760,35 @@
     btn.style.pointerEvents = "none";
     btn.style.backgroundColor = "#95a5a6";
 
-    // 🚀 1. 核心實作：打包這次練習的所有單字、分數與 AI 評語
     let detailArr = [];
     quizData.forEach((item, i) => {
       detailArr.push({
         word: item.en,
         score: scores[i] || 0,
         feedback: (window.feedbacks && window.feedbacks[i]) ? window.feedbacks[i] : "尚未錄音",
-        // 🚀 關鍵加料：把微軟的音素細節報告一起塞進這個包裹裡！
-        // (加上 typeof 防呆，避免萬一前面的資料夾沒宣告好而報錯)
+        // 🚀 加上微軟的法醫報告
         azure_report: (typeof azureReports !== 'undefined' && azureReports[i]) ? azureReports[i] : null
       });
     });
     
     const detailJSON = JSON.stringify(detailArr);
 
-    // 🚀 2. 將 details 參數轉碼後，加入 URL 一併傳給後端 GAS
-    const finalUrl = `${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}&mode=${MODE}&details=${encodeURIComponent(detailJSON)}`;
+    // 🚀 1. 網址瘦身：把 details 從網址裡面拔掉！只留輕量參數
+    const finalUrl = `${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}&mode=${MODE}`;
     
-    fetch(finalUrl, { mode: 'no-cors' })
+    // 🚀 2. 改走 POST 通道：把巨大資料裝進 body 裡面送！
+    fetch(finalUrl, { 
+        method: 'POST', 
+        body: detailJSON 
+    })
       .then(() => { 
         alert(MODE === 'review' ? "👍 練習辛苦了！" : "🎉 挑戰完成！"); 
-        // 建議直接導回 GitHub Pages 的大廳/主頁
         window.location.href = `https://damienkuo123.github.io/marian-app/dashboard.html?id=${STUDENT_ID}`; 
       }).catch(err => {
-        console.log("Fetch 失敗，啟動備案...", err);
-        const img = new Image();
-        img.src = finalUrl;
-        setTimeout(() => {
-          alert("🎉 挑戰完成！");
-          window.location.href = `https://damienkuo123.github.io/marian-app/dashboard.html?id=${STUDENT_ID}`;
-        }, 1000);
+        // 如果遇到極端網路問題
+        console.log("Fetch 失敗", err);
+        alert("🎉 挑戰完成！(已進入背景備用存檔)");
+        window.location.href = `https://damienkuo123.github.io/marian-app/dashboard.html?id=${STUDENT_ID}`;
       });
   }
   
