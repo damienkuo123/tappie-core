@@ -1612,7 +1612,7 @@
               rb.classList.remove('active');
               
               if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                  document.getElementById('status').innerText = "✅ 聽寫完畢，呼叫 AI 教練中...";
+                  document.getElementById('status').innerText = "呼叫 AI 教練中...";
                   
                   const pronResult = SpeechSDK.PronunciationAssessmentResult.fromResult(result);
                   const finalScore = Math.round(pronResult.pronunciationScore);
