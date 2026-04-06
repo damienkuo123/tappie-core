@@ -1757,7 +1757,8 @@
       detailArr.push({
         word: item.en,
         score: scores[i] || 0,
-        feedback: (window.feedbacks && window.feedbacks[i]) ? window.feedbacks[i] : "尚未錄音"
+        feedback: (window.feedbacks && window.feedbacks[i]) ? window.feedbacks[i] : "尚未錄音",
+        azure_report: azureReports[i] || null  // 🚀 關鍵：把微軟的音素細節一起打包帶走！
       });
     });
     const detailJSON = JSON.stringify(detailArr);
