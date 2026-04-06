@@ -1945,12 +1945,13 @@
 
   const battleBtn = document.getElementById('battle-record-btn');
   if(battleBtn) {
+    let battleRecognizer = null;
+
+    // 🔴 1. 按住：啟動微軟引擎與特效
     battleBtn.onpointerdown = (e) => {
       if (roundSubmitted) return;
-      e.preventDefault(); maxVolume = 0; chunks = [];
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
-      mediaRecorder.start(); 
+      e.preventDefault();
+      clearInterval(currentLimitTimer);
       
       const myCard = document.getElementById('my-card');
       if (isUltimateMode) {
@@ -1961,50 +1962,61 @@
           if(myCard) myCard.classList.add('charging-mana');
       }
 
-      document.getElementById('battle-info').innerText = "錄音中... 放開按鈕發送";
+      document.getElementById('battle-info').innerText = "🔴 錄音中...";
+      
+      const targetWord = battleQuizArr[currentBattleRound].en;
+      const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(AZURE_KEY, AZURE_REGION);
+      speechConfig.speechRecognitionLanguage = "en-US";
+      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "5000");
+      // 🚀 對戰模式更講求極速，安靜 0.4 秒就切斷結算
+      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "400");
 
-      const check = () => { if (mediaRecorder && mediaRecorder.state === "recording") { analyser.getByteFrequencyData(dataArray); let v = 0; for(let i=0; i<dataArray.length; i++) v += dataArray[i]; if((v/dataArray.length) > maxVolume) maxVolume = v/dataArray.length; requestAnimationFrame(check); } }; check();
+      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      const pronConfig = new SpeechSDK.PronunciationAssessmentConfig(
+          targetWord,
+          SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+          SpeechSDK.PronunciationAssessmentGranularity.Phoneme, true
+      );
+
+      battleRecognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+      pronConfig.applyTo(battleRecognizer);
+
+      battleRecognizer.recognizeOnceAsync(
+          (result) => {
+              if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                  const pronResult = SpeechSDK.PronunciationAssessmentResult.fromResult(result);
+                  let score = Math.round(pronResult.pronunciationScore);
+                  if (score % 5 === 0 && score !== 0 && score !== 100) score += (Math.random() > 0.5 ? 1 : -1); 
+                  document.getElementById('battle-info').innerText = "✅ 判定完成！";
+                  submitBattleScore(ROOM_ID, score);
+              } else {
+                  document.getElementById('battle-info').innerText = "❌ 挑戰失敗 (未收音)";
+                  submitBattleScore(ROOM_ID, 0);
+              }
+              battleRecognizer.close();
+          },
+          (err) => {
+              document.getElementById('battle-info').innerText = "🚨 引擎連線錯誤";
+              submitBattleScore(ROOM_ID, 0);
+              battleRecognizer.close();
+          }
+      );
     };
 
+    // 🟢 2. 放開：切換 UI 準備發射
     battleBtn.onpointerup = () => {
-      if (roundSubmitted || !mediaRecorder || mediaRecorder.state !== "recording") return;
-      roundSubmitted = true; clearInterval(currentLimitTimer);
-      mediaRecorder.stop(); 
+      if (roundSubmitted || !battleBtn.classList.contains('active') && !battleBtn.classList.contains('ult-active')) return;
       
+      roundSubmitted = true; // 鎖死，防止連點
       battleBtn.classList.remove('active', 'ult-active');
       
-      // 🚀 關鍵修復：放開按鈕的瞬間，強制拔除卡片的發光特效！
       const myCard = document.getElementById('my-card');
-      if (myCard) {
-          myCard.classList.remove('charging-mana', 'ultimate-charging');
-      }
+      if (myCard) myCard.classList.remove('charging-mana', 'ultimate-charging');
       
-      // 🚀 修復 2：放開按鈕瞬間，隱藏控制台，顯示「評分中...」
       document.getElementById('battle-controls').style.visibility = 'hidden';
       document.getElementById('battle-timer').innerText = "評分中...";
-      document.getElementById('battle-info').innerText = "AI 正在分析您的發音...";
-
-      let dots = 0;
-      const gradingAnim = setInterval(() => { 
-        dots = (dots + 1) % 4; 
-        document.getElementById('battle-timer').innerText = "評分中" + ".".repeat(dots); 
-      }, 400);
-
-      mediaRecorder.onstop = () => {
-        const r = new FileReader(); r.readAsDataURL(new Blob(chunks, { type: 'audio/webm' }));
-        r.onloadend = () => {
-          fetch(`${GAS_URL}?action=evaluate_speech_battle&word=${encodeURIComponent(battleQuizArr[currentBattleRound].en)}`, { method: 'POST', body: r.result.split(',')[1] })
-            .then(res => res.json()).then(data => {
-                clearInterval(gradingAnim);
-                submitBattleScore(ROOM_ID, data.score);
-            }).catch(() => {
-                clearInterval(gradingAnim);
-                submitBattleScore(ROOM_ID, 0);
-            });
-        };
-      };
+      document.getElementById('battle-info').innerText = "微軟引擎解析中...";
     };
-    // 🚀 加上這兩行！只要手指滑出按鈕或被系統打斷，強制觸發放開邏輯，瞬間熄火！
     battleBtn.onpointerleave = battleBtn.onpointerup;
     battleBtn.onpointercancel = battleBtn.onpointerup;
   }
