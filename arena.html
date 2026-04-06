@@ -1980,6 +1980,9 @@
       e.preventDefault();
       roundSubmitted = true; // 鎖死按鈕，防止重複點擊
       clearInterval(currentLimitTimer);
+
+      // 🚀 加上這行：物理封印對戰麥克風！
+      battleBtn.style.pointerEvents = "none";
       
       const myCard = document.getElementById('my-card');
       if (isUltimateMode) {
