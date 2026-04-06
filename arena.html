@@ -1651,6 +1651,9 @@
                       evidenceJSON.words.push(wData);
                   });
 
+                  // 🚀 【就是加在這裡！】把這份完整的法醫報告存進我們的前端資料夾
+                  azureReports[currentIndex] = evidenceJSON;
+
                   // 🚀 呼叫 GAS 讓 Gemini 寫評語 (只傳純文字，極速又便宜！)
                   fetch(`${GAS_URL}?action=evaluate_speech_azure&word=${encodeURIComponent(targetWord)}`, { 
                       method: 'POST', 
