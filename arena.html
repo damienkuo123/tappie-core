@@ -2169,6 +2169,9 @@
     rb.classList.remove('ultimate-record-btn');
     rb.innerHTML = "🎤";
 
+    // 🚀 加上這行：新回合開始，解除麥克風封印！
+    rb.style.pointerEvents = "auto";
+
     const skillBtn = document.getElementById('skill-btn');
     if (skillBtn) skillBtn.style.display = hasUsedSkill ? 'none' : 'block';
 
