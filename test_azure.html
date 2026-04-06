@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure 發音檢定測試室</title>
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #1e293b; color: white; }
+        input { padding: 10px; margin: 5px; width: 250px; border-radius: 8px; border: none; }
+        button { padding: 15px 30px; font-size: 20px; font-weight: bold; background: #2ecc71; color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; }
+        button:disabled { background: #95a5a6; cursor: not-allowed; }
+        #result-box { margin-top: 30px; padding: 20px; background: #0f172a; border-radius: 10px; text-align: left; white-space: pre-wrap; font-family: monospace; color: #a4b0be; }
+    </style>
+</head>
+<body>
+
+    <h2>🧪 Azure 發音檢定測試室</h2>
+    
+    <div>
+        <input type="text" id="azure-key" placeholder="貼上 Azure Key 1">
+        <input type="text" id="azure-region" placeholder="輸入 Region (例如 eastus)">
+    </div>
+    
+    <div>
+        <h1 style="color: #ffd700;">目標單字：APPLE</h1>
+    </div>
+
+    <button id="record-btn" onclick="startAssessment()">🎤 按下開始唸 Apple</button>
+    <div id="status" style="margin-top: 15px; color: #f1c40f; font-weight: bold;"></div>
+
+    <div id="result-box">等待測試結果...</div>
+
+    <script>
+        function startAssessment() {
+            const key = document.getElementById('azure-key').value.trim();
+            const region = document.getElementById('azure-region').value.trim();
+            const statusText = document.getElementById('status');
+            const resultBox = document.getElementById('result-box');
+            const btn = document.getElementById('record-btn');
+
+            if (!key || !region) {
+                alert("請先輸入 Azure 的 Key 和 Region！");
+                return;
+            }
+
+            btn.disabled = true;
+            statusText.innerText = "⏳ 正在初始化微軟語音引擎...";
+
+            try {
+                // 1. 設定 Azure 語音引擎
+                const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, region);
+                const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+                
+                // 2. 設定發音檢定參數 (目標字設為 Apple)
+                const referenceText = "Apple";
+                const pronunciationAssessmentConfig = new SpeechSDK.PronunciationAssessmentConfig(
+                    referenceText,
+                    SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+                    SpeechSDK.PronunciationAssessmentGranularity.Phoneme, // 拆解到最細的音素級別
+                    true
+                );
+
+                const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+                pronunciationAssessmentConfig.applyTo(recognizer);
+
+                statusText.innerText = "🔴 錄音中，請對著麥克風唸出 Apple！(安靜後會自動停止)";
+
+                // 3. 開始辨識
+                recognizer.recognizeOnceAsync(
+                    function (result) {
+                        btn.disabled = false;
+                        
+                        if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                            statusText.innerText = "✅ 辨識成功！正在解析分數...";
+                            
+                            // 抓取發音檢定結果
+                            const pronunciationResult = SpeechSDK.PronunciationAssessmentResult.fromResult(result);
+                            
+                            // 整理要顯示的報告
+                            let report = `【微軟判讀結果】\n`;
+                            report += `系統聽到的字: ${result.text}\n`;
+                            report += `準確度得分 (Accuracy): ${pronunciationResult.accuracyScore}\n`;
+                            report += `流暢度得分 (Fluency): ${pronunciationResult.fluencyScore}\n`;
+                            report += `完整度得分 (Completeness): ${pronunciationResult.completenessScore}\n`;
+                            report += `發音總分 (Pronunciation): ${pronunciationResult.pronunciationScore}\n\n`;
+                            
+                            report += `【音素級別法醫報告】\n`;
+                            const words = pronunciationResult.detailResult.Words;
+                            words.forEach(word => {
+                                word.Phonemes.forEach(phoneme => {
+                                    report += `音素 /${phoneme.Phoneme}/ -> 得分: ${phoneme.AccuracyScore}\n`;
+                                });
+                            });
+
+                            resultBox.innerText = report;
+                            resultBox.style.color = "#2ecc71";
+                        } else {
+                            statusText.innerText = "❌ 辨識失敗或沒聽到聲音";
+                            resultBox.innerText = `原因: ${result.reason}\n錯誤細節: 可能是網路阻擋或是沒收到音`;
+                            resultBox.style.color = "#e74c3c";
+                        }
+                        recognizer.close();
+                    },
+                    function (err) {
+                        btn.disabled = false;
+                        statusText.innerText = "🚨 發生毀滅性錯誤";
+                        resultBox.innerText = err;
+                        resultBox.style.color = "#e74c3c";
+                        recognizer.close();
+                    }
+                );
+            } catch (error) {
+                btn.disabled = false;
+                statusText.innerText = "🚨 初始化失敗";
+                resultBox.innerText = error.toString();
+            }
+        }
+    </script>
+</body>
+</html>
