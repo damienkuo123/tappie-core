@@ -49,8 +49,9 @@
 
             try {
                 // 1. 設定 Azure 語音引擎
-                const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, region);
-                const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, region);
+speechConfig.speechRecognitionLanguage = "en-US"; // 🚀 補上這行：強制設定為美式英文
+const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
                 
                 // 2. 設定發音檢定參數 (目標字設為 Apple)
                 const referenceText = "Apple";
