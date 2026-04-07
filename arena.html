@@ -1449,9 +1449,13 @@
         
         try {
             // 1. 開啟麥克風權限
-            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioContext.createAnalyser();
+            // 🚀 關鍵修復：將 stream 存入全域的 globalMicStream
+            globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            // 🚀 順便暖機 sysAudioCtx，解決 iOS 點擊後沒反應的問題
+            sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            analyser = sysAudioCtx.createAnalyser(); // 使用暖機後的 Ctx
             source = audioContext.createMediaStreamSource(stream);
             source.connect(analyser);
             analyser.fftSize = 256;
