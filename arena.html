@@ -1321,16 +1321,15 @@
   const originalOnload = async () => {
     if(MODE === 'review') document.getElementById('title-text').innerText = "📖 自由練習模式";
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      analyser = audioContext.createAnalyser();
-      source = audioContext.createMediaStreamSource(stream);
-      source.connect(analyser);
-      analyser.fftSize = 256;
-      dataArray = new Uint8Array(analyser.frequencyBinCount);
+      // 🚀 關鍵修復 1：只做權限確認，確認完立刻關掉，把硬體還給微軟！
+      let tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      tempStream.getTracks().forEach(track => track.stop()); 
+      
       document.getElementById('info-text').innerText = "麥克風已就緒";
       document.getElementById('start-btn').style.display = 'inline-block';
-    } catch (e) { alert("請開啟麥克風權限"); }
+    } catch (e) { 
+      alert("請開啟麥克風權限"); 
+    }
     hideLoadingScreen();
   };
 
@@ -1410,15 +1409,10 @@
       document.getElementById('main-card').style.display = 'none';
       document.getElementById('impact-overlay').classList.remove('active');
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
-        analyser.fftSize = 256;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        // 🚀 關鍵修復 2：對戰模式一樣確認完立刻釋放！
+        let tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        tempStream.getTracks().forEach(track => track.stop());
         
-        // 🚀 載入戰場前，先偷抓全服大廳的角色圖鑑資料！
         fetch(`${GAS_URL}?action=get_lobby_data&id=${STUDENT_ID}`)
           .then(res => res.json())
           .then(data => {
