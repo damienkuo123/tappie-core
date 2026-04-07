@@ -1366,6 +1366,26 @@
   }
   
 
+  // 🚀 瑪麗安專屬：色彩單字拼圖引擎
+  function generateColoredHTML(azureData) {
+      if (!azureData || !azureData.Words) return null;
+      
+      return azureData.Words.map(w => {
+          const text = w.Word;
+          const assess = w.PronunciationAssessment || {};
+          const score = assess.AccuracyScore || 0;
+          const errorType = assess.ErrorType;
+
+          let cls = "";
+          if (errorType === "Omission") cls = "word-omission";
+          else if (score >= 90) cls = "word-excellent";
+          else if (score >= 60) cls = "word-average";
+          else cls = "word-bad";
+
+          return `<span class="${cls}" style="margin: 0 4px; display: inline-block;">${text}</span>`;
+      }).join('');
+  }
+  
   // 向 GAS 索取 10 分鐘效期的安全 Token
   function fetchAzureToken() {
     fetch(`${GAS_URL}?action=get_azure_token`)
