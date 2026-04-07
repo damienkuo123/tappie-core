@@ -2237,10 +2237,18 @@
         document.getElementById('battle-timer').innerText = "";
         
         // 隱藏倒數計時，顯示錄音按鈕
-        // 隱藏倒數計時，顯示控制台
         document.getElementById('battle-timer-container').style.display = 'flex';
-        document.getElementById('battle-controls').style.display = 'flex'; // 從 hidden 改為 flex 確保排版
-        document.getElementById('battle-controls').style.visibility = 'visible';
+        
+        // 🚀 雙重保險：顯示控制台，並強制解除所有按鈕的點擊封印！
+        const bControls = document.getElementById('battle-controls');
+        bControls.style.display = 'flex'; 
+        bControls.style.visibility = 'visible';
+        
+        const bBtn = document.getElementById('battle-record-btn');
+        if(bBtn) bBtn.style.pointerEvents = "auto";
+        
+        const sBtn = document.getElementById('skill-btn');
+        if(sBtn) sBtn.style.pointerEvents = "auto";
         
         startRecordingBattle(roomId);
       }
