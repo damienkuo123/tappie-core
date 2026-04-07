@@ -1278,6 +1278,38 @@
   let myTotalWins = 0, opTotalWins = 0;
   let roundSubmitted = false, isChecking = false, opponentWaitTimer = null;
 
+  // WebM 轉 WAV 實體音檔工廠 (解決環境雜音與提早切斷的完美方案)
+  async function createWavFileFromBlob(blob) {
+      const arrayBuffer = await blob.arrayBuffer();
+      if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioContext.state === 'suspended') await audioContext.resume();
+      
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const numOfChan = 1; // 強制轉為單聲道 (語音辨識最佳格式)
+      const sampleRate = audioBuffer.sampleRate;
+      const length = audioBuffer.length * 2 + 44; 
+      const buffer = new ArrayBuffer(length);
+      const view = new DataView(buffer);
+      let pos = 0;
+
+      function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+      function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+      setUint32(0x46464952); setUint32(length - 8); setUint32(0x45564157); 
+      setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan);
+      setUint32(sampleRate); setUint32(sampleRate * 2 * numOfChan);
+      setUint16(numOfChan * 2); setUint16(16);
+      setUint32(0x61746164); setUint32(length - pos - 4);
+
+      const channelData = audioBuffer.getChannelData(0); 
+      for (let i = 0; i < audioBuffer.length; i++) {
+          let sample = Math.max(-1, Math.min(1, channelData[i]));
+          sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+          view.setInt16(pos, sample, true); pos += 2;
+      }
+      return new File([new Blob([buffer], { type: "audio/wav" })], "record.wav", { type: "audio/wav" });
+  }
+
   // 向 GAS 索取 10 分鐘效期的安全 Token
   function fetchAzureToken() {
     fetch(`${GAS_URL}?action=get_azure_token`)
