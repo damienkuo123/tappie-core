@@ -7,11 +7,11 @@
   <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
   <style>
     :root {
-      /* 🎨 單字色彩回饋樣式 */
-    .word-excellent { color: #2ecc71; text-shadow: 0 0 8px rgba(46, 204, 113, 0.4); font-weight: 900; } /* 鮮綠 */
-    .word-average { color: #f39c12; text-shadow: 0 0 8px rgba(243, 156, 18, 0.4); font-weight: 800; } /* 橘黃 */
-    .word-bad { color: #e74c3c; text-shadow: 0 0 10px rgba(231, 76, 60, 0.6); font-weight: 900; animation: blink-red 1s infinite; } /* 紅色閃爍 */
-    .word-omission { color: #b2bec3; opacity: 0.3; text-decoration: line-through; filter: blur(0.5px); } /* 灰化漏唸 */
+      /* 🎨 實色高對比單字樣式 (無發光版) */
+    .word-excellent { color: #27ae60; font-weight: bold; } /* 鮮綠色 */
+    .word-average { color: #f39c12; font-weight: bold; }   /* 暖橘色 */
+    .word-bad { color: #d63031; font-weight: bold; }       /* 瑪麗安紅 */
+    .word-omission { color: #b2bec3; text-decoration: line-through; opacity: 0.5; } /* 漏唸灰 */
 
     @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
       /* 🚀 關鍵修復 1：把今日挑戰的專屬顏色加回來！沒有這些，按鈕會全部隱形破圖！ */
@@ -1366,45 +1366,67 @@
   }
   
 
-  // 🚀 瑪麗安專屬：字母級 (Grapheme) 色彩診斷引擎
-  function generateColoredHTML(azureData) {
-      if (!azureData || !azureData.Words) return null;
-      
-      return azureData.Words.map((w, wordIdx) => {
-          const assess = w.PronunciationAssessment || {};
-          
-          // 處理漏唸 (Omission)
-          if (assess.ErrorType === "Omission") {
-              return `<span class="word-omission" style="margin: 0 2px;">${w.Word}</span>`;
+  // 🚀 瑪麗安專屬：原字 case-preserving 塗鴉引擎
+  function generateColoredHTML(azureData, originalText) {
+      if (!azureData || !azureData.Words) return originalText;
+
+      // 1. 先將原本的題目拆成單字陣列 (保留空格與標點)
+      // 利用 Regex 切分出：(單字) 和 (非單字符號)
+      const originalTokens = originalText.split(/(\s+|[.,?!:;]+)/);
+      let azureWordIdx = 0;
+
+      const finalHtml = originalTokens.map(token => {
+          // 如果是空格或標點符號，直接回傳不變色
+          if (/^(\s+|[.,?!:;]+)$/.test(token)) {
+              return token;
           }
 
-          // 🚀 核心：如果微軟有給 Syllables (音節數據)，我們就進行「字母級」變色
-          if (w.Syllables && w.Syllables.length > 0) {
-              let wordHtml = w.Syllables.map(s => {
+          // 如果是字母單字，去對應微軟的數據
+          const azureWord = azureData.Words[azureWordIdx];
+          if (!azureWord) return token; // 防呆
+
+          azureWordIdx++;
+          const assess = azureWord.PronunciationAssessment || {};
+          const score = assess.AccuracyScore || 0;
+          const errorType = assess.ErrorType;
+
+          // 🚀 核心：如果是單字模式，且有音節級別的數據 (Syllables)，我們進行局部變色
+          if (azureWord.Syllables && azureWord.Syllables.length > 0) {
+              let charPointer = 0;
+              let coloredWord = "";
+              
+              azureWord.Syllables.forEach(s => {
                   const sScore = s.PronunciationAssessment.AccuracyScore || 0;
-                  const text = s.Grapheme || ""; // 👈 抓取這段聲音對應的實際字母塊
+                  const graphemeLen = (s.Grapheme || "").length;
+                  const chunk = token.substr(charPointer, graphemeLen);
                   
                   let cls = "";
                   if (sScore >= 90) cls = "word-excellent";
                   else if (sScore >= 60) cls = "word-average";
                   else cls = "word-bad";
 
-                  return `<span class="${cls}">${text}</span>`;
-              }).join('');
+                  coloredWord += `<span class="${cls}">${chunk}</span>`;
+                  charPointer += graphemeLen;
+              });
 
-              // 🚀 自動修復標點符號：如果原本的題目有標點，補在後面
-              // (微軟的 Display 屬性通常包含符號，我們檢查該詞最後是否帶符號)
-              const originalWord = w.Word;
-              const displayWord = w.Display || w.Word;
-              const punctuation = displayWord.replace(/[a-zA-Z0-9]/g, ''); // 濾出符號
-              
-              return `<span style="margin: 0 4px; display: inline-block;">${wordHtml}${punctuation}</span>`;
-          } else {
-              // 備用方案：若無音節數據，才使用全單字變色
-              let cls = assess.AccuracyScore >= 90 ? "word-excellent" : (assess.AccuracyScore >= 60 ? "word-average" : "word-bad");
-              return `<span class="${cls}" style="margin: 0 4px; display: inline-block;">${w.Word}</span>`;
+              // 補足可能剩下的字母
+              if (charPointer < token.length) {
+                  coloredWord += token.substr(charPointer);
+              }
+              return coloredWord;
           }
-      }).join('');
+
+          // 🚀 句子模式：通常微軟只給到 Word 級別，直接把整個 Token 變色
+          let cls = "";
+          if (errorType === "Omission") cls = "word-omission";
+          else if (score >= 90) cls = "word-excellent";
+          else if (score >= 60) cls = "word-average";
+          else cls = "word-bad";
+
+          return `<span class="${cls}">${token}</span>`;
+      });
+
+      return finalHtml.join('');
   }
   
   // 向 GAS 索取 10 分鐘效期的安全 Token
@@ -1742,7 +1764,7 @@
     
     if (existingReport) {
         // 如果有唸過，顯示變色版
-        wordDisplay.innerHTML = generateColoredHTML(existingReport);
+        wordDisplay.innerHTML = generateColoredHTML(existingReport, current.en);
     } else {
         // 如果還沒唸，顯示乾淨的預設版
         wordDisplay.innerText = current.en;
