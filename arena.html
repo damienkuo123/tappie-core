@@ -2079,15 +2079,18 @@
   let isBattleRecording = false;
 
   if(battleBtn) {
-    const startBattleRecord = (e) => { // 🚀 拔掉 async
+    const startBattleRecord = (e) => { 
         if (roundSubmitted || isBattleRecording) return;
         e.preventDefault();
         isBattleRecording = true;
         clearInterval(currentLimitTimer); 
 
-        // 🚀 觸感回歸，瞬間啟動
         if (isUltimateMode) battleBtn.classList.add('ult-active');
         else battleBtn.classList.add('active');
+
+        // 🚀 提早喚醒戰場解碼器！
+        if (!sysAudioCtx) sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (sysAudioCtx.state === 'suspended') sysAudioCtx.resume();
 
         if (!globalMicStream) {
             alert("麥克風未授權！");
@@ -2110,7 +2113,7 @@
         e.preventDefault();
         isBattleRecording = false;
         
-        battleBtn.classList.remove('active', 'ult-active'); // 🚀 瞬間解除動畫
+        battleBtn.classList.remove('active', 'ult-active'); 
         
         if (!battleRecorder || battleRecorder.state !== "recording") return;
         
@@ -2120,10 +2123,11 @@
         document.getElementById('battle-info').style.color = "#f1c40f";
 
         battleRecorder.onstop = async () => {
-            const webmBlob = new Blob(battleChunks, { type: 'audio/webm' });
+            // ❌ 絕對不能呼叫 track.stop()
+
+            const rawBlob = new Blob(battleChunks); 
             
-            // 🚀 防呆，短按空包彈直接給 0 分，不當機
-            if (battleChunks.length === 0 || webmBlob.size < 500) {
+            if (battleChunks.length === 0 || rawBlob.size < 500) {
                 document.getElementById('battle-info').innerText = "🚨 錄音太短，挑戰失敗";
                 document.getElementById('battle-info').style.color = "#e74c3c";
                 submitBattleScore(ROOM_ID, 0);
@@ -2131,7 +2135,7 @@
             }
             
             try {
-                const wavFile = await createWavFileFromBlob(webmBlob);
+                const wavFile = await createWavFileFromBlob(rawBlob);
                 document.getElementById('battle-info').innerText = "🟢 傳送至微軟聲學引擎...";
                 document.getElementById('battle-info').style.color = "#3498db";
 
