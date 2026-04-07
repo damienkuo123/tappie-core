@@ -1400,30 +1400,38 @@
           if (assess.ErrorType === "Omission") return `<span class="word-omission">${token}</span>`;
 
           // 🚀 核心：抓取音節(Syllables)或音素(Phonemes)作為變色基準
-          const subData = azureWord.Syllables || azureWord.Phonemes || [];
+          // 🚀 優先使用 Phonemes (音素)，這才是達成 Elsa Speak 粒粒分明效果的關鍵
+const subData = (azureWord.Phonemes && azureWord.Phonemes.length > 0) 
+                ? azureWord.Phonemes 
+                : (azureWord.Syllables || []);
           
           if (subData.length > 0) {
               let coloredWord = "";
               let charPointer = 0;
-              const tokenChars = [...token]; // 拆成字元陣列
-
+              
               subData.forEach((sub, idx) => {
                   const sScore = sub.PronunciationAssessment.AccuracyScore || 0;
                   const color = getScoreColor(sScore);
                   
-                  // 🧠 智慧分配長度：如果有 Grapheme 就用它，沒有就按比例分配
+                  // 🧠 終極分配法：
                   let segmentLen;
+                  // 如果微軟有給對應字母就用，沒有就用比例切
                   if (sub.Grapheme) {
                       segmentLen = sub.Grapheme.length;
                   } else {
-                      // 比例分配法：單字總長 / 總片段數
+                      // 比例計算：剩餘長度 / 剩餘片段數
+                      const remainingChars = token.length - charPointer;
+                      const remainingSegments = subData.length - idx;
                       segmentLen = (idx === subData.length - 1) 
-                          ? token.length - charPointer // 最後一個拿走剩下的所有字
-                          : Math.max(1, Math.round(token.length / subData.length));
+                          ? remainingChars 
+                          : Math.max(1, Math.round(remainingChars / remainingSegments));
                   }
 
                   const chunk = token.substr(charPointer, segmentLen);
-                  coloredWord += `<span class="colored-char" style="color: ${color}">${chunk}</span>`;
+                  // 只有當 chunk 真的有字時才包 span
+                  if (chunk) {
+                      coloredWord += `<span class="colored-char" style="color: ${color}">${chunk}</span>`;
+                  }
                   charPointer += segmentLen;
               });
               return coloredWord;
