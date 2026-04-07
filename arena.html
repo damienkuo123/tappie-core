@@ -3054,49 +3054,56 @@
       const btn = document.getElementById(`lock-btn-${index}`);
       const status = document.getElementById(`lock-status-${index}`);
       const cardData = gachaCardsData[index];
+      let gachaRecorder;
+      let gachaChunks = [];
 
-      btn.onclick = (e) => { 
-          e.stopPropagation(); 
+      // 🚀 按下錄音
+      btn.onpointerdown = (e) => {
+          e.stopPropagation();
           if (isGachaRecording || cardData.flipped || gachaPicksLeft <= 0) return;
           e.preventDefault();
+
+          if (!globalMicStream) { alert("麥克風未授權！"); return; }
           
-          if (!globalMicStream) {
-              alert("麥克風未授權！"); return;
-          }
+          if (!sysAudioCtx) sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (sysAudioCtx.state === 'suspended') sysAudioCtx.resume();
 
           isGachaRecording = true;
-          chunks = [];
+          gachaChunks = [];
           btn.classList.add('recording');
-          btn.style.pointerEvents = "none";
-          status.innerText = "🟢 聆聽中...";
-          status.style.color = "#26de81";
+          status.innerText = "🔴 錄音中... (放開判定)";
+          status.style.color = "#eb3b5a";
 
-          mediaRecorder = new MediaRecorder(globalMicStream);
-          mediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) chunks.push(ev.data); };
-          mediaRecorder.start();
+          gachaRecorder = new MediaRecorder(globalMicStream);
+          gachaRecorder.ondataavailable = ev => { if(ev.data.size > 0) gachaChunks.push(ev.data); };
+          gachaRecorder.start();
+      };
 
-          // 🚀 點擊後，自動錄製 2.5 秒並收卷
-          setTimeout(() => {
-              if (mediaRecorder.state === "recording") mediaRecorder.stop();
-          }, 2500);
+      // 🚀 放開判定
+      btn.onpointerup = async (e) => {
+          if (!isGachaRecording || !gachaRecorder || gachaRecorder.state !== "recording") return;
+          e.preventDefault();
+          isGachaRecording = false;
+          btn.classList.remove('recording');
+          btn.style.pointerEvents = "none"; // 判定中暫時封印
 
-          mediaRecorder.onstop = async () => {
-              isGachaRecording = false;
-              btn.classList.remove('recording');
+          status.innerText = "⚙️ 封裝音檔中...";
+          status.style.color = "#f1c40f";
 
-              const webmBlob = new Blob(chunks, { type: 'audio/webm' });
-              if (chunks.length === 0 || webmBlob.size < 500) {
-                  status.innerText = "未收到聲音，請重試";
+          gachaRecorder.onstop = async () => {
+              const rawBlob = new Blob(gachaChunks);
+              if (gachaChunks.length === 0 || rawBlob.size < 500) {
+                  status.innerText = "錄音太短，請長按";
                   status.style.color = "#e74c3c";
                   btn.style.pointerEvents = "auto";
                   return;
               }
 
-              status.innerText = "驗證密語中...";
-              status.style.color = "#00d2d3";
-
               try {
-                  const wavFile = await createWavFileFromBlob(webmBlob);
+                  const wavFile = await createWavFileFromBlob(rawBlob);
+                  status.innerText = "🔵 驗證密語中...";
+                  status.style.color = "#3498db";
+
                   const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(azureAuthToken, azureRegionCode);
                   speechConfig.speechRecognitionLanguage = "en-US";
                   const audioConfig = SpeechSDK.AudioConfig.fromWavFileInput(wavFile);
@@ -3108,40 +3115,34 @@
                   const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
                   pronConfig.applyTo(recognizer);
 
-                  recognizer.recognizeOnceAsync(
-                      (result) => {
-                          btn.style.pointerEvents = "auto";
-                          if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                              const pronResult = SpeechSDK.PronunciationAssessmentResult.fromResult(result);
-                              const finalScore = pronResult.accuracyScore || 0;
-                              if (finalScore >= 50) {
-                                  status.innerText = "封印解除！";
-                                  status.style.color = "#26de81";
-                                  triggerReveal(index); 
-                              } else {
-                                  status.innerText = `密語錯誤，請重唸！`;
-                                  status.style.color = "#e74c3c";
-                              }
+                  recognizer.recognizeOnceAsync((result) => {
+                      btn.style.pointerEvents = "auto";
+                      if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                          const pronResult = SpeechSDK.PronunciationAssessmentResult.fromResult(result);
+                          if ((pronResult.accuracyScore || 0) >= 50) {
+                              status.innerText = "封印解除！";
+                              status.style.color = "#26de81";
+                              triggerReveal(index);
                           } else {
-                              status.innerText = "❌ 辨識失敗，請重試";
+                              status.innerText = "密語不夠準確，請重唸";
                               status.style.color = "#e74c3c";
                           }
-                          recognizer.close();
-                      },
-                      (err) => {
-                          btn.style.pointerEvents = "auto";
-                          status.innerText = "🚨 連線錯誤";
+                      } else {
+                          status.innerText = "未辨識到密語";
                           status.style.color = "#e74c3c";
-                          recognizer.close();
                       }
-                  );
+                      recognizer.close();
+                  });
               } catch(err) {
-                  status.innerText = "🚨 處理失敗，請重試";
-                  status.style.color = "#e74c3c";
+                  status.innerText = "判定失敗，請重試";
                   btn.style.pointerEvents = "auto";
               }
           };
+          gachaRecorder.stop();
       };
+      
+      // 🚀 離開按鈕也視同放開
+      btn.onpointercancel = btn.onpointerleave = btn.onpointerup;
   }
 
   // 🚀 觸發封印碎裂與翻開動畫
