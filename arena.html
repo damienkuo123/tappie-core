@@ -7,11 +7,9 @@
   <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
   <style>
     :root {
-      /* 🎨 實色高對比單字樣式 (無發光版) */
-    .word-excellent { color: #27ae60; font-weight: bold; } /* 鮮綠色 */
-    .word-average { color: #f39c12; font-weight: bold; }   /* 暖橘色 */
-    .word-bad { color: #d63031; font-weight: bold; }       /* 瑪麗安紅 */
-    .word-omission { color: #b2bec3; text-decoration: line-through; opacity: 0.5; } /* 漏唸灰 */
+      /* 🎨 專業級：僅保留漏唸樣式，其餘顏色由 JS 動態生成 */
+    .word-omission { color: #b2bec3 !important; text-decoration: line-through; opacity: 0.5; }
+    .colored-char { font-weight: bold; transition: color 0.3s ease; }
 
     @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
       /* 🚀 關鍵修復 1：把今日挑戰的專屬顏色加回來！沒有這些，按鈕會全部隱形破圖！ */
@@ -1366,6 +1364,14 @@
   }
   
 
+  // 🚀 瑪麗安動態色彩引擎：將 0-100 分轉化為 紅 -> 橙 -> 綠 的漸層
+  function getScoreColor(score) {
+      // 分數越高，色相越接近 120 (綠色)；分數越低，越接近 0 (紅色)
+      // 我們微調一下曲線，讓 60 分以下維持紅色，80 分以上開始變綠
+      let hue = Math.min(Math.max((score - 50) * 2.5, 0), 120); 
+      return `hsl(${hue}, 80%, 40%)`; // 飽和度 80%，亮度 40% 確保在白底清晰
+  }
+  
   // 🚀 瑪麗安專屬：原字 case-preserving 塗鴉引擎
   function generateColoredHTML(azureData, originalText) {
       if (!azureData || !azureData.Words) return originalText;
@@ -1395,19 +1401,18 @@
               let charPointer = 0;
               let coloredWord = "";
               
-              azureWord.Syllables.forEach(s => {
-                  const sScore = s.PronunciationAssessment.AccuracyScore || 0;
-                  const graphemeLen = (s.Grapheme || "").length;
-                  const chunk = token.substr(charPointer, graphemeLen);
-                  
-                  let cls = "";
-                  if (sScore >= 90) cls = "word-excellent";
-                  else if (sScore >= 60) cls = "word-average";
-                  else cls = "word-bad";
-
-                  coloredWord += `<span class="${cls}">${chunk}</span>`;
-                  charPointer += graphemeLen;
-              });
+              // 🚀 修改這一段的 cls 邏輯
+  azureWord.Syllables.forEach(s => {
+      const sScore = s.PronunciationAssessment.AccuracyScore || 0;
+      const graphemeLen = (s.Grapheme || "").length;
+      const chunk = token.substr(charPointer, graphemeLen);
+      
+      // 核心手術：改用動態 Style
+      const charColor = getScoreColor(sScore);
+      coloredWord += `<span class="colored-char" style="color: ${charColor}">${chunk}</span>`;
+      
+      charPointer += graphemeLen;
+  });
 
               // 補足可能剩下的字母
               if (charPointer < token.length) {
@@ -1418,12 +1423,13 @@
 
           // 🚀 句子模式：通常微軟只給到 Word 級別，直接把整個 Token 變色
           let cls = "";
-          if (errorType === "Omission") cls = "word-omission";
-          else if (score >= 90) cls = "word-excellent";
-          else if (score >= 60) cls = "word-average";
-          else cls = "word-bad";
-
-          return `<span class="${cls}">${token}</span>`;
+          // 🚀 修改這一段的 cls 邏輯
+  if (errorType === "Omission") {
+      return `<span class="word-omission">${token}</span>`;
+  } else {
+      const wordColor = getScoreColor(score);
+      return `<span class="colored-char" style="color: ${wordColor}">${token}</span>`;
+  }
       });
 
       return finalHtml.join('');
