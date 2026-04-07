@@ -1436,7 +1436,10 @@
             showPortal();
             hideLoadingScreen(); // 失敗時也要解開畫面
           });
-      } catch(err) { alert("請開啟麥克風權限才能對戰！"); }
+      } catch(err) { 
+        alert("請開啟麥克風權限才能對戰！"); 
+        hideLoadingScreen(); // 🚀 補上這行，權限被擋時才不會卡在黑畫面
+      }
     } else {
       await originalOnload();
     }
@@ -2000,7 +2003,7 @@
       roundSubmitted = true; // 鎖死按鈕，防止重複點擊
       clearInterval(currentLimitTimer);
 
-      // 🚀 加上這行：物理封印對戰麥克風！
+      // 🚀 物理封印對戰麥克風！
       battleBtn.style.pointerEvents = "none";
       
       const myCard = document.getElementById('my-card');
@@ -2017,9 +2020,10 @@
       const targetWord = battleQuizArr[currentBattleRound].en;
       const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(azureAuthToken, azureRegionCode);
       speechConfig.speechRecognitionLanguage = "en-US";
-      // 🚀 放寬初始等待時間到 10 秒
-      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "10000");
-      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "1500");
+      
+      // 🚀 放寬初始等待時間到 15 秒，結尾等待 2.5 秒 (極度寬容的傾聽者)
+      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "15000");
+      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "2500");
 
       const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
       const pronConfig = new SpeechSDK.PronunciationAssessmentConfig(
@@ -2051,7 +2055,6 @@
                   // ====================================================
                   // ⚔️ 對戰模式專用：前端極速「指數級高精度切肉機」
                   // ====================================================
-                  // 1. 抓取微軟 SDK 原生物件的綜合分數
                   let accScore = pronResult.accuracyScore || 0;
                   let compScore = pronResult.completenessScore || 0;
                   let fluScore = pronResult.fluencyScore || 0;
@@ -2062,10 +2065,9 @@
                   let brokenCount = 0;
                   let dynamicPhonemePenalty = 0;
 
-                  // 2. 🕵️ 前端極速驗屍 (對接 detailResult 大寫原生結構)
+                  // 🕵️ 前端極速驗屍 (對接 detailResult 大寫原生結構)
                   if (pronResult.detailResult && pronResult.detailResult.Words) {
                       pronResult.detailResult.Words.forEach(w => {
-                          // 🛡️ 防呆：確保物件存在
                           let wAssess = w.PronunciationAssessment || {};
                           let wScore = wAssess.AccuracyScore !== undefined ? wAssess.AccuracyScore : 0;
                           let errType = wAssess.ErrorType || "";
@@ -2102,7 +2104,7 @@
                       });
                   }
 
-                  // 3. 🩸 執行無情扣分
+                  // 🩸 執行無情扣分
                   let penalty = (missingCount * 15) + (brokenCount * 10) + dynamicPhonemePenalty;
                   
                   // 📉 流暢度殺手鐧
@@ -2122,6 +2124,16 @@
                   // 🚀 將嚴格分數送出！
                   submitBattleScore(ROOM_ID, strictScore);
               } else {
+                  // 🚀 完整保留未收音的處理！
+                  document.getElementById('battle-info').innerText = "❌ 挑戰失敗 (未收音)";
+                  submitBattleScore(ROOM_ID, 0);
+              }
+              recognizer.close();
+          },
+          (err) => {
+              // 🚀 完整保留連線錯誤的處理！
+              document.getElementById('battle-info').innerText = "🚨 引擎連線錯誤";
+              submitBattleScore(ROOM_ID, 0);
               recognizer.close();
           }
       );
