@@ -8,8 +8,18 @@
   <style>
     :root {
       /* 🎨 專業級：僅保留漏唸樣式，其餘顏色由 JS 動態生成 */
-    .word-omission { color: #b2bec3 !important; text-decoration: line-through; opacity: 0.5; }
-    .colored-char { font-weight: bold; transition: color 0.3s ease; }
+    /* 🚀 確保變色字體與原本題目完全一致 */
+    .colored-char { 
+      font-weight: bold; 
+      display: inline-block; 
+      transition: color 0.3s ease;
+      font-family: inherit; /* 繼承原本字體 */
+    }
+    .word-omission { 
+      color: #b2bec3 !important; 
+      text-decoration: line-through; 
+      opacity: 0.5; 
+    }
 
     @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
       /* 🚀 關鍵修復 1：把今日挑戰的專屬顏色加回來！沒有這些，按鈕會全部隱形破圖！ */
@@ -1364,72 +1374,63 @@
   }
   
 
-  // 🚀 瑪麗安動態色彩引擎：將 0-100 分轉化為 紅 -> 橙 -> 綠 的漸層
+  // 🚀 瑪麗安動態色彩引擎：0-100分轉化為 紅 -> 橙 -> 綠
   function getScoreColor(score) {
-      // 分數越高，色相越接近 120 (綠色)；分數越低，越接近 0 (紅色)
-      // 我們微調一下曲線，讓 60 分以下維持紅色，80 分以上開始變綠
-      let hue = Math.min(Math.max((score - 50) * 2.5, 0), 120); 
-      return `hsl(${hue}, 80%, 40%)`; // 飽和度 80%，亮度 40% 確保在白底清晰
+      // 曲線優化：讓低分更紅，高分更綠
+      let hue = Math.min(Math.max((score - 50) * 2.4, 0), 120); 
+      return `hsl(${hue}, 90%, 35%)`; // 亮度 35% 確保文字清晰
   }
   
-  // 🚀 瑪麗安專屬：原字 case-preserving 塗鴉引擎
   function generateColoredHTML(azureData, originalText) {
       if (!azureData || !azureData.Words) return originalText;
 
-      // 1. 先將原本的題目拆成單字陣列 (保留空格與標點)
-      // 利用 Regex 切分出：(單字) 和 (非單字符號)
-      const originalTokens = originalText.split(/(\s+|[.,?!:;]+)/);
+      // 1. 切分原始題目（保留空格與標點）
+      const tokens = originalText.split(/(\s+|[.,?!:;]+)/);
       let azureWordIdx = 0;
 
-      const finalHtml = originalTokens.map(token => {
-          // 如果是空格或標點符號，直接回傳不變色
-          if (/^(\s+|[.,?!:;]+)$/.test(token)) {
-              return token;
-          }
+      const finalHtml = tokens.map(token => {
+          // 標點與空格直接回傳
+          if (/^(\s+|[.,?!:;]+)$/.test(token)) return token;
 
-          // 如果是字母單字，去對應微軟的數據
           const azureWord = azureData.Words[azureWordIdx];
-          if (!azureWord) return token; // 防呆
-
+          if (!azureWord) return token;
           azureWordIdx++;
+
           const assess = azureWord.PronunciationAssessment || {};
-          const score = assess.AccuracyScore || 0;
-          const errorType = assess.ErrorType;
+          if (assess.ErrorType === "Omission") return `<span class="word-omission">${token}</span>`;
 
-          // 🚀 核心：如果是單字模式，且有音節級別的數據 (Syllables)，我們進行局部變色
-          if (azureWord.Syllables && azureWord.Syllables.length > 0) {
-              let charPointer = 0;
+          // 🚀 核心：抓取音節(Syllables)或音素(Phonemes)作為變色基準
+          const subData = azureWord.Syllables || azureWord.Phonemes || [];
+          
+          if (subData.length > 0) {
               let coloredWord = "";
-              
-              // 🚀 修改這一段的 cls 邏輯
-  azureWord.Syllables.forEach(s => {
-      const sScore = s.PronunciationAssessment.AccuracyScore || 0;
-      const graphemeLen = (s.Grapheme || "").length;
-      const chunk = token.substr(charPointer, graphemeLen);
-      
-      // 核心手術：改用動態 Style
-      const charColor = getScoreColor(sScore);
-      coloredWord += `<span class="colored-char" style="color: ${charColor}">${chunk}</span>`;
-      
-      charPointer += graphemeLen;
-  });
+              let charPointer = 0;
+              const tokenChars = [...token]; // 拆成字元陣列
 
-              // 補足可能剩下的字母
-              if (charPointer < token.length) {
-                  coloredWord += token.substr(charPointer);
-              }
+              subData.forEach((sub, idx) => {
+                  const sScore = sub.PronunciationAssessment.AccuracyScore || 0;
+                  const color = getScoreColor(sScore);
+                  
+                  // 🧠 智慧分配長度：如果有 Grapheme 就用它，沒有就按比例分配
+                  let segmentLen;
+                  if (sub.Grapheme) {
+                      segmentLen = sub.Grapheme.length;
+                  } else {
+                      // 比例分配法：單字總長 / 總片段數
+                      segmentLen = (idx === subData.length - 1) 
+                          ? token.length - charPointer // 最後一個拿走剩下的所有字
+                          : Math.max(1, Math.round(token.length / subData.length));
+                  }
+
+                  const chunk = token.substr(charPointer, segmentLen);
+                  coloredWord += `<span class="colored-char" style="color: ${color}">${chunk}</span>`;
+                  charPointer += segmentLen;
+              });
               return coloredWord;
           }
 
-          // 🚀 句子模式：通常微軟只給到 Word 級別，直接把整個 Token 變色
-          let cls = "";
-          // 🚀 修改這一段的 cls 邏輯
-  if (errorType === "Omission") {
-      return `<span class="word-omission">${token}</span>`;
-  } else {
-      const wordColor = getScoreColor(score);
-      return `<span class="colored-char" style="color: ${wordColor}">${token}</span>`;
-  }
+          // 備援：若無子數據則整詞變色
+          return `<span class="colored-char" style="color: ${getScoreColor(assess.AccuracyScore || 0)}">${token}</span>`;
       });
 
       return finalHtml.join('');
