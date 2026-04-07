@@ -1658,16 +1658,20 @@
   const rb = document.getElementById('record-btn');
   let practiceRecorder;
   let practiceChunks = [];
-  let isRecording = false; // 🚀 獨立錄音狀態鎖
+  let isRecording = false;
 
   if(rb) {
-    const startPracticeRecord = (e) => { // 🚀 拔掉 async，變成 0 毫秒瞬間觸發！
+    const startPracticeRecord = (e) => { 
         if(isGrading || isRecording) return;
         e.preventDefault(); 
         isRecording = true;
         
-        // 🚀 觸感回歸：手指一按下，立刻觸發 CSS 動畫，絕不卡頓！
+        // 🚀 觸感回歸：立刻觸發縮小動畫
         rb.classList.add('active'); 
+        
+        // 🚀 提早喚醒解碼器 (破解 iOS 凍結)
+        if (!sysAudioCtx) sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (sysAudioCtx.state === 'suspended') sysAudioCtx.resume();
         
         if (!globalMicStream) {
             alert("麥克風未授權，請重新整理網頁！");
@@ -1675,7 +1679,6 @@
             return;
         }
 
-        // 瞬間調用已經保溫的麥克風
         practiceRecorder = new MediaRecorder(globalMicStream);
         practiceChunks = [];
         practiceRecorder.ondataavailable = ev => { if(ev.data.size > 0) practiceChunks.push(ev.data); };
@@ -1693,8 +1696,7 @@
         if(!isRecording) return;
         e.preventDefault();
         isRecording = false;
-        
-        rb.classList.remove('active'); // 🚀 手指放開，立刻解除按鈕縮小
+        rb.classList.remove('active'); 
         
         if (!practiceRecorder || practiceRecorder.state !== "recording") {
             document.getElementById('status').innerText = "🚨 錄音異常，請重試";
@@ -1711,12 +1713,13 @@
         document.getElementById('status').style.color = "#f1c40f";
 
         practiceRecorder.onstop = async () => {
-            // 🚀 絕對不能關閉麥克風硬體 (不呼叫 track.stop)，繼續保溫！
+            // ❌ 絕對不能呼叫 track.stop() 殺死麥克風！直接略過！
+
+            // 🚀 移除 type 欺騙，讓瀏覽器自由發揮原始格式
+            const rawBlob = new Blob(practiceChunks); 
             
-            const webmBlob = new Blob(practiceChunks, { type: 'audio/webm' });
-            
-            // 🚀 防呆機制：如果音檔為空或太短，立刻解鎖下一頁，絕不卡死！
-            if (practiceChunks.length === 0 || webmBlob.size < 500) {
+            // 防呆：錄音太短立刻解鎖
+            if (practiceChunks.length === 0 || rawBlob.size < 500) {
                 document.getElementById('status').innerText = "🚨 錄音太短，請按住重唸";
                 document.getElementById('status').style.color = "#e74c3c";
                 isGrading = false; rb.style.pointerEvents = "auto"; rb.style.opacity = "1";
@@ -1726,8 +1729,7 @@
             }
             
             try {
-                const wavFile = await createWavFileFromBlob(webmBlob);
-                
+                const wavFile = await createWavFileFromBlob(rawBlob);
                 document.getElementById('status').innerText = "🟢 傳送至微軟聲學引擎...";
                 document.getElementById('status').style.color = "#3498db";
 
@@ -1759,10 +1761,9 @@
                                 window.feedbacks[currentIndex] = data.feedback;
                                 
                                 document.getElementById('feedback').innerHTML = `得分：${data.score}<br><small>${data.feedback}</small>`;
-                                document.getElementById('status').innerText = "點擊錄音，安靜自動打分";
+                                document.getElementById('status').innerText = "按住錄音，放開打分";
                                 document.getElementById('status').style.color = "#636e72";
                                 
-                                // 🔓 全面解鎖
                                 isGrading = false; rb.style.pointerEvents = "auto"; rb.style.opacity = "1";
                                 document.getElementById('prev-btn').disabled = currentIndex === 0;
                                 document.getElementById('next-btn').disabled = false;
@@ -1791,7 +1792,7 @@
                 );
             } catch(err) {
                 console.error(err);
-                document.getElementById('status').innerText = "🚨 音檔處理失敗，請重試";
+                document.getElementById('status').innerText = "🚨 音檔處理失敗，請長按重試";
                 document.getElementById('status').style.color = "#e74c3c";
                 isGrading = false; rb.style.pointerEvents = "auto"; rb.style.opacity = "1";
                 document.getElementById('next-btn').disabled = false;
