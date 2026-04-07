@@ -1715,6 +1715,19 @@
     const backBtn = document.getElementById('back-summary-btn');
     const rb = document.getElementById('record-btn');
 
+    // 🚀 核心手術點：判斷是否顯示色彩回饋
+    const wordDisplay = document.getElementById('word-display');
+    const existingReport = azureReports[currentIndex];
+    
+    if (existingReport) {
+        // 如果有唸過，顯示變色版
+        wordDisplay.innerHTML = generateColoredHTML(existingReport);
+    } else {
+        // 如果還沒唸，顯示乾淨的預設版
+        wordDisplay.innerText = current.en;
+        wordDisplay.style.color = "#0d47a1"; // 回復預設深藍色
+    }
+    
     // 🚀 全面解鎖邏輯
     if (playBtn) playBtn.disabled = false; // 現在它認識 playBtn 了，不會報錯
 
