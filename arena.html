@@ -2921,30 +2921,34 @@
       focusedCardIndex = -1;
   }
 
-  // 綁定錄音解鎖邏輯 (🚀 拔除本地音量阻礙)
+  let gachaStream; // 宣告抽獎專用音訊流
+  
   function bindVoiceLock(index) {
       const btn = document.getElementById(`lock-btn-${index}`);
       const status = document.getElementById(`lock-status-${index}`);
       const cardData = gachaCardsData[index];
 
-      btn.onpointerdown = (e) => {
-          // 🚀 防呆：次數用盡或是已翻開，都不可再按錄音解鎖
+      btn.onpointerdown = async (e) => { // 🚀 加上 async
           if (isGachaRecording || cardData.flipped || gachaPicksLeft <= 0) return;
           e.preventDefault();
           
-          if (audioContext && audioContext.state === 'suspended') audioContext.resume();
-
           isGachaRecording = true;
-          // 🚀 直接共用主程式的全局變數，最穩定！
           chunks = [];
-          
           btn.classList.add('recording');
           status.innerText = "聆聽中...";
           status.style.color = "#eb3b5a";
 
-          mediaRecorder = new MediaRecorder(stream);
-          mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
-          mediaRecorder.start();
+          try {
+              // 🚀 動態開啟麥克風給抽獎系統
+              gachaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              mediaRecorder = new MediaRecorder(gachaStream);
+              mediaRecorder.ondataavailable = ev => chunks.push(ev.data);
+              mediaRecorder.start();
+          } catch(err) {
+              alert("無法存取麥克風");
+              isGachaRecording = false;
+              btn.classList.remove('recording');
+          }
       };
 
       btn.onpointerup = () => {
@@ -2954,6 +2958,8 @@
 
           if (mediaRecorder && mediaRecorder.state === "recording") {
               mediaRecorder.stop();
+              // 🚀 錄完立刻關掉，不霸佔硬體！
+              if (gachaStream) gachaStream.getTracks().forEach(t => t.stop());
           }
 
           status.innerText = "驗證密語中...";
