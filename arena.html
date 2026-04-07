@@ -1657,39 +1657,69 @@
         if(isGrading) return;
         e.preventDefault(); 
         
-        // 🚀 開啟瀏覽器原生錄音
-        let tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        practiceRecorder = new MediaRecorder(tempStream);
-        practiceChunks = [];
-        practiceRecorder.ondataavailable = ev => practiceChunks.push(ev.data);
-        practiceRecorder.start();
+        // 🚀 觸感回歸：手指一按下，立刻加上縮小動畫！
+        rb.classList.add('active'); 
+        
+        if (!sysAudioCtx) sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (sysAudioCtx.state === 'suspended') await sysAudioCtx.resume();
+        
+        try {
+            let tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            practiceRecorder = new MediaRecorder(tempStream);
+            practiceChunks = [];
+            practiceRecorder.ondataavailable = ev => { if(ev.data.size > 0) practiceChunks.push(ev.data); };
+            practiceRecorder.start();
 
-        rb.classList.add('active');
-        document.getElementById('status').innerText = "🔴 錄音中... (放開按鈕送出)";
-        document.getElementById('status').style.color = "#eb3b5a";
-        document.getElementById('feedback').innerHTML = ""; 
-        document.getElementById('prev-btn').disabled = true;
-        document.getElementById('next-btn').disabled = true;
-        document.getElementById('back-summary-btn').disabled = true;
+            document.getElementById('status').innerText = "🔴 錄音中... (放開按鈕送出)";
+            document.getElementById('status').style.color = "#eb3b5a";
+            document.getElementById('feedback').innerHTML = ""; 
+            
+            document.getElementById('prev-btn').disabled = true;
+            document.getElementById('next-btn').disabled = true;
+            document.getElementById('back-summary-btn').disabled = true;
+        } catch(err) {
+            rb.classList.remove('active'); // 取消動畫
+            alert("無法存取麥克風，請確認權限！");
+        }
     };
 
     const stopPracticeRecord = async (e) => {
-        if(isGrading || !practiceRecorder || practiceRecorder.state !== "recording") return;
+        if(isGrading) return;
         e.preventDefault();
-        isGrading = true;
         
-        rb.classList.remove('active');
+        rb.classList.remove('active'); // 🚀 手指放開，立刻解除按鈕縮小
+        
+        // 🚀 致命修復：如果錄音根本沒開起來，必須強制解鎖，不然會卡死！
+        if (!practiceRecorder || practiceRecorder.state !== "recording") {
+            document.getElementById('status').innerText = "🚨 錄音未啟動，請重試";
+            document.getElementById('status').style.color = "#e74c3c";
+            document.getElementById('next-btn').disabled = false;
+            if (currentIndex > 0) document.getElementById('prev-btn').disabled = false;
+            return;
+        }
+
+        isGrading = true;
         rb.style.pointerEvents = "none"; 
         rb.style.opacity = "0.5"; 
         document.getElementById('status').innerText = "⚙️ 封裝音檔中...";
         document.getElementById('status').style.color = "#f1c40f";
 
         practiceRecorder.onstop = async () => {
-            practiceRecorder.stream.getTracks().forEach(t => t.stop()); // 立刻釋放麥克風！
+            practiceRecorder.stream.getTracks().forEach(t => t.stop()); 
+
             const webmBlob = new Blob(practiceChunks, { type: 'audio/webm' });
             
+            // 🚀 防呆機制：如果音檔為空，立刻解鎖！
+            if (practiceChunks.length === 0 || webmBlob.size < 500) {
+                document.getElementById('status').innerText = "🚨 錄音太短，請長按重試";
+                document.getElementById('status').style.color = "#e74c3c";
+                isGrading = false; rb.style.pointerEvents = "auto"; rb.style.opacity = "1";
+                document.getElementById('next-btn').disabled = false;
+                if (currentIndex > 0) document.getElementById('prev-btn').disabled = false;
+                return;
+            }
+            
             try {
-                // 🚀 將純淨的錄音瞬間轉為實體 WAV 檔！
                 const wavFile = await createWavFileFromBlob(webmBlob);
                 
                 document.getElementById('status').innerText = "🟢 傳送至微軟聲學引擎...";
@@ -1699,7 +1729,6 @@
                 const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(azureAuthToken, azureRegionCode);
                 speechConfig.speechRecognitionLanguage = "en-US";
                 
-                // 🚀 直接把實體 WAV 餵給 Azure
                 const audioConfig = SpeechSDK.AudioConfig.fromWavFileInput(wavFile);
                 const pronConfig = new SpeechSDK.PronunciationAssessmentConfig(
                     targetWord, SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
@@ -1724,9 +1753,10 @@
                                 window.feedbacks[currentIndex] = data.feedback;
                                 
                                 document.getElementById('feedback').innerHTML = `得分：${data.score}<br><small>${data.feedback}</small>`;
-                                document.getElementById('status').innerText = "按住錄音，放開打分";
+                                document.getElementById('status').innerText = "點擊錄音，安靜自動打分";
                                 document.getElementById('status').style.color = "#636e72";
                                 
+                                // 🔓 全面解鎖
                                 isGrading = false; rb.style.pointerEvents = "auto"; rb.style.opacity = "1";
                                 document.getElementById('prev-btn').disabled = currentIndex === 0;
                                 document.getElementById('next-btn').disabled = false;
@@ -1755,18 +1785,18 @@
                 );
             } catch(err) {
                 console.error(err);
-                document.getElementById('status').innerText = "🚨 音檔處理失敗，請重試";
+                document.getElementById('status').innerText = "🚨 音檔處理失敗，請長按重試";
                 document.getElementById('status').style.color = "#e74c3c";
                 isGrading = false; rb.style.pointerEvents = "auto"; rb.style.opacity = "1";
+                document.getElementById('next-btn').disabled = false;
             }
         };
         practiceRecorder.stop();
     };
 
-    // 🚀 綁定「按下」與「放開」事件
     rb.onpointerdown = startPracticeRecord;
     rb.onpointerup = stopPracticeRecord;
-    rb.onpointerout = stopPracticeRecord; // 滑鼠/手指滑到按鈕外也視同放開
+    rb.onpointerout = stopPracticeRecord; 
     rb.onpointercancel = stopPracticeRecord;
   }
 
@@ -2044,37 +2074,62 @@
     const startBattleRecord = async (e) => {
         if (roundSubmitted) return;
         e.preventDefault();
-        clearInterval(currentLimitTimer); // 錄音時暫停倒數計時
+        clearInterval(currentLimitTimer); 
 
-        let tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        battleRecorder = new MediaRecorder(tempStream);
-        battleChunks = [];
-        battleRecorder.ondataavailable = ev => battleChunks.push(ev.data);
-        battleRecorder.start();
-
+        // 🚀 觸感回歸
         if (isUltimateMode) battleBtn.classList.add('ult-active');
         else battleBtn.classList.add('active');
-        
-        document.getElementById('battle-info').innerText = "🔴 錄音中... (放開按鈕送出)";
-        document.getElementById('battle-info').style.color = "#eb3b5a";
+
+        if (!sysAudioCtx) sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (sysAudioCtx.state === 'suspended') await sysAudioCtx.resume();
+
+        try {
+            let tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            battleRecorder = new MediaRecorder(tempStream);
+            battleChunks = [];
+            battleRecorder.ondataavailable = ev => { if (ev.data.size > 0) battleChunks.push(ev.data); };
+            battleRecorder.start();
+            
+            document.getElementById('battle-info').innerText = "🔴 錄音中... (放開按鈕送出)";
+            document.getElementById('battle-info').style.color = "#eb3b5a";
+        } catch (err) {
+            battleBtn.classList.remove('active', 'ult-active');
+            alert("無法存取麥克風，請確認權限！");
+        }
     };
 
     const stopBattleRecord = async (e) => {
-        if (roundSubmitted || !battleRecorder || battleRecorder.state !== "recording") return;
+        if (roundSubmitted) return;
         e.preventDefault();
-        roundSubmitted = true; // 鎖死！這回合交卷了！
         
+        battleBtn.classList.remove('active', 'ult-active'); // 🚀 手指放開，立刻解除按鈕動畫
+        
+        // 🚀 致命修復：錄音未啟動時強制中斷，但不當作交卷
+        if (!battleRecorder || battleRecorder.state !== "recording") {
+            document.getElementById('battle-info').innerText = "🚨 錄音未啟動，請重壓";
+            document.getElementById('battle-info').style.color = "#e74c3c";
+            return;
+        }
+        
+        roundSubmitted = true; // 鎖死交卷
         battleBtn.style.pointerEvents = "none";
-        battleBtn.classList.remove('active', 'ult-active');
         document.getElementById('battle-info').innerText = "⚙️ 封裝音檔中...";
         document.getElementById('battle-info').style.color = "#f1c40f";
 
         battleRecorder.onstop = async () => {
-            battleRecorder.stream.getTracks().forEach(t => t.stop()); // 立刻釋放麥克風
+            battleRecorder.stream.getTracks().forEach(t => t.stop()); 
+
             const webmBlob = new Blob(battleChunks, { type: 'audio/webm' });
             
+            // 🚀 防呆機制：短按空包彈，直接給 0 分過關，絕不卡死
+            if (battleChunks.length === 0 || webmBlob.size < 500) {
+                document.getElementById('battle-info').innerText = "🚨 錄音太短，挑戰失敗";
+                document.getElementById('battle-info').style.color = "#e74c3c";
+                submitBattleScore(ROOM_ID, 0);
+                return;
+            }
+            
             try {
-                // 🚀 將純淨錄音轉為實體 WAV 檔！
                 const wavFile = await createWavFileFromBlob(webmBlob);
                 document.getElementById('battle-info').innerText = "🟢 傳送至微軟聲學引擎...";
                 document.getElementById('battle-info').style.color = "#3498db";
@@ -2083,7 +2138,6 @@
                 const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(azureAuthToken, azureRegionCode);
                 speechConfig.speechRecognitionLanguage = "en-US";
                 
-                // 🚀 將實體 WAV 餵給 Azure！
                 const audioConfig = SpeechSDK.AudioConfig.fromWavFileInput(wavFile);
                 const pronConfig = new SpeechSDK.PronunciationAssessmentConfig(
                     targetWord, SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
@@ -2157,14 +2211,13 @@
                 );
             } catch(err) {
                 console.error(err);
-                document.getElementById('battle-info').innerText = "🚨 音檔處理失敗";
+                document.getElementById('battle-info').innerText = "🚨 音檔轉碼失敗";
                 submitBattleScore(ROOM_ID, 0);
             }
         };
         battleRecorder.stop();
     };
 
-    // 🚀 綁定「按下」與「放開」事件
     battleBtn.onpointerdown = startBattleRecord;
     battleBtn.onpointerup = stopBattleRecord;
     battleBtn.onpointerout = stopBattleRecord;
