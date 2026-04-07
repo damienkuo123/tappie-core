@@ -2118,9 +2118,15 @@
         isBattleRecording = true;
         clearInterval(currentLimitTimer); 
 
-        // 🚀 觸感回歸，瞬間啟動
-        if (isUltimateMode) battleBtn.classList.add('ult-active');
-        else battleBtn.classList.add('active');
+        // 🚀 關鍵修復：按鈕觸感與卡片充能同步啟動！
+        const myCard = document.getElementById('my-card'); // 抓取我方卡片
+        if (isUltimateMode) {
+            battleBtn.classList.add('ult-active');
+            if(myCard) myCard.classList.add('ultimate-charging'); // 👈 大招充能
+        } else {
+            battleBtn.classList.add('active');
+            if(myCard) myCard.classList.add('charging-mana');     // 👈 一般充能
+        }
 
         // 🚀 提早喚醒戰場解碼器！
         if (!sysAudioCtx) sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
