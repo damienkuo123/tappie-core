@@ -2000,6 +2000,7 @@
       const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(azureAuthToken, azureRegionCode);
       speechConfig.speechRecognitionLanguage = "en-US";
       speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "5000");
+      // 🚀 堅持底線：跟一般練習一樣，給滿 1.5 秒的安靜等待時間，不搞極速切斷！
       speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "1500");
 
       const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
@@ -2024,7 +2025,7 @@
                   const pronResult = SpeechSDK.PronunciationAssessmentResult.fromResult(result);
                   
                   // ----------------------------------------------------
-                  // ⚖️ 瑪麗安專屬嚴格算分公式 (前端對戰極速版)
+                  // ⚖️ 瑪麗安專屬嚴格算分公式 (與 GAS 一般練習 100% 絕對同步！)
                   // ----------------------------------------------------
                   // 1. 基礎計分：準確度 40% + 完整度 40% + 流暢度 20%
                   let baseScore = (pronResult.accuracyScore * 0.4) + (pronResult.completenessScore * 0.4) + (pronResult.fluencyScore * 0.2);
@@ -2037,15 +2038,17 @@
                       let wScore = w.PronunciationAssessment.AccuracyScore;
                       let errType = w.PronunciationAssessment.ErrorType;
                       
-                      // 微軟底層標記漏字為 Omission，或準確度給 0
+                      // 🚨 致命錯誤：完全漏唸該字
                       if (errType === "Omission" || wScore === 0) {
                           missingCount++;
-                      } else if (wScore > 0 && wScore <= 45) {
-                          brokenCount++; // 抓出糊在一起的字
+                      } 
+                      // 💥 重傷錯誤：糊在一起的碎碎唸
+                      else if (wScore > 0 && wScore <= 45) {
+                          brokenCount++; 
                       }
                   });
 
-                  // 3. 🩸 執行嚴格扣分：每漏一個字扣 15 分，每糊一個字扣 10 分
+                  // 3. 🩸 執行無情扣分：每漏一個字扣 15 分，每糊一個字扣 10 分
                   let penalty = (missingCount * 15) + (brokenCount * 10);
                   let strictScore = Math.max(0, Math.min(100, Math.round(baseScore - penalty)));
                   
@@ -2056,7 +2059,7 @@
                   
                   document.getElementById('battle-info').innerText = "✅ 判定完成！";
                   
-                  // 🚀 傳送「嚴格處理過」的法醫級分數給資料庫！
+                  // 🚀 傳送「絕對嚴格」的分數給資料庫！
                   submitBattleScore(ROOM_ID, strictScore);
               } else {
                   document.getElementById('battle-info').innerText = "❌ 挑戰失敗 (未收音)";
