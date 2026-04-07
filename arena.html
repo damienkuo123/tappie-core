@@ -1742,16 +1742,10 @@
         practiceRecorder.onstop = async () => {
             const rawBlob = new Blob(practiceChunks); 
             
-            // 防呆：錄音太短立刻解鎖
             if (practiceChunks.length === 0 || rawBlob.size < 500) {
                 document.getElementById('status').innerText = "🚨 錄音太短，請按住重唸";
                 document.getElementById('status').style.color = "#e74c3c";
-                // 🚀 確保解鎖
-                isGrading = false; 
-                rb.style.pointerEvents = "auto"; 
-                rb.style.opacity = "1";
-                document.getElementById('next-btn').disabled = false;
-                if (currentIndex > 0) document.getElementById('prev-btn').disabled = false;
+                renderWord(); // 🚀 發生錯誤也立刻一鍵恢復
                 return;
             }
             
@@ -1783,59 +1777,37 @@
                             fetch(`${GAS_URL}?action=evaluate_speech_azure&word=${encodeURIComponent(targetWord)}`, { 
                                 method: 'POST', body: JSON.stringify(rawAzureData) 
                             }).then(res => res.json()).then(data => {
+                                // 存入數據
                                 scores[currentIndex] = data.score; 
                                 if(!window.feedbacks) window.feedbacks = [];
                                 window.feedbacks[currentIndex] = data.feedback;
                                 
-                                document.getElementById('feedback').innerHTML = `得分：${data.score}<br><small>${data.feedback}</small>`;
-                                document.getElementById('status').innerText = "點擊錄音，安靜自動打分";
-                                document.getElementById('status').style.color = "#636e72";
+                                // 🚀 關鍵：一鍵恢復所有按鈕觸發與樣式！
+                                renderWord();
                             }).catch(() => {
                                 document.getElementById('status').innerText = "⚠️ AI 寫評語失敗";
                                 document.getElementById('status').style.color = "#e74c3c";
-                            }).finally(() => {
-                                // 🚀 關鍵：無論成功或失敗，必定在 finally 區塊解鎖所有按鈕
-                                isGrading = false; 
-                                rb.style.pointerEvents = "auto"; 
-                                rb.style.opacity = "1";
-                                document.getElementById('prev-btn').disabled = currentIndex === 0;
-                                document.getElementById('next-btn').disabled = false;
-                                document.getElementById('back-summary-btn').disabled = false;
+                                renderWord();
                             });
                         } else {
                             document.getElementById('status').innerText = "❌ 發音含糊或無關，請重唸";
                             document.getElementById('status').style.color = "#e74c3c";
-                            // 🚀 確保解鎖
-                            isGrading = false; 
-                            rb.style.pointerEvents = "auto"; 
-                            rb.style.opacity = "1";
-                            document.getElementById('next-btn').disabled = false;
-                            if (currentIndex > 0) document.getElementById('prev-btn').disabled = false;
+                            renderWord();
                         }
                         recognizer.close();
                     },
                     (err) => {
                         document.getElementById('status').innerText = "🚨 引擎連線錯誤";
                         document.getElementById('status').style.color = "#e74c3c";
-                        // 🚀 確保解鎖
-                        isGrading = false; 
-                        rb.style.pointerEvents = "auto"; 
-                        rb.style.opacity = "1";
-                        document.getElementById('next-btn').disabled = false;
-                        if (currentIndex > 0) document.getElementById('prev-btn').disabled = false;
+                        renderWord();
                         recognizer.close();
                     }
                 );
             } catch(err) {
                 console.error(err);
-                document.getElementById('status').innerText = "🚨 音檔處理失敗，請長按重試";
+                document.getElementById('status').innerText = "🚨 音檔處理失敗，請重試";
                 document.getElementById('status').style.color = "#e74c3c";
-                // 🚀 確保解鎖
-                isGrading = false; 
-                rb.style.pointerEvents = "auto"; 
-                rb.style.opacity = "1";
-                document.getElementById('next-btn').disabled = false;
-                if (currentIndex > 0) document.getElementById('prev-btn').disabled = false;
+                renderWord(); 
             }
         };
         practiceRecorder.stop();
