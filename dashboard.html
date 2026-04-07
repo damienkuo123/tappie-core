@@ -455,7 +455,7 @@
       // 判斷是否為「取消訂閱」動作 (清空並按下確認)
       if (email === "") {
          if (currentParentEmail !== "") {
-             if (!confirm("⚠️ 確定要取消訂閱 AI 學習戰報嗎？\n取消後您將不會再收到每週進度通知。")) {
+             if (!confirm("⚠️ 確定要取消訂閱 專屬學習週報 嗎？\n取消後您將不會再收到。")) {
                  emailInput.value = currentParentEmail; // 恢復原狀
                  return;
              }
