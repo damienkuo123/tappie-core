@@ -1655,9 +1655,10 @@
                   rb.style.opacity = "0.5"; 
                   
                   const pronResult = SpeechSDK.PronunciationAssessmentResult.fromResult(result);
-                  const finalScore = Math.round(pronResult.pronunciationScore);
+                  // ❌ 把微軟的快樂總分刪掉，我們不吃這套了！
+                  // const finalScore = Math.round(pronResult.pronunciationScore);
                   
-                  // 🚀 廢除閹割！直接抓取微軟最底層的一刀未剪 JSON 報告！
+                  // 🚀 抓取微軟最底層的一刀未剪 JSON 報告
                   let rawAzureData = pronResult.detailResult;
                   
                   // 存入前端，結算時也會一刀未剪送回 GAS
@@ -1667,11 +1668,13 @@
                   fetch(`${GAS_URL}?action=evaluate_speech_azure&word=${encodeURIComponent(targetWord)}`, { 
                       method: 'POST', body: JSON.stringify(rawAzureData) 
                   }).then(res => res.json()).then(data => {
-                      scores[currentIndex] = finalScore;
+                      // ✅ 關鍵修復：吃 GAS 算出來的「嚴格切肉機分數 (data.score)」！
+                      scores[currentIndex] = data.score; 
                       if(!window.feedbacks) window.feedbacks = [];
                       window.feedbacks[currentIndex] = data.feedback;
                       
-                      document.getElementById('feedback').innerHTML = `得分：${finalScore}<br><small>${data.feedback}</small>`;
+                      // ✅ 畫面上印出的也是嚴格分數！
+                      document.getElementById('feedback').innerHTML = `得分：${data.score}<br><small>${data.feedback}</small>`;
                       document.getElementById('status').innerText = "點擊錄音，安靜自動打分";
                       
                       // 🔓 3. 結算完成，全面解除封印！
