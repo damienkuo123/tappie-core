@@ -1636,31 +1636,33 @@
 
   function renderWord() {
     const current = quizData[currentIndex];
+    if (!current) return;
+
     document.getElementById('idx-display').innerText = currentIndex + 1;
     document.getElementById('word-display').innerText = current.en;
     document.getElementById('zh-display').innerText = current.zh;
     
-    // 更新分數與 AI 評語
+    // 更新分數與評語
     const currentScore = scores[currentIndex];
     const currentFeedback = (window.feedbacks && window.feedbacks[currentIndex]) ? window.feedbacks[currentIndex] : "";
     document.getElementById('feedback').innerHTML = currentScore !== null ? `得分：${currentScore}<br><small>${currentFeedback}</small>` : "";
 
-    // 🚀 全面解鎖 1：麥克風按鈕恢復
+    // 🚀 全面解鎖 1：麥克風
     const rb = document.getElementById('record-btn');
     if (rb) {
         rb.style.display = 'block';
         rb.style.pointerEvents = "auto"; 
         rb.style.opacity = "1";
-        rb.classList.remove('active'); // 確保紅光熄滅
+        rb.classList.remove('active');
     }
 
-    // 🚀 全面解鎖 2：導航按鈕恢復
+    // 🚀 全面解鎖 2：所有的操作按鈕 (強制移除 disabled)
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const playBtn = document.getElementById('play-btn');
     const backBtn = document.getElementById('back-summary-btn');
 
-    if (playBtn) playBtn.disabled = false; // 恢復播放按鈕點擊
+    if (playBtn) playBtn.disabled = false;
 
     if (isReReading) {
       prevBtn.style.display = 'none';
@@ -1670,19 +1672,17 @@
     } else {
       backBtn.style.display = 'none';
       prevBtn.style.display = 'inline-block';
-      prevBtn.disabled = (currentIndex === 0);
+      prevBtn.disabled = (currentIndex === 0); // 只有第一題不能按上一頁
       nextBtn.style.display = 'inline-block';
       nextBtn.disabled = false;
       nextBtn.innerText = currentIndex === quizData.length - 1 ? "查看結算" : "下一題 ▶";
     }
 
-    // 🚀 全面解鎖 3：重置全域狀態鎖
+    // 🚀 重置狀態鎖
     isGrading = false;
     isRecording = false;
-
     document.getElementById('status').innerText = "按住錄音，放開打分";
     document.getElementById('status').style.color = "#636e72"; 
-    document.getElementById('progress-fill').style.width = (((currentIndex + 1) / quizData.length) * 100) + "%";
   }
 
   let isGrading = false; 
