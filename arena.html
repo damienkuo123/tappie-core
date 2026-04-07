@@ -2084,7 +2084,6 @@
         if (isUltimateMode) battleBtn.classList.add('ult-active');
         else battleBtn.classList.add('active');
 
-        // 🚀 提早喚醒戰場解碼器！
         if (!sysAudioCtx) sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (sysAudioCtx.state === 'suspended') sysAudioCtx.resume();
 
@@ -2119,9 +2118,8 @@
         document.getElementById('battle-info').style.color = "#f1c40f";
 
         battleRecorder.onstop = async () => {
-            // ❌ 絕對不能呼叫 track.stop()
-
-            const rawBlob = new Blob(battleChunks); 
+            const mimeType = battleRecorder.mimeType || 'audio/webm';
+            const rawBlob = new Blob(battleChunks, { type: mimeType }); 
             
             if (battleChunks.length === 0 || rawBlob.size < 500) {
                 document.getElementById('battle-info').innerText = "🚨 錄音太短，挑戰失敗";
