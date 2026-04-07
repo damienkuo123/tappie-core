@@ -2004,149 +2004,137 @@
   }
 
   const battleBtn = document.getElementById('battle-record-btn');
+  let battleRecorder;
+  let battleChunks = [];
+
   if(battleBtn) {
-    // 🚀 改為點擊觸發，不必長按
-    battleBtn.onclick = (e) => {
-      if (roundSubmitted) return;
-      e.preventDefault();
-      roundSubmitted = true; // 鎖死按鈕，防止重複點擊
-      clearInterval(currentLimitTimer);
+    const startBattleRecord = async (e) => {
+        if (roundSubmitted) return;
+        e.preventDefault();
+        clearInterval(currentLimitTimer); // 錄音時暫停倒數計時
 
-      // 🚀 物理封印對戰麥克風！
-      battleBtn.style.pointerEvents = "none";
-      
-      const myCard = document.getElementById('my-card');
-      if (isUltimateMode) {
-          battleBtn.classList.add('ult-active');
-          if(myCard) myCard.classList.add('ultimate-charging');
-      } else {
-          battleBtn.classList.add('active');
-          if(myCard) myCard.classList.add('charging-mana');
-      }
+        let tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        battleRecorder = new MediaRecorder(tempStream);
+        battleChunks = [];
+        battleRecorder.ondataavailable = ev => battleChunks.push(ev.data);
+        battleRecorder.start();
 
-      document.getElementById('battle-info').innerText = "啟動微軟聲學引擎...";
-      
-      const targetWord = battleQuizArr[currentBattleRound].en;
-      const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(azureAuthToken, azureRegionCode);
-      speechConfig.speechRecognitionLanguage = "en-US";
-      
-      // 🚀 放寬初始等待時間到 15 秒，結尾等待 2.5 秒 (極度寬容的傾聽者)
-      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "15000");
-      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "2500");
-
-      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      const pronConfig = new SpeechSDK.PronunciationAssessmentConfig(
-          targetWord,
-          SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
-          SpeechSDK.PronunciationAssessmentGranularity.Phoneme, true
-      );
-
-      const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-      pronConfig.applyTo(recognizer);
-
-      // 🚀 關鍵修復：戰場麥克風就緒指示燈！
-      recognizer.sessionStarted = (s, e) => {
-          document.getElementById('battle-info').innerText = "🟢 請開始說話！";
-          document.getElementById('battle-info').style.color = "#2ecc71";
-      };
-
-      let bDots = 0;
-      recognizer.recognizing = (s, e) => {
-          bDots = (bDots + 1) % 4;
-          document.getElementById('battle-info').innerText = "🟢 解析聲波中" + ".".repeat(bDots);
-      };
-
-      recognizer.recognizeOnceAsync(
-          (result) => {
-              if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                  const pronResult = SpeechSDK.PronunciationAssessmentResult.fromResult(result);
-                  
-                  // ====================================================
-                  // ⚔️ 對戰模式專用：前端極速「指數級高精度切肉機」
-                  // ====================================================
-                  let accScore = pronResult.accuracyScore || 0;
-                  let compScore = pronResult.completenessScore || 0;
-                  let fluScore = pronResult.fluencyScore || 0;
-                  
-                  let baseScore = (accScore * 0.5) + (compScore * 0.3) + (fluScore * 0.2);
-                  
-                  let missingCount = 0;
-                  let brokenCount = 0;
-                  let dynamicPhonemePenalty = 0;
-
-                  // 🕵️ 前端極速驗屍 (對接 detailResult 大寫原生結構)
-                  if (pronResult.detailResult && pronResult.detailResult.Words) {
-                      pronResult.detailResult.Words.forEach(w => {
-                          let wAssess = w.PronunciationAssessment || {};
-                          let wScore = wAssess.AccuracyScore !== undefined ? wAssess.AccuracyScore : 0;
-                          let errType = wAssess.ErrorType || "";
-                          
-                          // 🚨 致命錯誤：漏字 (Omission 或是空音素)
-                          if (errType === "Omission" || wScore === 0 || !w.Phonemes || w.Phonemes.length === 0) {
-                              missingCount++;
-                          } 
-                          // 💥 嚴重糊字 (< 50)
-                          else if (wScore > 0 && wScore < 50) {
-                              brokenCount++; 
-                          } 
-                          // 🔍 進入音素階梯懲罰
-                          else {
-                              if (w.Phonemes) {
-                                  w.Phonemes.forEach(p => {
-                                      let pAssess = p.PronunciationAssessment || {};
-                                      let pScore = pAssess.AccuracyScore !== undefined ? pAssess.AccuracyScore : 0;
-                                      
-                                      // 🔪 【瑪麗安高精度 5 分區間指數懲罰】
-                                      let baseP = 2.0; 
-                                      if (pScore >= 95) dynamicPhonemePenalty += 0;       
-                                      else if (pScore >= 90) dynamicPhonemePenalty += baseP * 1.0; 
-                                      else if (pScore >= 85) dynamicPhonemePenalty += baseP * 1.3; 
-                                      else if (pScore >= 80) dynamicPhonemePenalty += baseP * 1.5; 
-                                      else if (pScore >= 75) dynamicPhonemePenalty += baseP * 1.7; 
-                                      else if (pScore >= 70) dynamicPhonemePenalty += baseP * 1.9; 
-                                      else if (pScore >= 65) dynamicPhonemePenalty += baseP * 2.1; 
-                                      else if (pScore >= 60) dynamicPhonemePenalty += baseP * 2.3; 
-                                      else dynamicPhonemePenalty += baseP * 3.0; // < 60: 扣 6 分
-                                  });
-                              }
-                          }
-                      });
-                  }
-
-                  // 🩸 執行無情扣分
-                  let penalty = (missingCount * 15) + (brokenCount * 10) + dynamicPhonemePenalty;
-                  
-                  // 📉 流暢度殺手鐧
-                  if (fluScore < 50) penalty += 15;
-                  else if (fluScore < 75) penalty += 6;
-                  
-                  // 🎯 結算：限制在 0~100 之間
-                  let strictScore = Math.max(0, Math.min(100, Math.round(baseScore - penalty)));
-                  
-                  // 🎲 戰場專屬：防撞分機制 (避免雙方一直平手)
-                  if (strictScore % 5 === 0 && strictScore !== 0 && strictScore !== 100) {
-                      strictScore += (Math.random() > 0.5 ? 1 : -1); 
-                  }
-                  
-                  document.getElementById('battle-info').innerText = "✅ 判定完成！";
-                  
-                  // 🚀 將嚴格分數送出！
-                  submitBattleScore(ROOM_ID, strictScore);
-              } else {
-                  // 🚀 完整保留未收音的處理！
-                  document.getElementById('battle-info').innerText = "❌ 挑戰失敗 (未收音)";
-                  submitBattleScore(ROOM_ID, 0);
-              }
-              recognizer.close();
-          },
-          (err) => {
-              // 🚀 完整保留連線錯誤的處理！
-              document.getElementById('battle-info').innerText = "🚨 引擎連線錯誤";
-              submitBattleScore(ROOM_ID, 0);
-              recognizer.close();
-          }
-      );
+        if (isUltimateMode) battleBtn.classList.add('ult-active');
+        else battleBtn.classList.add('active');
+        
+        document.getElementById('battle-info').innerText = "🔴 錄音中... (放開按鈕送出)";
+        document.getElementById('battle-info').style.color = "#eb3b5a";
     };
+
+    const stopBattleRecord = async (e) => {
+        if (roundSubmitted || !battleRecorder || battleRecorder.state !== "recording") return;
+        e.preventDefault();
+        roundSubmitted = true; // 鎖死！這回合交卷了！
+        
+        battleBtn.style.pointerEvents = "none";
+        battleBtn.classList.remove('active', 'ult-active');
+        document.getElementById('battle-info').innerText = "⚙️ 封裝音檔中...";
+        document.getElementById('battle-info').style.color = "#f1c40f";
+
+        battleRecorder.onstop = async () => {
+            battleRecorder.stream.getTracks().forEach(t => t.stop()); // 立刻釋放麥克風
+            const webmBlob = new Blob(battleChunks, { type: 'audio/webm' });
+            
+            try {
+                // 🚀 將純淨錄音轉為實體 WAV 檔！
+                const wavFile = await createWavFileFromBlob(webmBlob);
+                document.getElementById('battle-info').innerText = "🟢 傳送至微軟聲學引擎...";
+                document.getElementById('battle-info').style.color = "#3498db";
+
+                const targetWord = battleQuizArr[currentBattleRound].en;
+                const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(azureAuthToken, azureRegionCode);
+                speechConfig.speechRecognitionLanguage = "en-US";
+                
+                // 🚀 將實體 WAV 餵給 Azure！
+                const audioConfig = SpeechSDK.AudioConfig.fromWavFileInput(wavFile);
+                const pronConfig = new SpeechSDK.PronunciationAssessmentConfig(
+                    targetWord, SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+                    SpeechSDK.PronunciationAssessmentGranularity.Phoneme, true
+                );
+
+                const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+                pronConfig.applyTo(recognizer);
+
+                recognizer.recognizeOnceAsync(
+                    (result) => {
+                        if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                            const pronResult = SpeechSDK.PronunciationAssessmentResult.fromResult(result);
+                            let accScore = pronResult.accuracyScore || 0;
+                            let compScore = pronResult.completenessScore || 0;
+                            let fluScore = pronResult.fluencyScore || 0;
+                            
+                            let baseScore = (accScore * 0.5) + (compScore * 0.3) + (fluScore * 0.2);
+                            let missingCount = 0, brokenCount = 0, dynamicPhonemePenalty = 0;
+
+                            if (pronResult.detailResult && pronResult.detailResult.Words) {
+                                pronResult.detailResult.Words.forEach(w => {
+                                    let wAssess = w.PronunciationAssessment || {};
+                                    let wScore = wAssess.AccuracyScore !== undefined ? wAssess.AccuracyScore : 0;
+                                    let errType = wAssess.ErrorType || "";
+                                    
+                                    if (errType === "Omission" || wScore === 0 || !w.Phonemes || w.Phonemes.length === 0) {
+                                        missingCount++;
+                                    } else if (wScore > 0 && wScore < 50) {
+                                        brokenCount++; 
+                                    } else if (w.Phonemes) {
+                                        w.Phonemes.forEach(p => {
+                                            let pAssess = p.PronunciationAssessment || {};
+                                            let pScore = pAssess.AccuracyScore !== undefined ? pAssess.AccuracyScore : 0;
+                                            let baseP = 2.0; 
+                                            if (pScore >= 95) dynamicPhonemePenalty += 0;       
+                                            else if (pScore >= 90) dynamicPhonemePenalty += baseP * 1.0; 
+                                            else if (pScore >= 85) dynamicPhonemePenalty += baseP * 1.3; 
+                                            else if (pScore >= 80) dynamicPhonemePenalty += baseP * 1.5; 
+                                            else if (pScore >= 75) dynamicPhonemePenalty += baseP * 1.7; 
+                                            else if (pScore >= 70) dynamicPhonemePenalty += baseP * 1.9; 
+                                            else if (pScore >= 65) dynamicPhonemePenalty += baseP * 2.1; 
+                                            else if (pScore >= 60) dynamicPhonemePenalty += baseP * 2.3; 
+                                            else dynamicPhonemePenalty += baseP * 3.0;
+                                        });
+                                    }
+                                });
+                            }
+
+                            let penalty = (missingCount * 15) + (brokenCount * 10) + dynamicPhonemePenalty;
+                            if (fluScore < 50) penalty += 15; else if (fluScore < 75) penalty += 6;
+                            
+                            let strictScore = Math.max(0, Math.min(100, Math.round(baseScore - penalty)));
+                            if (strictScore % 5 === 0 && strictScore !== 0 && strictScore !== 100) {
+                                strictScore += (Math.random() > 0.5 ? 1 : -1); 
+                            }
+                            
+                            document.getElementById('battle-info').innerText = "✅ 判定完成！";
+                            submitBattleScore(ROOM_ID, strictScore);
+                        } else {
+                            document.getElementById('battle-info').innerText = "❌ 發音含糊或無關";
+                            submitBattleScore(ROOM_ID, 0);
+                        }
+                        recognizer.close();
+                    },
+                    (err) => {
+                        document.getElementById('battle-info').innerText = "🚨 引擎連線錯誤";
+                        submitBattleScore(ROOM_ID, 0);
+                        recognizer.close();
+                    }
+                );
+            } catch(err) {
+                document.getElementById('battle-info').innerText = "🚨 音檔處理失敗";
+                submitBattleScore(ROOM_ID, 0);
+            }
+        };
+        battleRecorder.stop();
+    };
+
+    // 🚀 綁定「按下」與「放開」事件
+    battleBtn.onpointerdown = startBattleRecord;
+    battleBtn.onpointerup = stopBattleRecord;
+    battleBtn.onpointerout = stopBattleRecord;
+    battleBtn.onpointercancel = stopBattleRecord;
   }
   
 
