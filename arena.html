@@ -1617,7 +1617,8 @@
       
       const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(azureAuthToken, azureRegionCode);
       speechConfig.speechRecognitionLanguage = "en-US";
-      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "5000");
+      // 🚀 放寬初始等待時間到 10 秒，避免還沒準備好就被切斷
+      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "10000");
       speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "1500");
 
       const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
@@ -1630,10 +1631,17 @@
       const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
       pronConfig.applyTo(recognizer);
 
+      // 🚀 關鍵修復：這才是真正的「麥克風已打開」指示燈！
+      recognizer.sessionStarted = (s, e) => {
+          document.getElementById('status').innerText = "🟢 麥克風已開啟，請發音！";
+          document.getElementById('status').style.color = "#27ae60";
+      };
+
       let dots = 0;
       recognizer.recognizing = (s, e) => {
           dots = (dots + 1) % 4;
-          document.getElementById('status').innerText = "🟢 正在專心聽" + ".".repeat(dots);
+          // 聽到聲音後的動態回饋
+          document.getElementById('status').innerText = "🟢 接收聲波中" + ".".repeat(dots);
       };
 
       recognizer.recognizeOnceAsync(
