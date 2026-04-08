@@ -3574,21 +3574,21 @@
      ------------------------------------------------------- */
 
   // 🚀 修正後的 Helper 觸發函數
-  async function showPhonicHelper(word, localKey) {
+  async function showPhonicHelper(word, localKey, realLetter) {
       const overlay = document.getElementById('phonic-helper-overlay');
       const title = document.getElementById('helper-word-title');
       const instruction = document.getElementById('helper-instruction');
       
       title.innerText = word.toUpperCase();
-      instruction.innerHTML = `正在呼叫老師...`;
+      instruction.innerHTML = `正在呼叫導師...`;
       overlay.style.display = 'flex';
   
-      // 更新介面
+      // 🚀 修改：這裡顯示 realLetter (例如 A)，而不是 localKey (例如 SCHWA)
       instruction.innerHTML = `注意這個音：<br>
-        <span style="display:block; margin: 10px 0; font-size: 36px; color: var(--marian-red); background: #fff5f5; padding: 10px; border-radius: 10px;">
-          ${localKey.toUpperCase()}
+        <span style="display:block; margin: 10px 0; font-size: 46px; color: var(--marian-red); background: #fff5f5; padding: 10px; border-radius: 12px; font-weight: 900;">
+          ${realLetter.toUpperCase()}
         </span>
-        <small style="color:#95a5a6">聽聽拼讀示範...</small>`;
+        <small style="color:#95a5a6; font-size:14px;">聽聽拼讀示範...</small>`;
       
       playModularAudio(localKey, word);
   }
