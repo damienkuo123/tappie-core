@@ -1528,11 +1528,18 @@ const subData = (azureWord.Phonemes && azureWord.Phonemes.length > 0)
                   }
                   charPointer += segmentLen;
               });
+              // 🚀 手術位置：在 tokens.map 內判定 needsHelp 後
               if (needsHelp) {
-                return `<div style="display: inline-flex; flex-direction: column; align-items: center; vertical-align: top;">
-                          ${coloredWord}
-                          <button class="helper-btn" onclick="showPhonicHelper('${token}')">💡 幫幫我</button>
-                        </div>`;
+                  // 抓取第一個音節作為發音引導，如果抓不到則用首字母
+                  const firstSyllable = (azureWord.Syllables && azureWord.Syllables.length > 0) 
+                                        ? azureWord.Syllables[0].Syllable 
+                                        : token.charAt(0);
+        
+                  return `
+                    <span class="word-help-wrapper">
+                      ${coloredWord}
+                      <button class="helper-bulb" onclick="showPhonicHelper('${token}', '${firstSyllable}')">💡</button>
+                    </span>`;
               }
               return coloredWord;
           }
