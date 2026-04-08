@@ -1954,7 +1954,7 @@
         practiceRecorder.ondataavailable = ev => { if(ev.data.size > 0) practiceChunks.push(ev.data); };
         practiceRecorder.start();
 
-        document.getElementById('status').innerText = "🔴 錄音中... (放開按鈕送出)";
+        document.getElementById('status').innerText = "🔴 錄音中...";
         document.getElementById('status').style.color = "#eb3b5a";
         document.getElementById('feedback').innerHTML = ""; 
         document.getElementById('prev-btn').disabled = true;
@@ -1996,7 +1996,7 @@
             
             try {
                 const wavFile = await createWavFileFromBlob(rawBlob);
-                document.getElementById('status').innerText = "🟢 傳送至微軟聲學引擎...";
+                document.getElementById('status').innerText = "傳送至聲學引擎...";
                 document.getElementById('status').style.color = "#3498db";
 
                 const targetWord = quizData[currentIndex].en;
@@ -2015,7 +2015,7 @@
                 recognizer.recognizeOnceAsync(
                     (result) => {
                         if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                            document.getElementById('status').innerText = "呼叫 AI 教練中...";
+                            document.getElementById('status').innerText = "呼叫老師評論中...";
                             let rawAzureData = SpeechSDK.PronunciationAssessmentResult.fromResult(result).detailResult;
                             azureReports[currentIndex] = rawAzureData;
 
@@ -2030,7 +2030,7 @@
                                 // 🚀 關鍵：一鍵恢復所有按鈕觸發與樣式！
                                 renderWord();
                             }).catch(() => {
-                                document.getElementById('status').innerText = "⚠️ AI 寫評語失敗";
+                                document.getElementById('status').innerText = "⚠️ 老師寫評語失敗";
                                 document.getElementById('status').style.color = "#e74c3c";
                                 renderWord();
                             });
