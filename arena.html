@@ -3602,12 +3602,18 @@
       playModularAudio(localKey, word);
   }
   
-    // 建立一個全域的音訊上下文（擴大機基座）
+    // 🚀 1. 統一全域音訊上下文，避免多頭馬車
   let audioCtx = null;
+  let masterGain = null;
   
   function playModularAudio(localKey, fullWord) {
       if (!audioCtx) {
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      
+      // 🚀 【核心修正】強行恢復音訊環境運作
+      if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
       }
       
       // 🚀 【核心修復 2】確保語音引擎處於活躍狀態
