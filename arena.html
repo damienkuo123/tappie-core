@@ -7,14 +7,18 @@
   <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
   <style>
     :root {
-      /* 🎨 專業級：僅保留漏唸樣式，其餘顏色由 JS 動態生成 */
+
     /* 🚀 確保變色字體與原本題目完全一致 */
-    .colored-char { 
-      font-weight: bold; 
-      display: inline-block; 
-      transition: color 0.3s ease;
-      font-family: inherit; /* 繼承原本字體 */
-    }
+    .colored-char {
+  font-weight: bold;
+  display: inline-block;
+  transition: color 0.3s ease;
+  font-family: inherit; 
+}
+.colored-char[style*="color: rgb(214, 48, 49)"],
+.colored-char[style*="color: #d63031"] {
+  color: #b33939 !important; /* 飽和度較低的深紅色 */
+}
     .word-omission { 
       color: #b2bec3 !important; 
       text-decoration: line-through; 
@@ -1129,15 +1133,15 @@
     <p style="color:var(--primary-blue); font-weight:bold; margin-bottom: 20px;">第 <span id="idx-display">1</span> / <span id="total-display">0</span> 題</p>
     
     <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 150px; justify-content: center;">
-      
-      <h1 id="word-display">載入中...</h1>
+  
+  <h1 id="word-display">載入中...</h1>
 
-      <button id="play-btn" class="btn-play-pill">
-        <span>🔊</span> <span>Listen</span>
-      </button>
+  <button id="play-btn" class="btn-play-pill">
+    <span>🔊</span> <span>Listen</span>
+  </button>
 
-      <div id="zh-display" style="margin: 0; font-size: 18px; color: #7f8c8d;"></div>
-    </div>
+  <div id="zh-display" style="margin: 0; font-size: 18px; color: #7f8c8d;"></div>
+</div>
 
     <button type="button" id="record-btn" oncontextmenu="return false;">🎤</button>
     <p id="status" style="font-weight:bold; color:#636e72;">按住錄音，放開打分</p>
@@ -1812,16 +1816,20 @@ const subData = (azureWord.Phonemes && azureWord.Phonemes.length > 0)
     const wordDisplay = document.getElementById('word-display');
     const charCount = current.en.length; // 🚀 計算包含空格與符號的總字數
 
-    // 🧠 智慧縮放優化版 (配合緊湊佈局)
-    if (charCount > 30) {
-        wordDisplay.style.fontSize = "24px";   // 真的很長的句子
-    } else if (charCount > 20) {
-        wordDisplay.style.fontSize = "30px";   // 中長句子
-    } else if (charCount > 10) {
-        wordDisplay.style.fontSize = "38px";   // 短句子
-    } else {
-        wordDisplay.style.fontSize = "46px";   // 短單字回歸大尺寸
-    }
+    // 🚀 智慧縮放核心：根據總長度動態調整字級
+if (charCount > 25) {
+    wordDisplay.style.fontSize = "22px";   // 極長句子
+} else if (charCount > 15) {
+    wordDisplay.style.fontSize = "30px";   // 中長句子
+} else if (charCount > 10) {
+    wordDisplay.style.fontSize = "38px";   // 短句子或長單字
+} else {
+    wordDisplay.style.fontSize = "";       // 10字以下清除覆寫，回歸 CSS 預設大小
+}
+wordDisplay.style.lineHeight = "1.2";
+
+// 🚀 關鍵：在渲染新題目時，清除上一題的殘留顏色
+wordDisplay.style.color = "#0d47a1";
 
 
     const existingReport = azureReports[currentIndex];
