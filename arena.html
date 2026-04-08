@@ -3588,33 +3588,35 @@ const subData = (azureWord.Phonemes && azureWord.Phonemes.length > 0)
       });
   }
 
-  // 🚀 叫出小幫手說明頁面 + 觸發慢速語音
-  function showPhonicHelper(word) {
+  // 🚀 接收單字與第一個音節
+  function showPhonicHelper(word, syllable) {
       const overlay = document.getElementById('phonic-helper-overlay');
       const title = document.getElementById('helper-word-title');
       const instruction = document.getElementById('helper-instruction');
       
-      // 1. 設定文字內容
       title.innerText = word.toUpperCase();
-      const firstChar = word.charAt(0).toUpperCase();
-      instruction.innerHTML = `跟我一起唸：<br><span style="font-size: 30px; color: var(--marian-red);">${firstChar}... ${firstChar}... ${word}</span>`;
       
-      // 2. 顯示視窗
+      // 視覺提示也改成音節拆解
+      instruction.innerHTML = `跟我一起唸：<br>
+        <span style="font-size: 24px; color: var(--marian-red); letter-spacing: 2px;">
+          ${syllable}... ${syllable}... <br>
+          <b style="font-size: 34px;">${word}</b>
+        </span>`;
+      
       overlay.style.display = 'flex';
-      
-      // 3. 觸發慢速音節拆解語音
-      playPhonicGuide(word);
+      playPhonicGuide(word, syllable);
   }
 
-  function playPhonicGuide(word) {
+  function playPhonicGuide(word, syllable) {
       window.speechSynthesis.cancel();
-      const firstChar = word.charAt(0).toLowerCase();
-      // 模擬老師：發音、發音、單字
-      const msg = new SpeechSynthesisUtterance(`${firstChar}... ${firstChar}... ${word}`);
+      
+      // 🚀 核心優化：利用音節拆解避開「字母名」陷阱
+      // 例如 Mother -> "Moth... Moth... Mother"
+      const msg = new SpeechSynthesisUtterance(`${syllable}, ${syllable}, ${word}`);
       
       msg.lang = 'en-US';
-      msg.rate = 0.5;  // 🚀 超慢速，讓小朋友聽清楚嘴型
-      msg.pitch = 1.1; // 稍微高音一點，聽起來比較像親切的老師
+      msg.rate = 0.5;  // 超慢速模仿老師
+      msg.pitch = 1.1; 
       
       window.speechSynthesis.speak(msg);
   }
