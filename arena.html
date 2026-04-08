@@ -1145,18 +1145,17 @@
     <button class="btn" style="background:var(--primary-blue); font-size: 22px; padding: 18px 40px; border-bottom: 4px solid #003366;" id="start-btn" style="display:none;">開始挑戰</button>
   </div>
   <div id="studio" style="display:none;">
-    <p style="color:var(--primary-blue); font-weight:bold; margin-bottom: 20px;">第 <span id="idx-display">1</span> / <span id="total-display">0</span> 題</p>
+    <p style="color:var(--primary-blue); font-weight:bold; margin-bottom: 10px;">第 <span id="idx-display">1</span> / <span id="total-display">0</span> 題</p>
     
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 150px; justify-content: center;">
-  
-  <h1 id="word-display">載入中...</h1>
+    <div style="min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px;">
+      <h1 id="word-display">載入中...</h1>
+      
+      <button id="play-btn" class="btn-play-pill">
+        <span>🔊</span> <span>LISTEN</span>
+      </button>
 
-  <button id="play-btn" class="btn-play-pill">
-    <span>🔊</span> <span>Listen</span>
-  </button>
-
-  <div id="zh-display" style="margin: 0; font-size: 18px; color: #7f8c8d;"></div>
-</div>
+      <div id="zh-display" style="margin-top: 10px; font-size: 18px; color: #7f8c8d; font-weight: bold;"></div>
+    </div>
 
     <button type="button" id="record-btn" oncontextmenu="return false;">🎤</button>
     <p id="status" style="font-weight:bold; color:#636e72;">按住錄音，放開打分</p>
@@ -1831,20 +1830,16 @@ const subData = (azureWord.Phonemes && azureWord.Phonemes.length > 0)
     const wordDisplay = document.getElementById('word-display');
     const charCount = current.en.length; // 🚀 計算包含空格與符號的總字數
 
-    // 🚀 智慧縮放核心：根據總長度動態調整字級
-if (charCount > 25) {
-    wordDisplay.style.fontSize = "22px";   // 極長句子
-} else if (charCount > 15) {
-    wordDisplay.style.fontSize = "30px";   // 中長句子
-} else if (charCount > 10) {
-    wordDisplay.style.fontSize = "38px";   // 短句子或長單字
-} else {
-    wordDisplay.style.fontSize = "";       // 10字以下清除覆寫，回歸 CSS 預設大小
-}
-wordDisplay.style.lineHeight = "1.2";
-
-// 🚀 關鍵：在渲染新題目時，清除上一題的殘留顏色
-wordDisplay.style.color = "#0d47a1";
+    // 🚀 2. 智慧縮放優化比例
+    if (charCount > 30) {
+        wordDisplay.style.fontSize = "24px";
+    } else if (charCount > 20) {
+        wordDisplay.style.fontSize = "32px";
+    } else if (charCount > 10) {
+        wordDisplay.style.fontSize = "40px";
+    } else {
+        wordDisplay.style.fontSize = "48px";
+    }
 
 
     const existingReport = azureReports[currentIndex];
