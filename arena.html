@@ -1099,9 +1099,15 @@
   </div>
   <div id="studio" style="display:none;">
     <p style="color:var(--primary-blue); font-weight:bold;">第 <span id="idx-display">1</span> / <span id="total-display">0</span> 題</p>
-    <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
-      <h1 id="word-display" style="color:#0d47a1; margin: 0; text-shadow: 1px 1px 0 #fff; flex: 1; word-break: break-word;">載入中...</h1>
-<button id="play-btn" class="btn-play" style="flex-shrink: 0;">🔊</button>
+    
+    <div style="margin-bottom: 10px;">
+      <button id="play-btn" class="btn-play" style="width: 50px; height: 50px; font-size: 24px;">🔊</button>
+    </div>
+
+    <div style="min-height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; padding: 0 10px;">
+      <h1 id="word-display" style="color:#0d47a1; margin: 0; text-shadow: 1px 1px 0 #fff; word-break: break-word; width: 100%; line-height: 1.2;">載入中...</h1>
+    </div>
+
     <div id="zh-display"></div>
     <button type="button" id="record-btn" oncontextmenu="return false;">🎤</button>
     <p id="status" style="font-weight:bold; color:#636e72;">按住錄音，放開打分</p>
@@ -1777,18 +1783,17 @@ const subData = (azureWord.Phonemes && azureWord.Phonemes.length > 0)
     const charCount = current.en.length; // 🚀 計算包含空格與符號的總字數
 
     // 🧠 智慧縮放核心：根據總長度動態調整字級 (覆寫 CSS 預設值)
-    if (charCount > 25) {
-        wordDisplay.style.fontSize = "22px";   // 極長句子
-        wordDisplay.style.lineHeight = "1.2";
-    } else if (charCount > 15) {
-        wordDisplay.style.fontSize = "30px";   // 中長句子
-        wordDisplay.style.lineHeight = "1.2";
-    } else if (charCount > 10) {
-        wordDisplay.style.fontSize = "38px";   // 短句子或長單字
-        wordDisplay.style.lineHeight = "1.1";
+    // 🧠 智慧縮放優化版：因為按鈕移走了，空間變大了
+    if (charCount > 30) {
+        wordDisplay.style.fontSize = "26px";   // 極長句子
+    } else if (charCount > 20) {
+        wordDisplay.style.fontSize = "34px";   // 中長句子
+    } else if (charCount > 12) {
+        wordDisplay.style.fontSize = "40px";   // 短句子或長單字
     } else {
-        wordDisplay.style.fontSize = "";       // 10字以下清除覆寫，回歸 CSS 預設大小
-        wordDisplay.style.lineHeight = "";
+        wordDisplay.style.fontSize = "50px";   // 短標題回歸霸氣尺寸
+    }
+    wordDisplay.style.lineHeight = "1.2";      // 統一固定的行高，防止文字重疊
     }
 
 
