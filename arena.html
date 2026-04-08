@@ -1035,7 +1035,35 @@
          =================================================== */
       .main-panel { max-width: 650px; padding: 50px; border-radius: 40px; margin-top: 10vh; }
       #title-text { font-size: 32px; }
-      #word-display { font-size: 64px !important; }
+      #word-display {
+      color: #0d47a1;
+      margin: 0;
+      text-shadow: 1px 1px 0 #fff;
+      /* 🚀 關鍵換行邏輯：不准在單字中間斷開 */
+      word-break: normal; 
+      overflow-wrap: break-word; 
+      line-height: 1.1;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* 🚀 橫式播放按鈕 (膠囊型) */
+    .btn-play-pill {
+      background: var(--primary-blue);
+      color: white;
+      border: none;
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 10px rgba(0, 102, 204, 0.2);
+      transition: transform 0.2s;
+    }
+    .btn-play-pill:active { transform: scale(0.95); }
       #zh-display { font-size: 26px; margin-bottom: 30px; }
       
       /* 錄音麥克風放大，讓小朋友超好按！ */
@@ -1098,17 +1126,19 @@
     <button class="btn" style="background:var(--primary-blue); font-size: 22px; padding: 18px 40px; border-bottom: 4px solid #003366;" id="start-btn" style="display:none;">開始挑戰</button>
   </div>
   <div id="studio" style="display:none;">
-    <p style="color:var(--primary-blue); font-weight:bold;">第 <span id="idx-display">1</span> / <span id="total-display">0</span> 題</p>
+    <p style="color:var(--primary-blue); font-weight:bold; margin-bottom: 20px;">第 <span id="idx-display">1</span> / <span id="total-display">0</span> 題</p>
     
-    <div style="margin-bottom: 10px;">
-      <button id="play-btn" class="btn-play" style="width: 50px; height: 50px; font-size: 24px;">🔊</button>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 150px; justify-content: center;">
+      
+      <h1 id="word-display">載入中...</h1>
+
+      <button id="play-btn" class="btn-play-pill">
+        <span>🔊</span> <span>Listen</span>
+      </button>
+
+      <div id="zh-display" style="margin: 0; font-size: 18px; color: #7f8c8d;"></div>
     </div>
 
-    <div style="min-height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; padding: 0 10px;">
-      <h1 id="word-display" style="color:#0d47a1; margin: 0; text-shadow: 1px 1px 0 #fff; word-break: break-word; width: 100%; line-height: 1.2;">載入中...</h1>
-    </div>
-
-    <div id="zh-display"></div>
     <button type="button" id="record-btn" oncontextmenu="return false;">🎤</button>
     <p id="status" style="font-weight:bold; color:#636e72;">按住錄音，放開打分</p>
     <div id="feedback" style="font-size: 26px; font-weight: 800; color: var(--marian-green); margin-top: 10px;"></div>
@@ -1782,18 +1812,16 @@ const subData = (azureWord.Phonemes && azureWord.Phonemes.length > 0)
     const wordDisplay = document.getElementById('word-display');
     const charCount = current.en.length; // 🚀 計算包含空格與符號的總字數
 
-    // 🧠 智慧縮放核心：根據總長度動態調整字級 (覆寫 CSS 預設值)
-    // 🧠 智慧縮放優化版：因為按鈕移走了，空間變大了
+    // 🧠 智慧縮放優化版 (配合緊湊佈局)
     if (charCount > 30) {
-        wordDisplay.style.fontSize = "26px";   // 極長句子
+        wordDisplay.style.fontSize = "24px";   // 真的很長的句子
     } else if (charCount > 20) {
-        wordDisplay.style.fontSize = "34px";   // 中長句子
-    } else if (charCount > 12) {
-        wordDisplay.style.fontSize = "40px";   // 短句子或長單字
+        wordDisplay.style.fontSize = "30px";   // 中長句子
+    } else if (charCount > 10) {
+        wordDisplay.style.fontSize = "38px";   // 短句子
     } else {
-        wordDisplay.style.fontSize = "50px";   // 短標題回歸霸氣尺寸
+        wordDisplay.style.fontSize = "46px";   // 短單字回歸大尺寸
     }
-    wordDisplay.style.lineHeight = "1.2";      // 統一固定的行高，防止文字重疊
 
 
     const existingReport = azureReports[currentIndex];
