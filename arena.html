@@ -1475,83 +1475,77 @@
   }
   
   function generateColoredHTML(azureData, originalText) {
-      if (!azureData || !azureData.Words) return originalText;
+    if (!azureData || !azureData.Words) return originalText;
 
-      // 1. 切分原始題目（保留空格與標點）
-      const tokens = originalText.split(/(\s+|[.,?!:;]+)/);
-      let azureWordIdx = 0;
+    const tokens = originalText.split(/(\s+|[.,?!:;]+)/);
+    let azureWordIdx = 0;
 
-      const finalHtml = tokens.map(token => {
-          // 標點與空格直接回傳
-          if (/^(\s+|[.,?!:;]+)$/.test(token)) return token;
+    const finalHtml = tokens.map(token => {
+        // 1. 標點與空格直接回傳
+        if (/^(\s+|[.,?!:;]+)$/.test(token)) return token;
 
-          const azureWord = azureData.Words[azureWordIdx];
-          if (!azureWord) return token;
-          azureWordIdx++;
+        const azureWord = azureData.Words[azureWordIdx];
+        if (!azureWord) return token;
+        azureWordIdx++;
 
-          // 🚀 判斷是否需要幫助 (準確度低於 60 分)
-          const needsHelp = (azureWord.PronunciationAssessment.AccuracyScore || 0) < 60;
+        const assess = azureWord.PronunciationAssessment || {};
+        const wordScore = assess.AccuracyScore || 0;
+        const subData = (azureWord.Phonemes && azureWord.Phonemes.length > 0) 
+                        ? azureWord.Phonemes 
+                        : (azureWord.Syllables || []);
 
-          const assess = azureWord.PronunciationAssessment || {};
-          if (assess.ErrorType === "Omission") return `<span class="word-omission">${token}</span>`;
+        // 🚀 A. 核心判定：是否需要小幫手 (分數低於 80 或 任何音素低於 60 或 漏唸)
+        const anyBadPhoneme = subData.some(s => (s.PronunciationAssessment.AccuracyScore || 0) < 60);
+        const needsHelp = (wordScore < 80) || anyBadPhoneme || (assess.ErrorType === "Omission");
 
-          // 🚀 核心：抓取音節(Syllables)或音素(Phonemes)作為變色基準
-          // 🚀 優先使用 Phonemes (音素)，這才是達成 Elsa Speak 粒粒分明效果的關鍵
-const subData = (azureWord.Phonemes && azureWord.Phonemes.length > 0) 
-                ? azureWord.Phonemes 
-                : (azureWord.Syllables || []);
-          
-          if (subData.length > 0) {
-              let coloredWord = "";
-              let charPointer = 0;
-              
-              subData.forEach((sub, idx) => {
-                  const sScore = sub.PronunciationAssessment.AccuracyScore || 0;
-                  const color = getScoreColor(sScore);
-                  
-                  // 🧠 終極分配法：
-                  let segmentLen;
-                  // 如果微軟有給對應字母就用，沒有就用比例切
-                  if (sub.Grapheme) {
-                      segmentLen = sub.Grapheme.length;
-                  } else {
-                      // 比例計算：剩餘長度 / 剩餘片段數
-                      const remainingChars = token.length - charPointer;
-                      const remainingSegments = subData.length - idx;
-                      segmentLen = (idx === subData.length - 1) 
-                          ? remainingChars 
-                          : Math.max(1, Math.round(remainingChars / remainingSegments));
-                  }
+        // 🚀 B. 決定文字顏色 (先組裝好 coloredWord)
+        let coloredWord = "";
+        if (assess.ErrorType === "Omission") {
+            coloredWord = `<span class="word-omission">${token}</span>`;
+        } else if (subData.length > 0) {
+            let charPointer = 0;
+            subData.forEach((sub, idx) => {
+                const sScore = sub.PronunciationAssessment.AccuracyScore || 0;
+                const color = getScoreColor(sScore);
+                let segmentLen;
+                if (sub.Grapheme) {
+                    segmentLen = sub.Grapheme.length;
+                } else {
+                    const remainingChars = token.length - charPointer;
+                    const remainingSegments = subData.length - idx;
+                    segmentLen = (idx === subData.length - 1) 
+                        ? remainingChars 
+                        : Math.max(1, Math.round(remainingChars / remainingSegments));
+                }
+                const chunk = token.substr(charPointer, segmentLen);
+                if (chunk) coloredWord += `<span class="colored-char" style="color: ${color}">${chunk}</span>`;
+                charPointer += segmentLen;
+            });
+        } else {
+            // 備援：整詞變色
+            coloredWord = `<span class="colored-char" style="color: ${getScoreColor(wordScore)}">${token}</span>`;
+        }
 
-                  const chunk = token.substr(charPointer, segmentLen);
-                  // 只有當 chunk 真的有字時才包 span
-                  if (chunk) {
-                      coloredWord += `<span class="colored-char" style="color: ${color}">${chunk}</span>`;
-                  }
-                  charPointer += segmentLen;
-              });
-              // 🚀 手術位置：在 tokens.map 內判定 needsHelp 後
-              if (needsHelp) {
-                  // 抓取第一個音節作為發音引導，如果抓不到則用首字母
-                  const firstSyllable = (azureWord.Syllables && azureWord.Syllables.length > 0) 
-                                        ? azureWord.Syllables[0].Syllable 
-                                        : token.charAt(0);
-        
-                  return `
-                    <span class="word-help-wrapper">
-                      ${coloredWord}
-                      <button class="helper-bulb" onclick="showPhonicHelper('${token}', '${firstSyllable}')">💡</button>
-                    </span>`;
-              }
-              return coloredWord;
-          }
+        // 🚀 C. 統一包裝：如果需要幫助，就把剛組好的 coloredWord 套上燈泡
+        if (needsHelp) {
+            // 抓取音節發音，若無音節則抓單字前兩個字母 (避免 TTS 唸字母名)
+            const syllablePart = (azureWord.Syllables && azureWord.Syllables.length > 0) 
+                                 ? azureWord.Syllables[0].Syllable 
+                                 : token.substring(0, 2);
+            
+            return `
+                <span class="word-help-wrapper">
+                    ${coloredWord}
+                    <button class="helper-bulb" onclick="showPhonicHelper('${token.replace(/'/g, "\\'")}', '${syllablePart}')">💡</button>
+                </span>`;
+        }
 
-          // 備援：若無子數據則整詞變色
-          return `<span class="colored-char" style="color: ${getScoreColor(assess.AccuracyScore || 0)}">${token}</span>`;
-      });
+        // 不需要幫助，直接回傳帶顏色的字
+        return coloredWord;
+    });
 
-      return finalHtml.join('');
-  }
+    return finalHtml.join('');
+}
   
   // 向 GAS 索取 10 分鐘效期的安全 Token
   function fetchAzureToken() {
