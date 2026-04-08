@@ -1512,12 +1512,17 @@
                   const chunk = token.substr(charPointer, segmentLen);
                   
                   if (chunk) {
+                      const chunkLower = chunk.toLowerCase();
                       const rawLabel = (sub.Phoneme || sub.Syllable || "").toLowerCase();
-                      const localKey = AZURE_TO_LOCAL_MAP[rawLabel] || rawLabel;
+                      const translatedKey = AZURE_TO_LOCAL_MAP[rawLabel] || rawLabel;
+  
+                      // 🚀 【關鍵修正】：優先權判定
+                      // 如果點擊的字母塊 (例如 "in") 在地圖裡有檔案，就優先用它！
+                      // 否則才用 Azure 翻譯出來的音標 (例如 "i_short")。
+                      let localKey = PHONICS_MAP[chunkLower] ? chunkLower : translatedKey;
                       const hasAudio = PHONICS_MAP[localKey] ? true : false;
   
                       if (idx === minIdx && sScore < 70 && hasAudio) {
-                          // 🚀 傳入 chunk (當前字母) 作為顯示內容
                           coloredWord += `<span class="char-help-wrapper colored-char" style="color: ${color}">${chunk}<button class="helper-bulb" onclick="showPhonicHelper('${token}', '${localKey}', '${chunk}')">💡</button></span>`;
                       } else {
                           coloredWord += `<span class="colored-char" style="color: ${color}">${chunk}</span>`;
