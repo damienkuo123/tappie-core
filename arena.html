@@ -3573,23 +3573,27 @@
      🚀 瑪麗安小幫手核心控制區 (已整合音訊工廠)
      ------------------------------------------------------- */
 
-  // 🚀 修正後的 Helper 觸發函數
-  async function showPhonicHelper(word, localKey, realLetter) {
+    async function showPhonicHelper(word, localKey, realLetter) {
+      // 🚀 【核心修復 1】在點擊的瞬間，立刻丟一個「空音節」給語音引擎
+      // 這能向瀏覽器宣告：這筆點擊將會使用語音權限，請不要攔截後面的 async 動作。
+      const warmup = new SpeechSynthesisUtterance("");
+      window.speechSynthesis.speak(warmup);
+      window.speechSynthesis.cancel(); // 隨即取消，不影響聽感
+  
       const overlay = document.getElementById('phonic-helper-overlay');
       const title = document.getElementById('helper-word-title');
       const instruction = document.getElementById('helper-instruction');
       
       title.innerText = word.toUpperCase();
-      instruction.innerHTML = `正在呼叫導師...`;
       overlay.style.display = 'flex';
   
-      // 🚀 修改：這裡顯示 realLetter (例如 A)，而不是 localKey (例如 SCHWA)
       instruction.innerHTML = `注意這個音：<br>
         <span style="display:block; margin: 10px 0; font-size: 46px; color: var(--marian-red); background: #fff5f5; padding: 10px; border-radius: 12px; font-weight: 900;">
           ${realLetter.toUpperCase()}
         </span>
         <small style="color:#95a5a6; font-size:14px;">聽聽拼讀示範...</small>`;
       
+      // 進入播放序列
       playModularAudio(localKey, word);
   }
   
