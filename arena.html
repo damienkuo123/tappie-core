@@ -2009,7 +2009,7 @@
                 recognizer.recognizeOnceAsync(
                     (result) => {
                         if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                            document.getElementById('status').innerText = "呼叫老師評論中...";
+                            document.getElementById('status').innerText = "呼叫導師評論中...";
                             let rawAzureData = SpeechSDK.PronunciationAssessmentResult.fromResult(result).detailResult;
                             azureReports[currentIndex] = rawAzureData;
 
@@ -2024,7 +2024,7 @@
                                 // 🚀 關鍵：一鍵恢復所有按鈕觸發與樣式！
                                 renderWord();
                             }).catch(() => {
-                                document.getElementById('status').innerText = "⚠️ 老師寫評語失敗";
+                                document.getElementById('status').innerText = "⚠️ 導師寫評語失敗";
                                 document.getElementById('status').style.color = "#e74c3c";
                                 renderWord();
                             });
