@@ -3621,96 +3621,141 @@
       });
   }
 
-  /* -------------------------------------------------------
-     🚀 瑪麗安小幫手核心控制區 (已整合音訊工廠)
-     ------------------------------------------------------- */
+    /* -------------------------------------------------------
+   🚀 瑪麗安小幫手核心控制區 (卡拉OK動態導讀版)
+   ------------------------------------------------------- */
 
-    async function showPhonicHelper(word, localKey, realLetter) {
-      // 🚀 【核心修復 1】在點擊的瞬間，立刻丟一個「空音節」給語音引擎
-      // 這能向瀏覽器宣告：這筆點擊將會使用語音權限，請不要攔截後面的 async 動作。
+  async function showPhonicHelper(word, localKey, displayLabel) {
+      // 1. 暖機語音引擎 (向瀏覽器索取權限)
       const warmup = new SpeechSynthesisUtterance("");
       window.speechSynthesis.speak(warmup);
-      window.speechSynthesis.cancel(); // 隨即取消，不影響聽感
+      window.speechSynthesis.cancel(); 
   
       const overlay = document.getElementById('phonic-helper-overlay');
       const title = document.getElementById('helper-word-title');
       const instruction = document.getElementById('helper-instruction');
-      
-      title.innerText = word.toUpperCase();
+  
+      // 2. 準備卡拉OK字串 (全部轉小寫，看起來更親切)
+      const chunkText = displayLabel.toLowerCase();
+      const fullText = word.toLowerCase();
+  
+      title.innerText = "👩‍🏫 瑪麗安示範"; 
+      title.style.fontSize = "22px";
+  
+      // 3. 動態注入鈴鐺搖晃動畫
+      if (!document.getElementById('ring-anim-style')) {
+          const style = document.createElement('style');
+          style.id = 'ring-anim-style';
+          style.innerHTML = `@keyframes ringbell { 0%, 100% { transform: rotate(0); } 10%, 30%, 50% { transform: rotate(-15deg); } 20%, 40% { transform: rotate(15deg); } 60% { transform: rotate(0); } }`;
+          document.head.appendChild(style);
+      }
+  
+      // 4. 渲染卡拉OK畫面與靜音提醒
+      // 使用 id="k-1", "k-2", "k-3" 來當作變色進度條的錨點
+      instruction.innerHTML = `
+          <div style="margin: 25px 0; font-size: 38px; font-weight: 900; color: #dfe6e9; letter-spacing: 2px; word-break: break-word; line-height: 1.3;">
+              <span id="k-1" style="transition: all 0.15s; display: inline-block;">${chunkText}<span style="color:#b2bec3; font-size: 24px;">...</span> </span>
+              <span id="k-2" style="transition: all 0.15s; display: inline-block;">${chunkText}<span style="color:#b2bec3; font-size: 24px;">...</span> </span>
+              <span id="k-3" style="transition: all 0.15s; display: inline-block; margin-top: 10px;">${fullText}</span>
+          </div>
+          <div style="font-size: 14px; color: #d63031; background: #fff5f5; padding: 12px 15px; border-radius: 12px; display: inline-flex; align-items: center; gap: 10px; border: 2px dashed #ffcccc; margin-top: 5px;">
+              <span style="font-size: 24px; animation: ringbell 2s infinite;">🔔</span>
+              <span style="font-weight: bold; text-align: left; line-height: 1.4;">聽不到聲音嗎？<br>請確認手機是否關閉<span style="text-decoration: underline;">靜音開關</span>，並調高音量喔！</span>
+          </div>
+      `;
+  
       overlay.style.display = 'flex';
   
-      instruction.innerHTML = `注意這個音：<br>
-        <span style="display:block; margin: 10px 0; font-size: 46px; color: var(--marian-red); background: #fff5f5; padding: 10px; border-radius: 12px; font-weight: 900;">
-          ${realLetter.toUpperCase()}
-        </span>
-        <small style="color:#95a5a6; font-size:14px;">聽聽拼讀示範...</small>`;
-      
-      // 進入播放序列
+      // 5. 啟動播放序列
       playModularAudio(localKey, word);
   }
   
-    // 🚀 1. 統一全域音訊上下文，避免多頭馬車
   let audioCtx = null;
-  let masterGain = null;
   
   function playModularAudio(localKey, fullWord) {
-      if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       
-      // 🚀 【核心修正】強行恢復音訊環境運作
-      if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-      }
-      
-      // 🚀 【核心修復 2】確保語音引擎處於活躍狀態
       window.speechSynthesis.cancel();
       window.speechSynthesis.resume(); 
-      
+  
       const audioPath = `audio/${localKey}.mp3`;
   
-      const playWithGain = async (src) => {
+      // 抓取剛剛渲染出來的卡拉OK字體
+      const k1 = document.getElementById('k-1');
+      const k2 = document.getElementById('k-2');
+      const k3 = document.getElementById('k-3');
+  
+      // 🎨 UI 變色輔助函數
+      const resetK = (el) => {
+          if(el) { el.style.color = "#dfe6e9"; el.style.transform = "scale(1)"; }
+      };
+      const activeK = (el, color) => {
+          if(el) { el.style.color = color; el.style.transform = "scale(1.15)"; } // 變色並放大
+      };
+  
+      const playWithGain = async (src, targetEl) => {
           const response = await fetch(src);
+          if (!response.ok) throw new Error("Audio 404");
           const arrayBuffer = await response.arrayBuffer();
           const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
           const source = audioCtx.createBufferSource();
           source.buffer = audioBuffer;
+          
           const gainNode = audioCtx.createGain();
-          gainNode.gain.setValueAtTime(2.0, audioCtx.currentTime);
+          // 這裡維持你覺得大聲的倍率 2.0，如果覺得太大聲可以改 1.5
+          gainNode.gain.setValueAtTime(2.0, audioCtx.currentTime); 
+          
           source.connect(gainNode);
           gainNode.connect(audioCtx.destination);
+  
+          // 🚀 播放瞬間：字體變成橘黃色並放大
+          activeK(targetEl, "var(--marian-yellow)");
           source.start(0);
-          return new Promise(resolve => {
-              source.onended = resolve;
+  
+          return new Promise(r => {
+              source.onended = () => {
+                  resetK(targetEl); // 播完恢復灰色
+                  r();
+              };
           });
       };
   
       (async () => {
           try {
-              // 第一聲音素
-              await playWithGain(audioPath);
-              await new Promise(r => setTimeout(r, 400));
+              // 第 1 聲：m...
+              await playWithGain(audioPath, k1);
+              await new Promise(r => setTimeout(r, 250)); // 縮短停頓，節奏更緊湊
+  
+              // 第 2 聲：m...
+              await playWithGain(audioPath, k2);
+              await new Promise(r => setTimeout(r, 500)); 
               
-              // 第二聲音素
-              await playWithGain(audioPath);
-              
-              // 🚀 【核心修復 3】在準備唸單字前，再次確認引擎沒睡著
-              await new Promise(r => setTimeout(r, 800));
               window.speechSynthesis.resume(); 
   
+              // 第 3 聲：mother (唸出整字)
               const msg = new SpeechSynthesisUtterance(fullWord);
-              msg.lang = 'en-US';
-              msg.rate = 0.7;
-              msg.volume = 1.0; 
-              
-              // 執行最終唸單字
+              msg.lang = 'en-US'; 
+              msg.rate = 0.7; 
+              msg.volume = 1.0;
+  
+              // 🚀 語音開始時：字體變成主色藍色並放大
+              msg.onstart = () => {
+                  activeK(k3, "var(--primary-blue)");
+                  // 備用防呆：iOS 有時會漏掉 onend 事件，1.5 秒後自動恢復灰色
+                  setTimeout(() => resetK(k3), 1500); 
+              };
+              msg.onend = () => resetK(k3);
+  
               window.speechSynthesis.speak(msg);
-              
+  
           } catch (e) {
-              console.error("播放序列失敗:", e);
-              // 最終保險備案
+              console.warn("音標播放跳過:", e);
+              // 檔案缺失備援機制
+              activeK(k3, "var(--primary-blue)");
               const fallback = new SpeechSynthesisUtterance(fullWord);
               fallback.lang = 'en-US';
+              fallback.onend = () => resetK(k3);
               window.speechSynthesis.speak(fallback);
           }
       })();
