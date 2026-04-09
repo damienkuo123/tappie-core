@@ -3621,12 +3621,11 @@
       });
   }
 
-    /* -------------------------------------------------------
-   🚀 瑪麗安小幫手核心控制區 (卡拉OK動態導讀版)
-   ------------------------------------------------------- */
 
+  /* -------------------------------------------------------
+   🚀 瑪麗安小幫手核心控制區
+   ------------------------------------------------------- */
   async function showPhonicHelper(word, localKey, displayLabel) {
-      // 1. 暖機語音引擎 (向瀏覽器索取權限)
       const warmup = new SpeechSynthesisUtterance("");
       window.speechSynthesis.speak(warmup);
       window.speechSynthesis.cancel(); 
@@ -3634,15 +3633,14 @@
       const overlay = document.getElementById('phonic-helper-overlay');
       const title = document.getElementById('helper-word-title');
       const instruction = document.getElementById('helper-instruction');
+      const replayBtn = document.getElementById('btn-replay-helper'); // 🚀 抓取重聽按鈕
   
-      // 2. 準備卡拉OK字串 (全部轉小寫，看起來更親切)
       const chunkText = displayLabel.toLowerCase();
       const fullText = word.toLowerCase();
   
-      title.innerText = "👩‍🏫 瑪麗安示範"; 
+      title.innerText = "導讀示範"; 
       title.style.fontSize = "22px";
   
-      // 3. 動態注入鈴鐺搖晃動畫
       if (!document.getElementById('ring-anim-style')) {
           const style = document.createElement('style');
           style.id = 'ring-anim-style';
@@ -3650,24 +3648,29 @@
           document.head.appendChild(style);
       }
   
-      // 4. 渲染卡拉OK畫面與靜音提醒
-      // 使用 id="k-1", "k-2", "k-3" 來當作變色進度條的錨點
       instruction.innerHTML = `
-          <div style="margin: 25px 0; font-size: 38px; font-weight: 900; color: #dfe6e9; letter-spacing: 2px; word-break: break-word; line-height: 1.3;">
+          <div style="margin: 20px 0; font-size: 38px; font-weight: 900; color: #dfe6e9; letter-spacing: 2px; word-break: break-word; line-height: 1.3;">
               <span id="k-1" style="transition: all 0.15s; display: inline-block;">${chunkText}<span style="color:#b2bec3; font-size: 24px;">...</span> </span>
               <span id="k-2" style="transition: all 0.15s; display: inline-block;">${chunkText}<span style="color:#b2bec3; font-size: 24px;">...</span> </span>
               <span id="k-3" style="transition: all 0.15s; display: inline-block; margin-top: 10px;">${fullText}</span>
           </div>
-          <div style="font-size: 14px; color: #d63031; background: #fff5f5; padding: 12px 15px; border-radius: 12px; display: inline-flex; align-items: center; gap: 10px; border: 2px dashed #ffcccc; margin-top: 5px;">
+          <div style="font-size: 14px; color: #d63031; background: #fff5f5; padding: 12px 15px; border-radius: 12px; display: inline-flex; align-items: center; gap: 10px; border: 2px dashed #ffcccc;">
               <span style="font-size: 24px; animation: ringbell 2s infinite;">🔔</span>
               <span style="font-weight: bold; text-align: left; line-height: 1.4;">聽不到聲音嗎？<br>請確認手機是否關閉<span style="text-decoration: underline;">靜音開關</span>，並調高音量喔！</span>
           </div>
       `;
   
-      overlay.style.display = 'flex';
+      // 🚀 綁定重聽按鈕點擊事件
+      replayBtn.onclick = () => {
+          // 給一點點擊縮放的回饋感
+          replayBtn.style.transform = "scale(0.92)";
+          setTimeout(() => replayBtn.style.transform = "scale(1)", 150);
+          // 呼叫播放引擎再唸一次
+          playModularAudio(localKey, word);
+      };
   
-      // 5. 啟動播放序列
-      playModularAudio(localKey, word);
+      overlay.style.display = 'flex';
+      playModularAudio(localKey, word); // 第一次打開自動唸
   }
   
   let audioCtx = null;
