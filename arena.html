@@ -1479,7 +1479,7 @@
       let azureWordIdx = 0;
   
       return tokens.map(token => {
-          if (/^(\s+|[.,?!:;]+)$/.test(token)) return token;
+          if (!/[a-zA-Z0-9]/.test(token)) return token;
           const azureWord = azureData.Words[azureWordIdx++];
           if (!azureWord) return token;
   
