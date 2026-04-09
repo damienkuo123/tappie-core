@@ -3673,94 +3673,21 @@
       playModularAudio(localKey, word); // 第一次打開自動唸
   }
   
-  let audioCtx = null;
-  
+    // 💡 KTV 導讀序列引擎 (小燈泡專用)
   function playModularAudio(localKey, fullWord) {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.resume(); 
-  
-      const audioPath = `audio/${localKey}.mp3`;
-  
-      // 抓取剛剛渲染出來的卡拉OK字體
       const k1 = document.getElementById('k-1');
       const k2 = document.getElementById('k-2');
       const k3 = document.getElementById('k-3');
   
-      // 🎨 UI 變色輔助函數
-      const resetK = (el) => {
-          if(el) { el.style.color = "#dfe6e9"; el.style.transform = "scale(1)"; }
-      };
-      const activeK = (el, color) => {
-          if(el) { el.style.color = color; el.style.transform = "scale(1.15)"; } // 變色並放大
-      };
-  
-      const playWithGain = async (src, targetEl) => {
-          const response = await fetch(src);
-          if (!response.ok) throw new Error("Audio 404");
-          const arrayBuffer = await response.arrayBuffer();
-          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-          const source = audioCtx.createBufferSource();
-          source.buffer = audioBuffer;
-          
-          const gainNode = audioCtx.createGain();
-          // 這裡維持你覺得大聲的倍率 2.0，如果覺得太大聲可以改 1.5
-          gainNode.gain.setValueAtTime(2.0, audioCtx.currentTime); 
-          
-          source.connect(gainNode);
-          gainNode.connect(audioCtx.destination);
-  
-          // 🚀 播放瞬間：字體變成橘黃色並放大
-          activeK(targetEl, "var(--marian-yellow)");
-          source.start(0);
-  
-          return new Promise(r => {
-              source.onended = () => {
-                  resetK(targetEl); // 播完恢復灰色
-                  r();
-              };
-          });
-      };
-  
       (async () => {
-          try {
-              // 第 1 聲：m...
-              await playWithGain(audioPath, k1);
-              await new Promise(r => setTimeout(r, 250)); // 縮短停頓，節奏更緊湊
-  
-              // 第 2 聲：m...
-              await playWithGain(audioPath, k2);
-              await new Promise(r => setTimeout(r, 500)); 
-              
-              window.speechSynthesis.resume(); 
-  
-              // 第 3 聲：mother (唸出整字)
-              const msg = new SpeechSynthesisUtterance(fullWord);
-              msg.lang = 'en-US'; 
-              msg.rate = 0.7; 
-              msg.volume = 1.0;
-  
-              // 🚀 語音開始時：字體變成主色藍色並放大
-              msg.onstart = () => {
-                  activeK(k3, "var(--primary-blue)");
-                  // 備用防呆：iOS 有時會漏掉 onend 事件，1.5 秒後自動恢復灰色
-                  setTimeout(() => resetK(k3), 1500); 
-              };
-              msg.onend = () => resetK(k3);
-  
-              window.speechSynthesis.speak(msg);
-  
-          } catch (e) {
-              console.warn("音標播放跳過:", e);
-              // 檔案缺失備援機制
-              activeK(k3, "var(--primary-blue)");
-              const fallback = new SpeechSynthesisUtterance(fullWord);
-              fallback.lang = 'en-US';
-              fallback.onend = () => resetK(k3);
-              window.speechSynthesis.speak(fallback);
-          }
+          // 1. 本地音標 (GitHub MP3，2.0倍放大)
+          await playPhonicLocal(localKey, 2.0, k1, "var(--marian-yellow)");
+          await new Promise(r => setTimeout(r, 200)); 
+          await playPhonicLocal(localKey, 2.0, k2, "var(--marian-yellow)");
+          await new Promise(r => setTimeout(r, 400)); 
+          
+          // 2. 雲端單字 (Azure API + 快取，1.8倍放大)
+          await speakWordCloudCached(fullWord, 1.8, k3, "var(--primary-blue)");
       })();
   }
   // 3. 關閉視窗
