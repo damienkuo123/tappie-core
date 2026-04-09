@@ -1539,11 +1539,13 @@
   
                           let localKey = "";
                           let foundInMap = false;
+                          let displayStr = ""; // 🌟 新增：專門用來記錄要「顯示」的乾淨字母
   
                           // 第一步：特殊 TH 判定
                           if (searchKey.includes("th")) {
                               const rawPh = (sub.Phoneme || "").toLowerCase();
                               localKey = (rawPh === "dh") ? "th_voiced" : "th_unvoiced";
+                              displayStr = "th"; // 👈 畫面顯示字母就是 th
                               foundInMap = true;
                           } else {
                               // 第二步：由長到短，全方位滑動搜尋 (例如 fine -> ine -> in)
@@ -1552,6 +1554,7 @@
                                       let testSubStr = searchKey.substr(s, len);
                                       if (PHONICS_MAP[testSubStr]) {
                                           localKey = testSubStr;
+                                          displayStr = testSubStr; // 👈 畫面顯示字母就是找到的組合 (例如 ine)
                                           foundInMap = true;
                                           break;
                                       }
@@ -1564,12 +1567,13 @@
                           if (!foundInMap) {
                               const rawPh = (sub.Phoneme || "").toLowerCase();
                               localKey = AZURE_TO_LOCAL_MAP[rawPh] || rawPh;
+                              displayStr = chunk; // 👈 找不到就退回顯示切下的原本字母
                           }
   
                           const hasFinalAudio = PHONICS_MAP[localKey] ? true : false;
                           
-                          // 🚀 關鍵修復：解決「顯示 am 唸 a」的錯位問題
-                          const displayLabel = foundInMap ? localKey.toUpperCase() : chunk.toUpperCase();
+                          // 🚀 把顯示文字指向乾淨的 displayStr，再也不會跑出檔名了！
+                          const displayLabel = displayStr.toUpperCase();
   
                           coloredWord += `<span class="char-help-wrapper colored-char" style="color: ${color}">${chunk}${hasFinalAudio ? `<button class="helper-bulb" onclick="showPhonicHelper('${token}', '${localKey}', '${displayLabel}')">💡</button>` : ''}</span>`;
                       } else {
