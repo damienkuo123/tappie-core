@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>瑪麗安傳說大廳</title>
+  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
   <style>
     /* =======================================================
        🚀 原始對接：100% 保留您的完美特效變數
@@ -786,6 +787,86 @@
     
     const params = new URLSearchParams(window.location.search);
     const STUDENT_ID = params.get('id') || "S001";
+
+    // =======================================================
+    // 🚀 瑪麗安專屬：全域雲端語音中心 (Azure Neural TTS + 快取擴大機)
+    // =======================================================
+    let azureAuthToken = "";
+    let azureRegionCode = "";
+    
+    function fetchAzureToken() {
+        fetch(`${GAS_URL}?action=get_azure_token`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    azureAuthToken = data.token;
+                    azureRegionCode = data.region;
+                }
+            }).catch(err => console.warn("Token 取得失敗"));
+    }
+    fetchAzureToken(); // 網頁載入立刻拿鑰匙
+
+    let audioCtx = null;
+    const audioBufferCache = new Map();
+
+    function playAudioBuffer(buffer, gainValue) {
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(gainValue, audioCtx.currentTime); 
+        source.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        source.start(0);
+    }
+
+    async function speakWordCloudCached(word, gainValue) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        window.speechSynthesis.cancel(); 
+
+        const cacheKey = word.toLowerCase();
+
+        // 快取命中：免費且零延遲
+        if (audioBufferCache.has(cacheKey)) {
+            await playAudioBuffer(audioBufferCache.get(cacheKey), gainValue);
+            return;
+        }
+
+        // 呼叫 Azure
+        return new Promise((resolve) => {
+            if (!azureAuthToken || typeof SpeechSDK === 'undefined') {
+                fallbackLocalTTS(word, resolve);
+                return;
+            }
+            try {
+                const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(azureAuthToken, azureRegionCode);
+                speechConfig.speechSynthesisVoiceName = "en-US-JennyNeural"; 
+                speechConfig.speechSynthesisOutputFormat = SpeechSDK.SpeechSynthesisOutputFormat.Riff24Khz16BitMonoPcm;
+
+                const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, null); 
+                const ssml = `<speak version='1.0' xml:lang='en-US'><voice name='en-US-JennyNeural'><prosody rate='-10%'>${word}</prosody></voice></speak>`;
+
+                synthesizer.speakSsmlAsync(ssml, async (result) => {
+                    synthesizer.close();
+                    if (result.audioData) {
+                        try {
+                            const audioBuffer = await audioCtx.decodeAudioData(result.audioData);
+                            audioBufferCache.set(cacheKey, audioBuffer);
+                            await playAudioBuffer(audioBuffer, gainValue);
+                            resolve();
+                        } catch (e) { fallbackLocalTTS(word, resolve); }
+                    } else { fallbackLocalTTS(word, resolve); }
+                }, () => { synthesizer.close(); fallbackLocalTTS(word, resolve); });
+            } catch (e) { fallbackLocalTTS(word, resolve); }
+        });
+    }
+
+    function fallbackLocalTTS(word, resolve) {
+        const fallback = new SpeechSynthesisUtterance(word);
+        fallback.lang = 'en-US';
+        fallback.onend = () => { if(resolve) resolve(); };
+        window.speechSynthesis.speak(fallback);
+    }
 
     let characterAssets = {}; 
     let userUnlocked = [];
