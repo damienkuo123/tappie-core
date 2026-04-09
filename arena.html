@@ -1504,30 +1504,39 @@
           if (subData.length > 0) {
               let coloredWord = "", charPointer = 0;
               
+              // 🚀 關鍵修復：預先精準分配每個音素該拿幾個字母，徹底解決錯位！
+              let chunkLengths = [];
+              let tempPointer = 0;
+              subData.forEach((s, i) => {
+                  let sLen = s.Grapheme ? s.Grapheme.length : Math.max(1, Math.round((token.length - tempPointer) / (subData.length - i)));
+                  chunkLengths.push(sLen);
+                  tempPointer += sLen;
+              });
+
               subData.forEach((sub, idx) => {
                   const sScore = sub.PronunciationAssessment.AccuracyScore || 0;
                   const color = getScoreColor(sScore);
                   
-                  let segmentLen = sub.Grapheme ? sub.Grapheme.length : Math.max(1, Math.round((token.length - charPointer) / (subData.length - idx)));
+                  // 直接使用剛剛分配好的精準長度
+                  let segmentLen = chunkLengths[idx];
                   const chunk = token.substr(charPointer, segmentLen);
                   
                   if (chunk) {
-                      // 🚀 【保留設定：燈泡唯一性】
                       if (idx === minIdx && sScore < 70) {
                           
                           let startP = idx, endP = idx;
                           while (startP > 0 && subData[startP - 1].PronunciationAssessment.AccuracyScore < 75) startP--;
                           while (endP < subData.length - 1 && subData[endP + 1].PronunciationAssessment.AccuracyScore < 75) endP++;
-  
-                          // 🧠 【精準物理範圍抓取】
+
+                          // 🧠 精準物理範圍抓取 (用分配好的長度去加總)
                           let rangeStart = 0;
                           for(let i=0; i<startP; i++) {
-                              rangeStart += (subData[i].Grapheme ? subData[i].Grapheme.length : 1);
+                              rangeStart += chunkLengths[i];
                           }
                           
                           let rangeEnd = rangeStart;
                           for(let i=startP; i<=endP; i++) {
-                              rangeEnd += (subData[i].Grapheme ? subData[i].Grapheme.length : 1);
+                              rangeEnd += chunkLengths[i];
                           }
                           
                           // 🌟 【神之補丁】：如果紅字區塊包含最後一個聲音，強制吞掉所有剩下的不發音字母！
