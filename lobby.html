@@ -821,6 +821,7 @@
     }
 
     async function speakWordCloudCached(word, gainValue) {
+        // 這裡的 audioCtx 已經在點擊瞬間被解鎖了，直接安心使用
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') await audioCtx.resume();
         window.speechSynthesis.cancel(); 
@@ -845,7 +846,10 @@
                 speechConfig.speechSynthesisOutputFormat = SpeechSDK.SpeechSynthesisOutputFormat.Riff24Khz16BitMonoPcm;
 
                 const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, null); 
-                const ssml = `<speak version='1.0' xml:lang='en-US'><voice name='en-US-JennyNeural'><prosody rate='-10%'>${word}</prosody></voice></speak>`;
+                
+                // 🚀 防呆：把單字裡的特殊符號轉義，避免微軟 SSML 引擎崩潰
+                const safeXmlWord = word.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const ssml = `<speak version='1.0' xml:lang='en-US'><voice name='en-US-JennyNeural'><prosody rate='-10%'>${safeXmlWord}</prosody></voice></speak>`;
 
                 synthesizer.speakSsmlAsync(ssml, async (result) => {
                     synthesizer.close();
@@ -866,6 +870,8 @@
         const fallback = new SpeechSynthesisUtterance(word);
         fallback.lang = 'en-US';
         fallback.onend = () => { if(resolve) resolve(); };
+        // 🚀 加上 onerror 防護：就算設備發不出聲音，程式也不會永遠卡死在這裡
+        fallback.onerror = () => { if(resolve) resolve(); }; 
         window.speechSynthesis.speak(fallback);
     }
 
@@ -1462,14 +1468,25 @@
     }
 
     function playEventWord(btn, text) {
-        // 🚀 防呆機制：確保 btn 存在才做動畫
+        // 1. 動畫視覺回饋
         if (btn) {
             btn.style.transform = "scale(0.85)";
             setTimeout(() => btn.style.transform = "scale(1)", 150);
         }
 
-        // 🚀 呼叫雲端快取發音，並將音量硬推放大 1.8 倍！
-        speakWordCloudCached(text, 1.8);
+        // 🚀 2. 同步硬解鎖 Web Audio 引擎 (白牌平板與蘋果的命門！)
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        // 🚀 3. 同步硬解鎖原生 TTS (萬一微軟沒連上時，確保設備自己會唸)
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+
+        // 🚀 4. 清理字串：把我們為了 HTML 防護罩加的反斜線拔掉，以免微軟發音當機
+        const cleanText = text.replace(/\\/g, '');
+
+        // 5. 發送至雲端擴大機
+        speakWordCloudCached(cleanText, 1.8);
     }
 
     function startEvent(eventClassCode, eventAvatarId) {
