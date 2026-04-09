@@ -1102,6 +1102,30 @@
       line-height: 1.1;
       text-align: center;
       width: 100%;
+
+      /* ===================================================
+         🚀 新增：6. 小燈泡導讀視窗 (Phonic Helper) 放大
+         =================================================== */
+      /* 蓋掉 HTML 裡的 inline style，讓平板與電腦版視窗更大氣 */
+      .helper-card { max-width: 500px !important; padding: 45px !important; border-radius: 35px !important; }
+      #helper-avatar-box { width: 130px !important; height: 130px !important; font-size: 65px !important; margin-bottom: 25px !important; }
+      #helper-word-title { font-size: 36px !important; }
+      
+      /* 讓雙按鈕更好點擊 */
+      #btn-replay-helper, .helper-card .btn { 
+          font-size: 22px !important; 
+          padding: 18px !important; 
+          border-radius: 20px !important; 
+      }
+
+      /* ===================================================
+         🚀 新增：7. 戰場兩側計分 UI 防貼邊
+         =================================================== */
+      /* 在大螢幕上，讓左右計分柱往內縮，不要死死貼著螢幕邊緣 */
+      .vertical-score-track { left: 4vw; padding: 30px 18px; }
+      .vertical-round-track { right: 4vw; padding: 30px 12px; }
+      #round-num { font-size: 20px !important; letter-spacing: 6px; }
+      .round-dot { width: 24px; height: 24px; }
     }
 
     /* 🚀 橫式播放按鈕 (膠囊型) */
