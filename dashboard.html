@@ -591,12 +591,12 @@
         let estColor = ""; 
         let barColor = "";
 
-        if (count >= 20) { 
-          estText = "+100 點"; 
+        if (count >= 15) { 
+          estText = "+250 點"; 
           estColor = "var(--marian-green)"; 
           barColor = "linear-gradient(90deg, #f1c40f, #2ecc71)"; 
         } else if (count >= 10) { 
-          estText = "+50 點"; 
+          estText = "+100 點"; 
           estColor = "var(--marian-green)"; 
           barColor = "linear-gradient(90deg, #f1c40f, #2ecc71)"; 
         } else if (count >= 5) { 
@@ -604,8 +604,8 @@
           estColor = "var(--text-main)"; 
           barColor = "linear-gradient(90deg, #f1c40f, #2ecc71)"; 
         } else {
-          // 🚀 動態扣分機制：每少一次多扣 200 點 (0次: -1000, 1次: -800 ... 4次: -200)
-          const penalty = -1000 + (count * 200);
+          // 🚀 新版動態扣分：每少一次多扣 50 點 (0次: -250, 1次: -200 ... 4次: -50)
+          const penalty = -250 + (count * 50);
           estText = `${penalty} 點`;
           estColor = "var(--marian-red)";
           barColor = "#e74c3c"; // 達標 5 次前，進度條維持警戒的紅色
@@ -618,10 +618,13 @@
         setTimeout(() => {
           const fill = document.getElementById('mission-fill');
           fill.style.background = barColor;
-          fill.style.width = `${Math.min(100, (count/20)*100)}%`;
+          // 🚀 最大值改為 15，超過 15 次進度條也是 100%
+          fill.style.width = `${Math.min(100, (count/15)*100)}%`; 
+          
           if (count >= 5) document.getElementById('node-1').classList.add('active');
           if (count >= 10) document.getElementById('node-2').classList.add('active');
-          if (count >= 20) document.getElementById('node-3').classList.add('active');
+          // 🚀 第三個節點點亮的條件改為 15
+          if (count >= 15) document.getElementById('node-3').classList.add('active');
         }, 800);
 
         // 榮譽榜
