@@ -1590,23 +1590,31 @@
                           let localKey = "";
                           let displayStr = "";
 
-                          // 特殊 TH 處理 (因為 th_voiced/unvoiced 在檔名上比較特別)
-                          if (remainText.startsWith("th")) {
-                              localKey = "th_unvoiced"; 
-                              displayStr = "th";
-                              bestLen = 2;
-                              foundMatch = true;
-                          } else {
-                              // 從最長可能的組合開始往下找 (例如 ooxxabb 先找 ooxxabb)
-                              for (let len = remainText.length; len >= 1; len--) {
-                                  let testSubStr = remainText.substr(0, len);
-                                  if (PHONICS_MAP[testSubStr]) {
-                                      localKey = testSubStr;
-                                      displayStr = testSubStr;
-                                      bestLen = len;
-                                      foundMatch = true;
-                                      break; // 找到最長的就立刻停止尋找
+                          // 🚀 智慧變體搜尋引擎 (Smart Phonics Matcher)
+                          // 自動相容 399 個音檔中所有帶有底線的變體 (如 a_long, c_hard, alk_end)
+                          for (let len = remainText.length; len >= 1; len--) {
+                              let testSubStr = remainText.substr(0, len);
+                              let matchedKey = null;
+
+                              if (PHONICS_MAP[testSubStr]) {
+                                  // 完全命中 (如 "ab", "sh", "ck")
+                                  matchedKey = testSubStr; 
+                              } else {
+                                  // 尋找帶底線的變體 (如 "th" -> "th_unvoiced", "a" -> "a_long")
+                                  for (const key in PHONICS_MAP) {
+                                      if (key.startsWith(testSubStr + "_")) {
+                                          matchedKey = key;
+                                          break; // 找到第一個家族變體就當作代表音
+                                      }
                                   }
+                              }
+
+                              if (matchedKey) {
+                                  localKey = matchedKey;
+                                  displayStr = testSubStr; // 畫面維持乾淨的字母 (如 a, th, alk)
+                                  bestLen = len;
+                                  foundMatch = true;
+                                  break; // 找到最長的發音組合就立刻停止
                               }
                           }
 
