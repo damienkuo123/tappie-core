@@ -1527,9 +1527,7 @@
           });
   
           if (subData.length > 0) {
-              let coloredWord = "", charPointer = 0;
-              
-              // 🚀 關鍵修復：預先精準分配每個音素該拿幾個字母，徹底解決錯位！
+              // 1. 預先分配每個音素的字元長度 (解決錯位)
               let chunkLengths = [];
               let tempPointer = 0;
               subData.forEach((s, i) => {
@@ -1538,86 +1536,103 @@
                   tempPointer += sLen;
               });
 
+              // 2. 將字元轉換為 { text, score, isBad } 的段落
+              let segments = [];
+              let charPointer = 0;
               subData.forEach((sub, idx) => {
-                  const sScore = sub.PronunciationAssessment.AccuracyScore || 0;
-                  const color = getScoreColor(sScore);
-                  
-                  // 直接使用剛剛分配好的精準長度
                   let segmentLen = chunkLengths[idx];
                   const chunk = token.substr(charPointer, segmentLen);
-                  
-                  if (chunk) {
-                      if (idx === minIdx && sScore < 70) {
-                          
-                          let startP = idx, endP = idx;
-                          while (startP > 0 && subData[startP - 1].PronunciationAssessment.AccuracyScore < 75) startP--;
-                          while (endP < subData.length - 1 && subData[endP + 1].PronunciationAssessment.AccuracyScore < 75) endP++;
-
-                          // 🧠 精準物理範圍抓取 (用分配好的長度去加總)
-                          let rangeStart = 0;
-                          for(let i=0; i<startP; i++) {
-                              rangeStart += chunkLengths[i];
-                          }
-                          
-                          let rangeEnd = rangeStart;
-                          for(let i=startP; i<=endP; i++) {
-                              rangeEnd += chunkLengths[i];
-                          }
-                          
-                          // 🌟 【神之補丁】：如果紅字區塊包含最後一個聲音，強制吞掉所有剩下的不發音字母！
-                          if (endP === subData.length - 1) {
-                              rangeEnd = token.length;
-                          }
-                          
-                          const searchKey = token.substring(rangeStart, rangeEnd).toLowerCase();
-  
-                          let localKey = "";
-                          let foundInMap = false;
-                          let displayStr = ""; // 🌟 新增：專門用來記錄要「顯示」的乾淨字母
-  
-                          // 第一步：特殊 TH 判定
-                          if (searchKey.includes("th")) {
-                              const rawPh = (sub.Phoneme || "").toLowerCase();
-                              localKey = (rawPh === "dh") ? "th_voiced" : "th_unvoiced";
-                              displayStr = "th"; // 👈 畫面顯示字母就是 th
-                              foundInMap = true;
-                          } else {
-                              // 第二步：由長到短，全方位滑動搜尋 (例如 fine -> ine -> in)
-                              for (let len = searchKey.length; len >= 1; len--) {
-                                  for (let s = 0; s <= searchKey.length - len; s++) {
-                                      let testSubStr = searchKey.substr(s, len);
-                                      if (PHONICS_MAP[testSubStr]) {
-                                          localKey = testSubStr;
-                                          displayStr = testSubStr; // 👈 畫面顯示字母就是找到的組合 (例如 ine)
-                                          foundInMap = true;
-                                          break;
-                                      }
-                                  }
-                                  if (foundInMap) break;
-                              }
-                          }
-  
-                          // 第三步：Azure 翻譯機備援
-                          if (!foundInMap) {
-                              const rawPh = (sub.Phoneme || "").toLowerCase();
-                              localKey = AZURE_TO_LOCAL_MAP[rawPh] || rawPh;
-                              displayStr = chunk; // 👈 找不到就退回顯示切下的原本字母
-                          }
-  
-                          const hasFinalAudio = PHONICS_MAP[localKey] ? true : false;
-                          
-                          // 🚀 把顯示文字指向乾淨的 displayStr，再也不會跑出檔名了！
-                          const displayLabel = displayStr.toUpperCase();
-  
-                          const safeToken = token.replace(/'/g, "\\'");
-                          const safeDisplay = displayLabel.replace(/'/g, "\\'");
-                          coloredWord += `<span class="char-help-wrapper colored-char" style="color: ${color}">${chunk}${hasFinalAudio ? `<button class="helper-bulb" onclick="showPhonicHelper('${safeToken}', '${localKey}', '${safeDisplay}')">💡</button>` : ''}</span>`;
-                      } else {
-                          coloredWord += `<span class="colored-char" style="color: ${color}">${chunk}</span>`;
-                      }
-                  }
+                  const score = sub.PronunciationAssessment.AccuracyScore || 0;
+                  // 🧠 低於 75 分的字母，標記為「需要切分找燈泡」的壞區塊
+                  segments.push({ text: chunk, score: score, isBad: score < 75 }); 
                   charPointer += segmentLen;
               });
+
+              // 3. 把相連的「壞區塊」合併在一起 (例如 u, p, b, o, a, r 變成 upboar)
+              let blocks = [];
+              let currentBlock = null;
+
+              segments.forEach(seg => {
+                  if (seg.isBad) {
+                      if (currentBlock && currentBlock.isBad) {
+                          currentBlock.text += seg.text;
+                          currentBlock.totalScore += seg.score;
+                          currentBlock.count += 1;
+                      } else {
+                          if (currentBlock) blocks.push(currentBlock);
+                          currentBlock = { text: seg.text, isBad: true, totalScore: seg.score, count: 1 };
+                      }
+                  } else {
+                      if (currentBlock) blocks.push(currentBlock);
+                      // 好區塊不合併，保留各自獨立的綠色/橘色漸層
+                      currentBlock = { text: seg.text, isBad: false, totalScore: seg.score, count: 1 };
+                  }
+              });
+              if (currentBlock) blocks.push(currentBlock);
+
+              // 4. 渲染 HTML (🚀 啟動老闆要求的貪婪解析法 Greedy Phonics Parser)
+              let coloredWord = "";
+              blocks.forEach(block => {
+                  let avgScore = block.totalScore / block.count;
+                  let blockColor = getScoreColor(avgScore);
+
+                  if (!block.isBad) {
+                      // 好區塊：直接印出顏色，不要燈泡
+                      coloredWord += `<span class="colored-char" style="color: ${blockColor}">${block.text}</span>`;
+                  } else {
+                      // 🚀 壞區塊核心邏輯：將連續紅字拆解成多個小燈泡
+                      let remainText = block.text.toLowerCase();
+                      let originalCasing = block.text;
+
+                      while (remainText.length > 0) {
+                          let foundMatch = false;
+                          let bestLen = 0;
+                          let localKey = "";
+                          let displayStr = "";
+
+                          // 特殊 TH 處理 (因為 th_voiced/unvoiced 在檔名上比較特別)
+                          if (remainText.startsWith("th")) {
+                              localKey = "th_unvoiced"; 
+                              displayStr = "th";
+                              bestLen = 2;
+                              foundMatch = true;
+                          } else {
+                              // 從最長可能的組合開始往下找 (例如 ooxxabb 先找 ooxxabb)
+                              for (let len = remainText.length; len >= 1; len--) {
+                                  let testSubStr = remainText.substr(0, len);
+                                  if (PHONICS_MAP[testSubStr]) {
+                                      localKey = testSubStr;
+                                      displayStr = testSubStr;
+                                      bestLen = len;
+                                      foundMatch = true;
+                                      break; // 找到最長的就立刻停止尋找
+                                  }
+                              }
+                          }
+
+                          if (foundMatch) {
+                              // 🌟 找到發音組合：切下這塊，放上專屬燈泡！
+                              let chunkOrigin = originalCasing.substr(0, bestLen);
+                              let safeToken = token.replace(/'/g, "\\'");
+                              let safeDisplay = displayStr.toUpperCase().replace(/'/g, "\\'");
+                              
+                              coloredWord += `<span class="char-help-wrapper colored-char" style="color: ${blockColor}">${chunkOrigin}<button class="helper-bulb" onclick="showPhonicHelper('${safeToken}', '${localKey}', '${safeDisplay}')">💡</button></span>`;
+                              
+                              // 把已經配對的字切掉，繼續處理剩下的字尾
+                              remainText = remainText.substring(bestLen);
+                              originalCasing = originalCasing.substring(bestLen);
+                          } else {
+                              // ❌ 找不到任何發音組合 (例如遇到奇怪的標點符號或沒有錄音檔的生僻子音)
+                              // 單純印出紅字，不加燈泡，並繼續往下切 1 個字元
+                              let chunkOrigin = originalCasing.substr(0, 1);
+                              coloredWord += `<span class="colored-char" style="color: ${blockColor}">${chunkOrigin}</span>`;
+                              remainText = remainText.substring(1);
+                              originalCasing = originalCasing.substring(1);
+                          }
+                      }
+                  }
+              });
+
               return coloredWord;
           }
           return `<span class="colored-char" style="color: ${getScoreColor(assess.AccuracyScore || 0)}">${token}</span>`;
