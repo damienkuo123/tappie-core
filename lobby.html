@@ -1052,7 +1052,7 @@
 
         const titleEl = document.createElement('h3');
         titleEl.className = `shop-rarity-title title-${rarity}`;
-        titleEl.innerText = `${rarity} 區段`;
+        titleEl.innerText = `${rarity}`;
         container.appendChild(titleEl);
 
         const grid = document.createElement('div');
@@ -1077,7 +1077,7 @@
           } else if (isEvent) {
               btnHtml = `<button class="btn-buy" disabled style="background: rgba(142,68,173,0.3); color: #fff; opacity: 1; border: 1px solid rgba(142,68,173,0.5); box-shadow: none;">活動限定</button>`;
           } else {
-              btnHtml = `<button class="btn-buy" onclick="buyCharacter('${id}', ${cost})">💰 ${cost} 點兌換</button>`;
+              btnHtml = `<button class="btn-buy" onclick="buyCharacter('${id}', ${cost})">${cost} 點兌換</button>`;
           }
 
           cardEl.innerHTML = `
