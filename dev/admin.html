@@ -413,7 +413,10 @@
             <div class="tm-title">圖庫審核中心</div>
         </div>
         
-        <div class="tm-filter-bar" style="z-index: 20; padding-top: 15px;">
+        <div class="tm-filter-bar" style="flex-direction: column; z-index: 20; padding-top: 20px;">
+            <div class="sm-search-bar">
+                <input type="text" id="gallery-search" class="sm-search-input" placeholder="🔍 搜尋英文單字 / 中文..." oninput="filterGallery()">
+            </div>
             <select id="gallery-status-filter" class="tm-select" onchange="filterGallery()">
                 <option value="pending">👀 待審核 (優先處理)</option>
                 <option value="approved">✅ 已確認</option>
@@ -2225,14 +2228,25 @@
 
         function filterGallery() {
             const statusFilter = document.getElementById('gallery-status-filter').value;
+            const searchStr = document.getElementById('gallery-search').value.trim().toLowerCase(); // 🚀 抓取搜尋關鍵字
             const grid = document.getElementById('gallery-grid');
             
             let filtered = allGalleryImages;
-            if (statusFilter === 'pending') filtered = allGalleryImages.filter(img => img.status.includes('待審核') || img.status.includes('出錯'));
-            if (statusFilter === 'approved') filtered = allGalleryImages.filter(img => img.status.includes('已確認'));
+            
+            // 1️⃣ 狀態過濾 (待審核 / 已確認 / 全部)
+            if (statusFilter === 'pending') filtered = filtered.filter(img => img.status.includes('待審核') || img.status.includes('出錯'));
+            if (statusFilter === 'approved') filtered = filtered.filter(img => img.status.includes('已確認'));
+
+            // 2️⃣ 🚀 關鍵字搜尋過濾 (同時比對英文單字與中文翻譯)
+            if (searchStr) {
+                filtered = filtered.filter(img => 
+                    img.word.toLowerCase().includes(searchStr) || 
+                    img.zh.toLowerCase().includes(searchStr)
+                );
+            }
 
             if (filtered.length === 0) {
-                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align:center; color:#7f8c8d; margin-top:40px; font-weight:bold;">目前沒有符合的圖片</p>';
+                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align:center; color:#7f8c8d; margin-top:40px; font-weight:bold;">找不到符合的圖片</p>';
                 return;
             }
 
@@ -2241,7 +2255,7 @@
                 let badgeClass = img.status.includes('已確認') ? 'approved' : 'pending';
                 let isApproved = img.status.includes('已確認');
                 
-                // 🚀 極速黑科技：利用 Google Drive 參數強迫回傳壓縮縮圖 (提升 10 倍載入速度)
+                // 🚀 極速黑科技：利用 Google Drive 參數強迫回傳壓縮縮圖
                 let thumbUrl = img.img;
                 if(thumbUrl.includes('sz=')) {
                     thumbUrl = thumbUrl.replace(/sz=w\d+/, 'sz=w400');
