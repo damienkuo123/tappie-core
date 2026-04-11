@@ -1285,90 +1285,90 @@
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
     /* =======================================================
-       🏀 瑪麗安街機：全螢幕完美投籃引擎 (Gravity & Physics)
+       🏀 瑪麗安街機：質感白底投籃引擎 (Gravity & Physics)
        ======================================================= */
     
-    /* 🚀 突破白框封印！全螢幕深色街機模式 */
+    /* 🚀 放棄全螢幕黑底，回到原本的白色卡片中，完美銜接錄音畫面 */
     #arcade-zone {
-      position: fixed; inset: 0; background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
-      z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      padding: max(30px, env(safe-area-inset-top)) 15px max(20px, env(safe-area-inset-bottom));
-      overflow: hidden; touch-action: none; /* 絕對防滾動 */
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      width: 100%; min-height: 400px; position: relative;
+      animation: fadeIn 0.4s ease-out; touch-action: none;
     }
 
-    /* 頂部籃框區：改成 3 個真實的 CSS 籃框，加大間距 */
+    /* 頂部籃框區 (3 個) */
     #arcade-targets {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; 
-      width: 100%; max-width: 600px; z-index: 10; margin-top: 20px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; 
+      width: 100%; z-index: 10; margin-bottom: 20px;
     }
     
-    /* 🏀 真實籃框的 3D 結構 */
+    /* 🏀 精緻版 3D 籃框 (適配白底) */
     .hoop-wrapper {
       position: relative; display: flex; flex-direction: column; align-items: center;
       transition: transform 0.2s;
     }
     .hoop-backboard {
-      width: 100%; aspect-ratio: 1.2; background: rgba(255, 255, 255, 0.9);
+      width: 100%; aspect-ratio: 1.2; background: #ffffff;
       border: 3px solid #cbd5e1; border-radius: 8px; position: relative;
       display: flex; align-items: center; justify-content: center;
-      font-size: clamp(14px, 4.5vw, 20px); font-weight: 900; color: #1e293b;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.3); text-align: center; word-break: break-word; padding: 6px;
+      font-size: clamp(14px, 4vw, 18px); font-weight: 900; color: #334155;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; word-break: break-word; padding: 4px;
     }
     /* 籃板上的紅色方形瞄準框 */
     .hoop-backboard::after {
-      content: ''; position: absolute; bottom: 5px; width: 40%; height: 30%;
-      border: 2px solid #e74c3c; border-radius: 2px; opacity: 0.5;
+      content: ''; position: absolute; bottom: 4px; width: 35%; height: 25%;
+      border: 2px solid #e74c3c; border-radius: 2px; opacity: 0.4;
     }
     
-    /* 籃網與籃圈 (Z 軸欺騙術的關鍵) */
-    .hoop-rim-back { position: absolute; bottom: -5px; width: 60%; height: 10px; border: 4px solid #d35400; border-radius: 50%; z-index: 1; }
+    /* 籃網與籃圈 */
+    .hoop-rim-back { position: absolute; bottom: -5px; width: 65%; height: 10px; border: 4px solid #d35400; border-radius: 50%; z-index: 1; }
     .hoop-net { 
-      position: absolute; bottom: -35px; width: 45%; height: 35px; 
-      background: repeating-linear-gradient(45deg, transparent, transparent 4px, white 4px, white 6px), repeating-linear-gradient(-45deg, transparent, transparent 4px, white 4px, white 6px);
-      opacity: 0.7; z-index: 3; border-radius: 0 0 50% 50%; transform-origin: top center; transition: transform 0.15s ease-out;
+      position: absolute; bottom: -35px; width: 50%; height: 35px; 
+      /* 改用灰色線條，在白底上更清晰 */
+      background: repeating-linear-gradient(45deg, transparent, transparent 3px, #cbd5e1 3px, #cbd5e1 5px), repeating-linear-gradient(-45deg, transparent, transparent 3px, #cbd5e1 3px, #cbd5e1 5px);
+      opacity: 0.8; z-index: 3; border-radius: 0 0 50% 50%; transform-origin: top center; transition: transform 0.15s ease-out;
     }
-    .hoop-rim-front { position: absolute; bottom: -5px; width: 60%; height: 10px; border: 4px solid #e67e22; border-radius: 50%; z-index: 5; box-shadow: 0 5px 10px rgba(0,0,0,0.5); clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%); }
+    .hoop-rim-front { position: absolute; bottom: -5px; width: 65%; height: 10px; border: 4px solid #e67e22; border-radius: 50%; z-index: 5; box-shadow: 0 4px 6px rgba(0,0,0,0.15); clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%); }
 
-    /* 籃網被扯動的物理特效 */
+    /* 籃網被扯動與發光的物理特效 */
     .hoop-wrapper.swish .hoop-net { transform: scaleY(1.5) scaleX(0.8); opacity: 1; }
-    .hoop-wrapper.swish .hoop-backboard { border-color: #f1c40f; box-shadow: 0 0 30px rgba(241,196,15,0.6); color: #f1c40f; }
+    .hoop-wrapper.swish .hoop-backboard { border-color: #2ecc71; box-shadow: 0 0 20px rgba(46,204,113,0.3); color: #27ae60; }
+    .hoop-wrapper.wrong .hoop-backboard { border-color: #e74c3c; color: #e74c3c; background: #fff5f5; animation: shake-error 0.3s; }
 
-    /* 中央圖片題卡 (完美正方形) */
+    /* 中央圖片題卡 (完美正方形 + 質感陰影) */
     #arcade-question-card {
-      background: white; border-radius: 24px; padding: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+      background: white; border-radius: 20px; padding: 12px; 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #f1f5f9;
       display: flex; justify-content: center; align-items: center; 
-      width: 45vw; max-width: 250px; aspect-ratio: 1; /* 🚀 強制完美正方形 */
-      z-index: 10; margin: auto 0; position: relative;
+      width: 45vw; max-width: 220px; aspect-ratio: 1; z-index: 10; 
+      position: relative; margin-top: 10px;
     }
-    #arcade-img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; display: none; }
-    #arcade-zh { font-size: clamp(30px, 8vw, 40px); font-weight: 900; color: #334155; display: none; }
+    #arcade-img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: none; }
+    #arcade-zh { font-size: clamp(28px, 8vw, 36px); font-weight: 900; color: #334155; display: none; }
 
     /* 發球台 */
     #arcade-pad {
-      width: 100%; max-width: 600px; height: 150px; position: relative;
-      display: flex; justify-content: center; align-items: flex-end; padding-bottom: 30px;
+      width: 100%; height: 120px; position: relative; margin-top: auto;
+      display: flex; justify-content: center; align-items: flex-end;
     }
-    .pad-hint { position: absolute; top: 0; width: 100%; text-align: center; color: #94a3b8; font-size: 14px; font-weight: bold; letter-spacing: 4px; animation: pulse-opacity 1.5s infinite; }
+    .pad-hint { position: absolute; top: 10px; width: 100%; text-align: center; color: #94a3b8; font-size: 14px; font-weight: bold; letter-spacing: 4px; animation: pulse-opacity 1.5s infinite; }
     @keyframes pulse-opacity { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
     /* 真實旋轉的巨大化籃球 */
     #arcade-ball-wrapper {
-      position: absolute; z-index: 20; width: 90px; height: 90px; /* 🚀 籃球容器變大 */
+      position: absolute; bottom: 10px; z-index: 20; width: 85px; height: 85px; 
       display: flex; justify-content: center; align-items: center;
       touch-action: none;
     }
     #arcade-ball {
-      width: 100%; height: 100%; font-size: 80px; /* 🚀 籃球 Emoji 變大 */
-      line-height: 1; text-align: center;
-      cursor: grab; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.5));
+      width: 100%; height: 100%; font-size: 75px; line-height: 1; text-align: center;
+      cursor: grab; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.25));
       transition: transform 0.1s;
     }
-    #arcade-ball-wrapper:active #arcade-ball { cursor: grabbing; transform: scale(0.9); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.4)); }
+    #arcade-ball-wrapper:active #arcade-ball { cursor: grabbing; transform: scale(0.9); filter: drop-shadow(0 4px 5px rgba(0,0,0,0.2)); }
     
     /* 飛行與滾動動畫 */
     .ball-spinning { animation: ball-spin 0.5s linear infinite; }
     .ball-rolling-in { animation: ball-roll 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    
     @keyframes ball-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     @keyframes ball-roll { from { transform: rotate(-360deg); } to { transform: rotate(0deg); } }
   </style>
@@ -2229,7 +2229,7 @@
 
       // 1. 生成三個籃框 (1對 2錯)
       targetsContainer.innerHTML = '';
-      let distractors = getWordDistractors(current.en, 2); // 🚀 改為只抓 2 個錯的，湊成 3 選 1
+      let distractors = getWordDistractors(current.en, 2);
       let finalOptions = [current.en, ...distractors].sort(() => Math.random() - 0.5);
 
       let hoops = [];
@@ -2247,23 +2247,27 @@
           hoops.push(hWrap);
       });
 
-      // 2. 籃球重生系統
+      // 2. 🌟 完美的籃球重生系統 (解決球不見的問題)
       function resetBall() {
           ballWrapper.style.transition = 'none';
-          ballWrapper.style.transform = 'translate(0px, 300px) scale(1)'; // 藏在螢幕下方
+          ballWrapper.style.transform = 'translate(0px, 150px) scale(0.5)'; // 從下方較小處開始
+          ballWrapper.style.opacity = '0';
           ballWrapper.style.zIndex = '20';
           ballInner.style.transform = 'rotate(0deg)';
+          ballInner.style.display = 'block';
           currentDx = 0; currentDy = 0;
           
+          // 短暫延遲後滾動入場
           setTimeout(() => {
-              ballWrapper.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+              ballWrapper.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-in';
               ballWrapper.style.transform = 'translate(0px, 0px) scale(1)';
+              ballWrapper.style.opacity = '1';
               ballInner.classList.add('ball-rolling-in');
               setTimeout(() => ballInner.classList.remove('ball-rolling-in'), 600);
-          }, 100);
+          }, 50);
       }
 
-      resetBall(); // 進入這題時先滾出來
+      resetBall();
       
       let isDragging = false;
       let startX = 0, startY = 0;
@@ -2297,13 +2301,12 @@
               
               ballWrapper.style.transform = `translate(${currentDx}px, ${currentDy}px) scale(0.9)`;
               
-              // 🎯 動態瞄準反饋 (只有真的對準了才會亮紅框！)
+              // 🎯 動態瞄準反饋 (放寬命中區間到 70%)
               hoops.forEach(h => {
                   h.classList.remove('target-locked');
                   let hRect = h.getBoundingClientRect();
                   let center = hRect.left + hRect.width / 2;
-                  // 判斷手指 X 軸是否落在籃框寬度的 60% 內
-                  if (Math.abs(e.clientX - center) < hRect.width * 0.6 && currentDy < -20) {
+                  if (Math.abs(e.clientX - center) < hRect.width * 0.7 && currentDy < -20) {
                       h.classList.add('target-locked');
                   }
               });
@@ -2320,15 +2323,13 @@
                   return;
               }
               
-              // 🚀 命中判定邏輯
               let targetHoop = null;
-              let hitType = 'airball'; // 預設籃外空心
+              let hitType = 'airball'; 
               
               hoops.forEach(h => {
                   let hRect = h.getBoundingClientRect();
                   let center = hRect.left + hRect.width / 2;
-                  // 如果放開時手指 X 軸落在籃框範圍內
-                  if (Math.abs(e.clientX - center) < hRect.width * 0.6) {
+                  if (Math.abs(e.clientX - center) < hRect.width * 0.7) {
                       targetHoop = h;
                       hitType = (h.dataset.ans === current.en) ? 'swish' : 'brick';
                   }
@@ -2338,25 +2339,21 @@
               ballInner.classList.add('ball-spinning'); 
               
               let endX, endY;
-              // 🏀 45 是巨大化籃球的新半徑
               if (hitType === 'airball') {
-                  // 籃外空心：球飛向手指放開的 X 軸，不會被磁吸！
                   endX = currentDx * 2.5; 
-                  endY = originY - window.innerHeight * 0.5; // 飛到一半的高度
+                  endY = originY - window.innerHeight * 0.5; 
               } else {
-                  // 碰到框了
                   let targetRect = targetHoop.getBoundingClientRect();
                   endY = (targetRect.top + targetRect.height/2 + 10) - (originY + 45); 
                   if (hitType === 'swish') {
-                      endX = (targetRect.left + targetRect.width/2) - (originX + 45); // 正中紅心
+                      endX = (targetRect.left + targetRect.width/2) - (originX + 45); 
                   } else {
-                      // 打鐵：砸在籃圈邊緣 (偏左或偏右)
                       endX = (targetRect.left + targetRect.width/2) - (originX + 45) + (e.clientX > targetRect.left + targetRect.width/2 ? 35 : -35);
                   }
               }
               
               let frames = 25; 
-              let gravity = 1.5; 
+              let gravity = 1.8; // 🚀 加強重力，讓下墜感更真實！
               let vy = (endY - currentDy - 0.5 * gravity * frames * frames) / frames;
               let vx = (endX - currentDx) / frames;
               let scale = 0.9;
@@ -2367,7 +2364,7 @@
                   f++; vy += gravity; currentDx += vx; currentDy += vy; scale += scaleStep;
                   ballWrapper.style.transform = `translate(${currentDx}px, ${currentDy}px) scale(${scale})`;
                   
-                  if (vy > 0) ballWrapper.style.zIndex = '2'; // 飛過最高點後落入籃框後方
+                  if (vy > 0) ballWrapper.style.zIndex = '2';
 
                   if (f < frames) {
                       requestAnimationFrame(flyLoop);
@@ -2375,7 +2372,6 @@
                       ballInner.classList.remove('ball-spinning');
                       
                       if (hitType === 'swish') {
-                          // ✅ 完美空心入網
                           targetHoop.classList.add('swish');
                           ballWrapper.style.transition = 'transform 0.3s ease-in';
                           ballWrapper.style.transform = `translate(${currentDx}px, ${currentDy + 80}px) scale(0.3)`;
@@ -2384,27 +2380,32 @@
                           setTimeout(() => {
                               ballInner.style.display = 'none'; 
                               targetHoop.classList.remove('swish');
-                              warmupPassed[currentIndex] = true; 
-                              renderWord(); 
+                              
+                              // 🚀 答對後，整個區塊優雅淡出，無縫切換麥克風
+                              document.getElementById('arcade-zone').style.opacity = '0';
+                              setTimeout(() => {
+                                  document.getElementById('arcade-zone').style.display = 'none';
+                                  document.getElementById('arcade-zone').style.opacity = '1';
+                                  document.getElementById('production-zone').style.display = 'block';
+                                  setupProductionZone(current);
+                              }, 300);
                           }, 500);
                       } else {
-                          // ❌ 打鐵 (brick) 或是 籃外空心 (airball)
                           if(hitType === 'brick') targetHoop.classList.add('wrong');
                           
                           let bounceVx = (currentDx > endX ? 1 : -1) * (Math.random() * 8 + 5);
-                          let bounceVy = (hitType === 'brick') ? -15 : -5; // 打鐵彈很高，空心直接掉
+                          let bounceVy = (hitType === 'brick') ? -18 : -5; 
                           
                           function bounceLoop() {
                               bounceVy += gravity; currentDx += bounceVx; currentDy += bounceVy;
-                              ballInner.style.transform = `rotate(${currentDx * 2}deg)`; // 掉落自轉
+                              ballInner.style.transform = `rotate(${currentDx * 2}deg)`; 
                               ballWrapper.style.transform = `translate(${currentDx}px, ${currentDy}px) scale(${scale})`;
                               
                               if (currentDy < window.innerHeight) { 
                                   requestAnimationFrame(bounceLoop); 
                               } else {
-                                  // 球掉出螢幕外了，啟動重生系統！
                                   if(hitType === 'brick') targetHoop.classList.remove('wrong');
-                                  resetBall();
+                                  resetBall(); // 🚀 球掉出畫面後，自動滾回原位！
                               }
                           }
                           requestAnimationFrame(bounceLoop);
