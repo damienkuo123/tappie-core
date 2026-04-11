@@ -1338,15 +1338,26 @@
     #arcade-img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: none; }
     #arcade-zh { font-size: clamp(24px, 8vw, 36px); font-weight: 900; color: #334155; display: none; }
 
-    /* 發球台 (佔據剩餘的所有底部空間) */
+    /* =======================================================
+       發球台 (觸控區) - 加上虛線邊界，明確區隔上下按鈕
+       ======================================================= */
     #arcade-pad {
       flex: 1; width: 100%; min-height: 120px; position: relative; 
       display: flex; justify-content: center; align-items: flex-end;
+      /* 🚀 新增：頂部與底部的虛線界線，並加上微透明底色 */
+      border-top: 2px dashed #cbd5e1;
+      border-bottom: 2px dashed #cbd5e1;
+      background: rgba(241, 245, 249, 0.5);
+      margin-bottom: 15px; /* 🚀 確保與下方的上一題/下一題按鈕拉開距離 */
     }
-    .pad-hint { position: absolute; top: 0px; width: 100%; text-align: center; color: #94a3b8; font-size: 14px; font-weight: bold; letter-spacing: 4px; animation: pulse-opacity 1.5s infinite; }
+    .pad-hint { 
+      position: absolute; top: 10px; width: 100%; text-align: center; 
+      color: #94a3b8; font-size: 14px; font-weight: bold; letter-spacing: 4px; 
+      animation: pulse-opacity 1.5s infinite; 
+    }
     @keyframes pulse-opacity { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-    /* 🚀 修復籃球：拔除 Y 軸位移，靠 Scale 彈出 */
+    /* 真實旋轉的巨大化籃球 */
     #arcade-ball-wrapper {
       position: absolute; bottom: 10px; z-index: 20; width: 85px; height: 85px; 
       display: flex; justify-content: center; align-items: center; touch-action: none;
@@ -1357,10 +1368,9 @@
     }
     #arcade-ball-wrapper:active #arcade-ball { cursor: grabbing; transform: scale(0.9); filter: drop-shadow(0 4px 5px rgba(0,0,0,0.2)); }
     
+    /* 飛行自轉動畫 (刪除容易出 Bug 的滾動動畫) */
     .ball-spinning { animation: ball-spin 0.5s linear infinite; }
-    .ball-rolling-in { animation: ball-roll 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes ball-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes ball-roll { from { transform: rotate(-360deg); } to { transform: rotate(0deg); } }
   </style>
 </head>
 <body>
@@ -2241,29 +2251,27 @@
           hoops.push(hWrap);
       });
 
-      // 2. 🌟 完美的籃球重生系統 (防裁切版)
+      // 2. 🌟 極簡版籃球重生系統 (取消滾動，直接原地出現)
       function resetBall() {
           ballWrapper.style.transition = 'none';
-          ballWrapper.style.transform = 'translate(0px, 0px) scale(0)'; // 隱藏時只用 scale，不用位移！
-          ballWrapper.style.opacity = '0';
+          ballWrapper.style.transform = 'translate(0px, 0px) scale(1)';
+          ballWrapper.style.opacity = '1';
           ballWrapper.style.zIndex = '20';
           ballInner.style.transform = 'rotate(0deg)';
           ballInner.style.display = 'block';
           currentDx = 0; currentDy = 0;
           
-          // 等待畫面渲染完成後再彈出，確保 100% 看得見
+          // 🚀 原地給一個小小的「果凍彈出」特效，表示籃球已準備好
           requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                  ballWrapper.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-in';
+              ballWrapper.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+              ballWrapper.style.transform = 'translate(0px, 0px) scale(1.1)';
+              setTimeout(() => {
                   ballWrapper.style.transform = 'translate(0px, 0px) scale(1)';
-                  ballWrapper.style.opacity = '1';
-                  ballInner.classList.add('ball-rolling-in');
-                  setTimeout(() => ballInner.classList.remove('ball-rolling-in'), 600);
-              });
+              }, 150);
           });
       }
 
-      resetBall(); 
+      resetBall(); // 進入這題時直接原地出現 
       
       let isDragging = false;
       let startX = 0, startY = 0;
