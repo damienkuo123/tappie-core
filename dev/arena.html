@@ -1767,6 +1767,7 @@
         if (!data.words || data.words.length === 0) { alert("題目為空"); return; }
         quizData = data.words; 
         scores = new Array(quizData.length).fill(null);
+        warmupPassed = new Array(quizData.length).fill(false); // 🚀 補上這行：初始化暖身記憶體
         
         document.getElementById('total-display').innerText = quizData.length;
         document.getElementById('setup-zone').style.display = 'none';
