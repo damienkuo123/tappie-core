@@ -1175,10 +1175,10 @@
       min-height: 250px; animation: fadeIn 0.4s ease-out;
     }
 
-    /* 🖼️ 精緻拍立得相框 (視覺卡片) */
+    /* 🖼️ 精緻拍立得相框 */
     .warmup-visual-card {
       background: #ffffff; border-radius: 24px; padding: 12px;
-      margin-bottom: 30px; 
+      margin-bottom: 25px; 
       box-shadow: 0 12px 35px rgba(0,0,0,0.08), 0 2px 5px rgba(0,0,0,0.04); 
       width: 100%; max-width: 260px;
       display: flex; justify-content: center; align-items: center; 
@@ -1189,25 +1189,24 @@
     #warmup-img { width: 100%; height: auto; border-radius: 16px; object-fit: cover; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     
     #warmup-zh { 
-      font-size: clamp(24px, 7vw, 32px); font-weight: 900; color: #334155; display: none; 
+      font-size: clamp(20px, 6vw, 30px); font-weight: 900; color: #334155; display: none; 
       letter-spacing: 2px; word-break: break-word; overflow-wrap: break-word;
       text-align: center; width: 100%; line-height: 1.4; padding: 10px;
     }
 
-    /* 🧩 磁吸內凹積木槽 (縮小版 + 句子排版優化) */
+    /* 🧩 磁吸內凹積木槽 (強迫症縮小版 + 單字不切斷) */
     #warmup-word-skeleton {
       display: flex; flex-wrap: wrap; justify-content: center; 
-      width: 100%; margin-bottom: 30px; gap: 12px 0; /* 控制行距 */
+      width: 100%; margin-bottom: 30px; gap: 12px 0; /* 控制行與行的間距 */
     }
     
-    /* 將單字打包起來，確保同一個單字的字母不會被切斷換行 */
     .skeleton-word-group {
-      display: flex; gap: 4px; margin-right: 15px; /* 單字之間的空白間距 */
+      display: flex; gap: 4px; margin-right: 15px; /* 單字與單字的空白間距 */
     }
 
     .skeleton-char { 
       display: flex; align-items: center; justify-content: center;
-      width: 36px; height: 46px; /* 🚀 固定縮小尺寸，不管什麼字母都一樣大 */
+      width: 36px; height: 46px; /* 🚀 固定縮小尺寸，統一大小 */
       font-size: 26px; font-weight: 900; font-family: 'Varela Round', 'PingFang TC', sans-serif;
       border-radius: 10px;
       background: #f1f5f9; color: transparent; 
@@ -1223,12 +1222,35 @@
       transform: translateY(-4px); 
     }
 
-    /* 🎮 互動按鈕區 (統一正方形) */
+    /* 🎮 互動按鈕區 */
     #warmup-options { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; width: 100%; position: relative; }
+    
+    /* 當進入四選一模式時，切換為垂直排列 */
+    #warmup-options.list-mode { flex-direction: column; align-items: stretch; gap: 10px; }
+
+    /* 🚀 被我誤刪的四選一按鈕專屬樣式 (復活！) */
+    .btn-choice-list {
+      display: flex; align-items: center; justify-content: flex-start; text-align: left;
+      background: white; border: 2px solid #cbd5e1; border-radius: 12px; 
+      padding: 12px 18px; font-size: 16px; font-weight: 700; color: #334155; 
+      cursor: pointer; box-shadow: 0 4px 0 #cbd5e1; transition: all 0.1s;
+      word-break: break-word; line-height: 1.3; width: 100%; box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-choice-list::before {
+      content: ''; display: inline-block; width: 12px; height: 12px; 
+      border-radius: 50%; background: var(--primary-blue); flex-shrink: 0; margin-right: 12px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); transition: 0.2s;
+    }
+    .btn-choice-list:active { transform: translateY(4px); box-shadow: 0 0 0 #cbd5e1; }
+    .btn-choice-list.correct { background: #f0fdf4; border-color: #2ecc71; color: #27ae60; box-shadow: 0 4px 0 #2ecc71; pointer-events: none; }
+    .btn-choice-list.correct::before { background: #2ecc71; transform: scale(1.2); }
+    .btn-choice-list.wrong { background: #fff5f5; border-color: #ff7675; color: #d63031; box-shadow: 0 4px 0 #ff7675; animation: shake-soft 0.4s ease-in-out; }
+    .btn-choice-list.wrong::before { background: #d63031; }
 
     /* 拼字按鈕專屬：完美正方形，強迫症福音 */
     .btn-tap-fill {
-      width: 55px; height: 55px; /* 🚀 固定為正方形 */
+      width: 55px; height: 55px; /* 🚀 固定為完美正方形 */
       padding: 0; display: flex; align-items: center; justify-content: center;
       font-size: 26px; font-weight: 900; text-transform: uppercase;
       background: #ffffff; border: 2px solid #cbd5e1; border-radius: 14px; 
@@ -1238,6 +1260,17 @@
       -webkit-tap-highlight-color: transparent;
     }
     .btn-tap-fill:active { transform: translateY(5px); box-shadow: 0 0px 0 #cbd5e1; }
+    .btn-tap-fill.correct { 
+      background: #2ecc71; border-color: #27ae60; color: white; 
+      box-shadow: 0 6px 0 #27ae60, 0 12px 25px rgba(46, 204, 113, 0.4); 
+      animation: jelly-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none; 
+    }
+    .btn-tap-fill.wrong { 
+      background: #fff0f0; border-color: #ff7675; color: #d63031; 
+      box-shadow: 0 6px 0 #d63031; 
+      animation: shake-soft 0.4s ease-in-out; 
+    }
 
     /* 🚀 軌跡飛行專用的替身積木 */
     .flying-block {
@@ -1246,16 +1279,9 @@
       font-size: 26px; font-weight: 900; text-transform: uppercase;
       background: #2ecc71; border: 2px solid #27ae60; border-radius: 14px; color: white;
       box-shadow: 0 10px 20px rgba(46, 204, 113, 0.5);
-      pointer-events: none; transition: all 0.4s cubic-bezier(0.2, -0.3, 0.2, 1.5); /* 帶有回彈感的飛行 */
+      pointer-events: none; transition: all 0.4s cubic-bezier(0.2, -0.3, 0.2, 1.5);
     }
 
-    /* 🌟 果凍彈跳動畫 (答對時) */
-    .btn-choice-list.correct, .btn-tap-fill.correct { 
-      background: #2ecc71; border-color: #27ae60; color: white; 
-      box-shadow: 0 6px 0 #27ae60, 0 12px 25px rgba(46, 204, 113, 0.4); 
-      animation: jelly-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      pointer-events: none; 
-    }
     @keyframes jelly-pop {
       0% { transform: scale(1); }
       40% { transform: scale(1.08) translateY(-4px); }
@@ -1264,12 +1290,6 @@
       100% { transform: scale(1) translateY(0); }
     }
 
-    /* ❌ 輕柔震動動畫 (答錯時) */
-    .btn-choice-list.wrong, .btn-tap-fill.wrong { 
-      background: #fff0f0; border-color: #ff7675; color: #d63031; 
-      box-shadow: 0 6px 0 #d63031; 
-      animation: shake-soft 0.4s ease-in-out; 
-    }
     @keyframes shake-soft {
       0%, 100% { transform: translateX(0); }
       25% { transform: translateX(-6px); }
@@ -1277,7 +1297,7 @@
       75% { transform: translateX(-6px); }
     }
 
-    /* 開口決戰區進場動畫 (平滑上浮) */
+    /* 開口決戰區進場動畫 */
     #production-zone { animation: slideUpFade 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     
