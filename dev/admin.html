@@ -283,6 +283,32 @@
         
         .sm-batch-bar { display: none; background: rgba(241, 196, 15, 0.2); border: 1px solid #f1c40f; padding: 10px 15px; border-radius: 12px; margin: 0 20px 10px 20px; justify-content: space-between; align-items: center; }
         .batch-mode-active ~ .sm-batch-bar { display: flex; animation: fadeIn 0.3s; }
+
+        /* =======================================================
+           🖼️ 圖庫審核中心專屬 UI
+           ======================================================= */
+        #galleryManagerView { display: none; position: fixed; inset: 0; background: var(--bg-dark); z-index: 200; flex-direction: column; animation: fadeIn 0.3s; overflow: hidden; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; padding: 15px; padding-bottom: 40px; }
+        .gallery-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; }
+        .gallery-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.5); border-color: rgba(255,215,0,0.3); }
+        .gallery-img-container { width: 100%; aspect-ratio: 1; background: #000; position: relative; overflow: hidden; }
+        .gallery-img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        .gallery-info { padding: 12px 10px; text-align: center; background: rgba(15,23,42,0.9); flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .gallery-word { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 4px; letter-spacing: 1px; }
+        .gallery-zh { font-size: 13px; color: #94a3b8; font-weight: bold; }
+        .gallery-actions { display: flex; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); }
+        .btn-gallery { flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 18px; cursor: pointer; transition: 0.2s; }
+        .btn-gallery:hover { background: rgba(255,255,255,0.1); }
+        .btn-gallery:active { transform: scale(0.9); }
+        .btn-gallery.approve { color: #2ecc71; border-right: 1px solid rgba(255,255,255,0.1); }
+        .btn-gallery.redo { color: #e74c3c; }
+        
+        .gallery-badge { position: absolute; top: 8px; left: 8px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; letter-spacing: 1px; z-index: 10; backdrop-filter: blur(5px); box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .gallery-badge.approved { background: rgba(46, 204, 113, 0.8); color: white; border: 1px solid #2ecc71; }
+        .gallery-badge.pending { background: rgba(241, 196, 15, 0.8); color: #0f172a; border: 1px solid #f1c40f; }
+        
+        /* 平板以上放大網格 */
+        @media (min-width: 768px) { .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } }
     </style>
 </head>
 <body>
