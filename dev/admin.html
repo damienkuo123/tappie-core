@@ -407,6 +407,25 @@
         </div>
     </div>
 
+    <div id="galleryManagerView">
+        <div class="tm-header">
+            <div class="tm-back" onclick="closeGalleryManager()">❮ 返回</div>
+            <div class="tm-title">圖庫審核中心</div>
+        </div>
+        
+        <div class="tm-filter-bar" style="z-index: 20; padding-top: 15px;">
+            <select id="gallery-status-filter" class="tm-select" onchange="filterGallery()">
+                <option value="pending">👀 待審核 (優先處理)</option>
+                <option value="approved">✅ 已確認</option>
+                <option value="all">👁️ 顯示全部圖庫</option>
+            </select>
+        </div>
+        
+        <div id="gallery-list-zone" class="tm-list-zone" style="padding: 0; display: block; overflow-x: hidden;">
+            <div class="gallery-grid" id="gallery-grid"></div>
+        </div>
+    </div>
+    
     <div id="taskManagerView">
         <div class="tm-header">
             <div class="tm-back" onclick="closeTaskManager()">❮ 返回</div>
@@ -2169,6 +2188,150 @@
                     } else { alert(data.error || "批量修改失敗！"); }
                 })
                 .finally(() => { btn.innerText = "🚀 確認批量修改"; btn.style.pointerEvents = "auto"; });
+        }
+
+        // =======================================================
+        // 🖼️ 圖庫審核系統 (階段五核心邏輯)
+        // =======================================================
+        let allGalleryImages = [];
+
+        function openGalleryManager() {
+            document.getElementById('menu-dropdown').classList.remove('show');
+            document.getElementById('mainCard').style.display = 'none';
+            document.getElementById('galleryManagerView').style.display = 'flex';
+            fetchGalleryImages();
+        }
+
+        function closeGalleryManager() {
+            document.getElementById('galleryManagerView').style.display = 'none';
+            document.getElementById('mainCard').style.display = 'block';
+        }
+
+        function fetchGalleryImages() {
+            const grid = document.getElementById('gallery-grid');
+            grid.innerHTML = '<p style="grid-column: 1 / -1; text-align:center; color:#ffd700; margin-top:40px; font-size:18px; font-weight:bold;">⏳ 從 Google Drive 讀取畫作中...</p>';
+            
+            fetch(`${GAS_URL}?action=get_gallery_images&secret=${ADMIN_SECRET}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) return grid.innerHTML = `<p style="grid-column: 1 / -1; color:#e74c3c; text-align:center; font-weight:bold;">${data.error}</p>`;
+                    allGalleryImages = data.images;
+                    filterGallery(); // 自動渲染
+                })
+                .catch(err => {
+                    grid.innerHTML = '<p style="grid-column: 1 / -1; text-align:center; color:#e74c3c; font-weight:bold;">⚠️ 網路連線失敗</p>';
+                });
+        }
+
+        function filterGallery() {
+            const statusFilter = document.getElementById('gallery-status-filter').value;
+            const grid = document.getElementById('gallery-grid');
+            
+            let filtered = allGalleryImages;
+            if (statusFilter === 'pending') filtered = allGalleryImages.filter(img => img.status.includes('待審核') || img.status.includes('出錯'));
+            if (statusFilter === 'approved') filtered = allGalleryImages.filter(img => img.status.includes('已確認'));
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align:center; color:#7f8c8d; margin-top:40px; font-weight:bold;">目前沒有符合的圖片</p>';
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(img => {
+                let badgeClass = img.status.includes('已確認') ? 'approved' : 'pending';
+                let isApproved = img.status.includes('已確認');
+                
+                // 🚀 極速黑科技：利用 Google Drive 參數強迫回傳壓縮縮圖 (提升 10 倍載入速度)
+                let thumbUrl = img.img;
+                if(thumbUrl.includes('sz=')) {
+                    thumbUrl = thumbUrl.replace(/sz=w\d+/, 'sz=w400');
+                } else if(thumbUrl.includes('thumbnail?id=')){
+                    thumbUrl += '&sz=w400';
+                }
+
+                html += `
+                <div class="gallery-card" id="gal-card-${img.row}">
+                    <div class="gallery-badge ${badgeClass}">${img.status}</div>
+                    <div class="gallery-img-container">
+                        <img src="${thumbUrl}" class="gallery-img" loading="lazy">
+                    </div>
+                    <div class="gallery-info">
+                        <div class="gallery-word">${img.word}</div>
+                        <div class="gallery-zh">${img.zh}</div>
+                    </div>
+                    <div class="gallery-actions">
+                        <button class="btn-gallery approve" title="審核通過" onclick="approveImage(${img.row})" ${isApproved ? 'disabled style="opacity:0.2;"' : ''}>✅</button>
+                        <button class="btn-gallery redo" title="退稿重畫" onclick="regenerateImage(${img.row}, '${img.word.replace(/'/g, "\\'")}')">↻</button>
+                    </div>
+                </div>`;
+            });
+            grid.innerHTML = html;
+        }
+
+        function approveImage(row) {
+            const card = document.getElementById(`gal-card-${row}`);
+            const btn = card.querySelector('.btn-gallery.approve');
+            btn.innerHTML = '⏳';
+            
+            fetch(`${GAS_URL}?action=approve_image&row=${row}&secret=${ADMIN_SECRET}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // 在前端同步修改狀態，並重新渲染
+                        let img = allGalleryImages.find(i => i.row === row);
+                        if(img) img.status = "✅ 已確認";
+                        filterGallery();
+                    } else {
+                        alert("審核寫入失敗，請重試");
+                        btn.innerHTML = '✅';
+                    }
+                });
+        }
+
+        function regenerateImage(row, word) {
+            if(!confirm(`確定要將「${word}」退稿重畫嗎？\n系統將自動刪除舊圖並呼叫 AI 重新繪製。\n(這大約需要 15~20 秒鐘，請勿關閉視窗)`)) return;
+            
+            const card = document.getElementById(`gal-card-${row}`);
+            const imgEl = card.querySelector('.gallery-img');
+            const redoBtn = card.querySelector('.btn-gallery.redo');
+            const approveBtn = card.querySelector('.btn-gallery.approve');
+            const badge = card.querySelector('.gallery-badge');
+            
+            // 視覺上進入「畫畫中」狀態
+            imgEl.style.opacity = "0.2";
+            imgEl.style.filter = "grayscale(100%)";
+            redoBtn.innerHTML = '⏳';
+            redoBtn.style.pointerEvents = "none";
+            approveBtn.style.pointerEvents = "none";
+            badge.innerHTML = "🎨 畫圖中...";
+            badge.className = "gallery-badge pending";
+            
+            fetch(`${GAS_URL}?action=regenerate_image&row=${row}&secret=${ADMIN_SECRET}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // 重新下載新圖並替換
+                        let img = allGalleryImages.find(i => i.row === row);
+                        if(img) {
+                            img.img = data.newImg;
+                            img.status = "👀 待審核";
+                        }
+                        filterGallery();
+                    } else {
+                        alert("重畫失敗：" + data.error);
+                        // 失敗了要把狀態還原
+                        imgEl.style.opacity = "1";
+                        imgEl.style.filter = "none";
+                        redoBtn.innerHTML = '↻';
+                        redoBtn.style.pointerEvents = "auto";
+                        approveBtn.style.pointerEvents = "auto";
+                        badge.innerHTML = "👀 待審核";
+                    }
+                })
+                .catch(err => {
+                    alert("連線逾時，但 AI 可能還在後台畫圖。請稍後重新整理查看！");
+                    fetchGalleryImages(); // 強制重刷
+                });
         }
         
     </script>
