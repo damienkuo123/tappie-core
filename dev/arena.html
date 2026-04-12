@@ -1174,7 +1174,6 @@
       min-height: 250px; animation: fadeIn 0.4s ease-out;
     }
 
-    /* 🖼️ 精緻拍立得相框 (視覺卡片) */
     .warmup-visual-card {
       background: #ffffff; border-radius: 24px; padding: 12px;
       margin-bottom: 30px; 
@@ -1183,6 +1182,7 @@
       display: flex; justify-content: center; align-items: center; 
       min-height: 140px; border: 1px solid #f1f5f9;
       transition: transform 0.3s;
+      flex-shrink: 0; /* 🚀 手術點：鎖死大小，絕對不准被瀏覽器擠扁！ */
     }
     .warmup-visual-card:hover { transform: translateY(-3px); }
     #warmup-img { width: 100%; height: auto; border-radius: 16px; object-fit: cover; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -2250,113 +2250,94 @@
         }
     }
   }
-  // 🎮 建立暖身小遊戲 (五大模式智能派題引擎 - 狀態鎖定版)
+  // 🎮 建立暖身小遊戲 (五大模式智能派題引擎)
   function setupWarmupZone(current) {
-      // 🚀 手術點 1：抓取父容器，我們準備進行實體重建
+      // 🚀 手術點 1：抓取父容器，準備實體重建防殘留
       const visualCard = document.querySelector('.warmup-visual-card');
       const audioHint = document.getElementById('warmup-audio-hint'); 
       const skeletonContainer = document.getElementById('warmup-word-skeleton');
       const optionsContainer = document.getElementById('warmup-options');
       
-      // 🚀 手術點 2：防快速切換爆版：清除上一次還沒執行的自動發音計時器
       if (window.warmupAutoPlayTimer) clearTimeout(window.warmupAutoPlayTimer);
 
-      // 每次進入前先清空容器與排版
       skeletonContainer.innerHTML = '';
       optionsContainer.removeAttribute('class');
       optionsContainer.innerHTML = '';
       optionsContainer.className = ''; 
       audioHint.style.display = 'none'; 
 
-      // 🚀 手術點 3：暴力清場！直接清空整個視覺卡片，重新塞入乾淨的元素
+      // 🚀 手術點 2：暴力清場！重建乾淨的 DOM 元素，杜絕上一頁的圖片 src 殘留
       visualCard.innerHTML = `
           <img id="warmup-img" src="" alt="提示圖片" style="display: none; width: 100%; height: auto; border-radius: 16px; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
           <div id="warmup-zh" style="display: none; font-size: clamp(24px, 7vw, 32px); font-weight: 900; color: #334155; letter-spacing: 2px; word-break: break-word; overflow-wrap: break-word; text-align: center; width: 100%; line-height: 1.4; padding: 10px;"></div>
           <button id="warmup-audio-btn" class="btn-listen-huge" style="display: none;">
-            <span class="icon">👂</span>
-            <span class="text">聽音辨字</span>
+            <span class="icon">👂</span><span class="text">聽音辨字</span>
           </button>
       `;
 
-      // 重新抓取剛剛建立好的乾淨元素
       const imgEl = document.getElementById('warmup-img');
       const zhEl = document.getElementById('warmup-zh');
       const audioBtn = document.getElementById('warmup-audio-btn');
 
       // 🧠 1. 條件判定 (Rules Engine) 與 記憶卡系統
-
-      // 如果 assignedWarmupModes 陣列還沒初始化，就先建立它
       if (typeof assignedWarmupModes === 'undefined' || assignedWarmupModes.length === 0) {
           window.assignedWarmupModes = new Array(quizData.length).fill(null);
+      }
+      // 🚀 手術點 3：新增「選項記憶卡」，記住抽出來的圖片跟矩陣，防重抽！
+      if (typeof window.warmupDataMemory === 'undefined') {
+          window.warmupDataMemory = new Array(quizData.length).fill(null);
       }
 
       let warmupMode = assignedWarmupModes[currentIndex];
 
-      // 如果是 null，代表是第一次進入這題，才需要執行派題引擎
       if (warmupMode === null) {
           const hasImage = (current.img && current.img.trim() !== "");
           const wordLen = current.en.length;
           const isSentence = current.en.includes(" ");
-          // 判斷題庫中是否有足夠的其他圖片來做為干擾項 (至少要有 3 張其他的)
           const availableImages = quizData.filter(q => q.en !== current.en && q.img && q.img.trim() !== "");
           const canPlayImageChoice = hasImage && availableImages.length >= 3;
 
-          let availableModes = [0, 2]; // 絕對安全的保底模式
+          let availableModes = [0, 2]; 
           
           if (wordLen >= 3 && !isSentence) {
-              availableModes.push(1); // 允許拼字
-              availableModes.push(4); // 允許果凍矩陣
+              availableModes.push(1); 
+              availableModes.push(4); 
           }
           if (canPlayImageChoice) {
-              availableModes.push(3); // 允許圖片四選一
+              availableModes.push(3); 
           }
 
-          // 為了確保機率平均，我們直接用隨機數，一直抽到合法模式為止
           let candidateMode;
           let safeCounter = 0;
           do {
-              candidateMode = Math.floor(Math.random() * 5); // 隨機抽 0~4
+              candidateMode = Math.floor(Math.random() * 5); 
               safeCounter++;
-              if (safeCounter > 50) { candidateMode = availableModes[0]; break; } // 防呆：避免無限迴圈
+              if (safeCounter > 50) { candidateMode = availableModes[0]; break; } 
           } while (!availableModes.includes(candidateMode));
           
           warmupMode = candidateMode;
-
-          // 關鍵：將抽到的結果存入記憶卡，這題以後永遠鎖死這個模式！
           assignedWarmupModes[currentIndex] = warmupMode; 
-
-          console.log(`[派題引擎] 第 ${currentIndex + 1} 題首次分配模式: ${warmupMode}, 可選池: ${availableModes}`);
-      } else {
-          console.log(`[記憶卡讀取] 第 ${currentIndex + 1} 題已鎖定模式: ${warmupMode}`);
-      }
+      } 
 
       // 🛡️ 2. 上方視覺區渲染
       if (warmupMode === 2) {
-          // 模式 2：純聽音
-          audioBtn.style.display = 'flex'; // 🚀 使用 flex 讓內部元素置中
-          audioHint.style.display = 'flex'; // 🚀 顯示防呆提示
-
+          audioBtn.style.display = 'flex'; 
+          audioHint.style.display = 'flex'; 
           audioBtn.onclick = () => {
-              // 點擊時的果凍微動畫 (不用管 scale，因為 CSS 已經寫了 :active 下沉)
               audioBtn.style.transform = "scale(1.1)";
               setTimeout(() => audioBtn.style.transform = "scale(1)", 150);
               speakWordCloudCached(current.en, 1.8, null, null);
           };
-          
-          // 進入這題時，延遲 0.3 秒「自動唸一次」，並將 timer 存起來以便能被清除
           window.warmupAutoPlayTimer = setTimeout(() => { 
               if(document.getElementById('arcade-zone') && document.getElementById('arcade-zone').style.display !== 'none') audioBtn.click(); 
-              // 注意：因為我們目前沒有用 arcade-zone，我幫你加上安全的判斷
               else if(audioBtn.style.display !== 'none') audioBtn.click();
           }, 300);
       } else if (warmupMode === 3) {
-          // 模式 3：圖片四選一 (上方只顯示單字/中文)
-          zhEl.innerText = current.en; // 上方顯示目標單字
+          zhEl.innerText = current.en; 
           zhEl.style.fontSize = "clamp(30px, 8vw, 45px)";
           zhEl.style.display = 'block';
           zhEl.style.color = "var(--primary-blue)";
       } else {
-          // 模式 0, 1, 4：看圖發音 (有圖顯示圖，沒圖換中文)
           if (current.img && current.img.trim() !== "") {
               imgEl.src = current.img.includes('sz=') ? current.img.replace(/sz=w\d+/, 'sz=w400') : current.img;
               imgEl.style.display = 'block';
@@ -2371,7 +2352,6 @@
       // ==========================================
       // 🕹️ 3. 下方互動區渲染與邏輯
       // ==========================================
-      
       const proceedToNext = () => {
           try { const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'); audio.volume=0.5; audio.play(); } catch(e){}
           setTimeout(() => { warmupPassed[currentIndex] = true; renderWord(); }, 600);
@@ -2384,70 +2364,74 @@
       };
 
       if (warmupMode === 0 || warmupMode === 2) {
-          // 📌 模式 0/2：經典文字四選一
           skeletonContainer.style.display = 'none';
           optionsContainer.classList.add('list-mode');
 
-          let distractors = getWordDistractors(current.en, 3);
-          let finalOptions = [current.en, ...distractors].sort(() => Math.random() - 0.5);
+          // 🚀 讀取或儲存干擾項
+          if (!window.warmupDataMemory[currentIndex]) {
+              let distractors = getWordDistractors(current.en, 3);
+              window.warmupDataMemory[currentIndex] = [current.en, ...distractors].sort(() => Math.random() - 0.5);
+          }
+          let finalOptions = window.warmupDataMemory[currentIndex];
 
           finalOptions.forEach(opt => {
               let btn = document.createElement('button');
               btn.className = 'btn-choice-list'; 
               btn.innerText = opt;
               btn.onclick = function() {
-                  if (opt === current.en) {
-                      this.classList.add('correct'); proceedToNext();
-                  } else { handleWrong(this); }
+                  if (opt === current.en) { this.classList.add('correct'); proceedToNext(); } 
+                  else { handleWrong(this); }
               };
               optionsContainer.appendChild(btn);
           });
 
       } else if (warmupMode === 3) {
-          // 📌 模式 3：圖片四選一 (2x2 網格)
           skeletonContainer.style.display = 'none';
           optionsContainer.classList.add('grid-image-mode');
 
-          let distractors = getImageDistractors(current.en, 3);
-          // 把正確答案的物件跟干擾圖包裝在一起
-          let finalOptions = [{img: current.img, isCorrect: true}, ...distractors].sort(() => Math.random() - 0.5);
+          // 🚀 讀取或儲存圖片干擾項
+          if (!window.warmupDataMemory[currentIndex]) {
+              let distractors = getImageDistractors(current.en, 3);
+              window.warmupDataMemory[currentIndex] = [{img: current.img, isCorrect: true}, ...distractors].sort(() => Math.random() - 0.5);
+          }
+          let finalOptions = window.warmupDataMemory[currentIndex];
 
           finalOptions.forEach(opt => {
               let btn = document.createElement('button');
               btn.className = 'btn-image-choice';
-              
               let iEl = document.createElement('img');
               iEl.src = opt.img.includes('sz=') ? opt.img.replace(/sz=w\d+/, 'sz=w400') : opt.img;
+              iEl.style.pointerEvents = 'none';
               btn.appendChild(iEl);
 
               btn.onclick = function() {
-                  optionsContainer.classList.add('has-answered'); // 讓其他圖變暗
-                  if (opt.isCorrect) {
-                      this.classList.add('correct'); proceedToNext();
-                  } else { handleWrong(this); }
+                  optionsContainer.classList.add('has-answered'); 
+                  if (opt.isCorrect) { this.classList.add('correct'); proceedToNext(); } 
+                  else { handleWrong(this); }
               };
               optionsContainer.appendChild(btn);
           });
 
       } else if (warmupMode === 1) {
-          // 📌 模式 1：填空拼字 (Tap-to-Fill)
           skeletonContainer.style.display = 'flex'; 
 
           const wordStr = current.en.toUpperCase();
-          let targetCharObj = extractMissingTarget(wordStr); 
+          
+          // 🚀 讀取或儲存拼字資料
+          if (!window.warmupDataMemory[currentIndex]) {
+              let targetCharObj = extractMissingTarget(wordStr); 
+              let options = generateDistractors(targetCharObj.char);
+              window.warmupDataMemory[currentIndex] = { targetCharObj, options };
+          }
+          let { targetCharObj, options } = window.warmupDataMemory[currentIndex];
           
           for (let i = 0; i < wordStr.length; i++) {
               let char = wordStr[i];
-              if (char === ' ' || char === '-') {
-                  skeletonContainer.innerHTML += `<span style="width: 15px;"></span>`;
-              } else if (i === targetCharObj.index) {
-                  skeletonContainer.innerHTML += `<span class="skeleton-char" id="skel-target"></span>`;
-              } else {
-                  skeletonContainer.innerHTML += `<span class="skeleton-char filled">${char}</span>`;
-              }
+              if (char === ' ' || char === '-') skeletonContainer.innerHTML += `<span style="width: 15px;"></span>`;
+              else if (i === targetCharObj.index) skeletonContainer.innerHTML += `<span class="skeleton-char" id="skel-target"></span>`;
+              else skeletonContainer.innerHTML += `<span class="skeleton-char filled">${char}</span>`;
           }
 
-          let options = generateDistractors(targetCharObj.char);
           options.forEach(opt => {
               let btn = document.createElement('button');
               btn.className = 'btn-tap-fill'; 
@@ -2463,20 +2447,23 @@
               optionsContainer.appendChild(btn);
           });
       } else if (warmupMode === 4) {
-          // 📌 模式 4：果凍字母陣 (Word Search)
           skeletonContainer.style.display = 'none';
           optionsContainer.classList.add('word-search-mode');
           
-          const word = current.en.toUpperCase().replace(/\s+/g, ''); // 拔除空格
-          // 決定陣列大小 (至少 6x4)
-          const cols = 6;
-          const rows = Math.max(4, Math.ceil((word.length + 10) / cols)); 
-          optionsContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
-          // 生成矩陣與答案路徑
-          const { matrix, path } = generateWordSearchMatrix(word, cols, rows);
+          const wordStr = current.en.toUpperCase().replace(/\s+/g, ''); 
           
-          let selectedPath = []; // 玩家點擊的歷史
+          // 🚀 讀取或儲存矩陣資料，並動態確保陣列夠大！
+          if (!window.warmupDataMemory[currentIndex]) {
+              const cols = Math.max(6, wordStr.length + 2); // 確保欄數大於單字長度
+              const rows = Math.max(5, wordStr.length + 1); // 確保列數大於單字長度
+              const { matrix, path } = generateWordSearchMatrix(wordStr, cols, rows);
+              window.warmupDataMemory[currentIndex] = { cols, rows, matrix, path };
+          }
+          
+          const { cols, rows, matrix, path } = window.warmupDataMemory[currentIndex];
+          optionsContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+          
+          let selectedPath = []; 
 
           matrix.forEach((row, y) => {
               row.forEach((char, x) => {
@@ -2486,41 +2473,33 @@
                   btn.dataset.x = x; btn.dataset.y = y;
 
                   btn.onclick = function() {
-                      // 如果已經選了 2 個，就不給按
                       if (selectedPath.length >= 2) return;
-                      
-                      // 記錄點擊
                       selectedPath.push({x: x, y: y, el: this});
                       this.classList.add('selected');
 
                       if (selectedPath.length === 2) {
                           const p1 = selectedPath[0];
                           const p2 = selectedPath[1];
-                          
-                          // 檢查是否跟答案的起點/終點吻合 (順向或逆向都可以)
                           const isMatch = 
                               (p1.x === path[0].x && p1.y === path[0].y && p2.x === path[path.length-1].x && p2.y === path[path.length-1].y) ||
                               (p1.x === path[path.length-1].x && p1.y === path[path.length-1].y && p2.x === path[0].x && p2.y === path[0].y);
 
                           if (isMatch) {
-                              // ✅ 連線成功！波浪發光動畫
                               path.forEach((pObj, pIdx) => {
                                   setTimeout(() => {
-                                      // 根據 x, y 找到對應的按鈕
                                       let targetBtn = optionsContainer.children[pObj.y * cols + pObj.x];
                                       targetBtn.classList.remove('selected');
                                       targetBtn.classList.add('correct-path');
-                                  }, pIdx * 80); // 波浪延遲
+                                  }, pIdx * 80); 
                               });
                               proceedToNext();
                           } else {
-                              // ❌ 連線錯誤，彈回原狀
                               p1.el.classList.add('wrong-path');
                               p2.el.classList.add('wrong-path');
                               setTimeout(() => {
                                   p1.el.classList.remove('selected', 'wrong-path');
                                   p2.el.classList.remove('selected', 'wrong-path');
-                                  selectedPath = []; // 重置
+                                  selectedPath = []; 
                               }, 500);
                           }
                       }
@@ -2596,30 +2575,29 @@
       return distractors;
   }
 
-  // 輔助：生成 6x4 果凍字母陣，並藏入單字
+  // 輔助：生成果凍字母陣，並藏入單字 (🚀 加入數學防呆)
   function generateWordSearchMatrix(word, cols, rows) {
-      // 初始化空矩陣
       let matrix = Array(rows).fill(null).map(() => Array(cols).fill(''));
       const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      
-      // 決定方向：0=水平右, 1=垂直下, 2=斜右下
       const dir = Math.floor(Math.random() * 3);
       let startX = 0, startY = 0;
       let path = [];
 
-      // 根據方向決定合法的起點範圍
+      // 🚀 絕對防護：確保 Math.random 的乘數不會是負數
+      let maxStartX = Math.max(0, cols - word.length);
+      let maxStartY = Math.max(0, rows - word.length);
+
       if (dir === 0) { // 水平
-          startX = Math.floor(Math.random() * (cols - word.length + 1));
+          startX = Math.floor(Math.random() * (maxStartX + 1));
           startY = Math.floor(Math.random() * rows);
       } else if (dir === 1) { // 垂直
           startX = Math.floor(Math.random() * cols);
-          startY = Math.floor(Math.random() * (rows - word.length + 1));
+          startY = Math.floor(Math.random() * (maxStartY + 1));
       } else { // 斜向
-          startX = Math.floor(Math.random() * (cols - word.length + 1));
-          startY = Math.floor(Math.random() * (rows - word.length + 1));
+          startX = Math.floor(Math.random() * (maxStartX + 1));
+          startY = Math.floor(Math.random() * (maxStartY + 1));
       }
 
-      // 把答案寫進矩陣，並記錄座標路徑
       for (let i = 0; i < word.length; i++) {
           let cx = startX + (dir === 0 || dir === 2 ? i : 0);
           let cy = startY + (dir === 1 || dir === 2 ? i : 0);
@@ -2627,7 +2605,6 @@
           path.push({x: cx, y: cy});
       }
 
-      // 剩下的空格填滿隨機字母
       for (let y = 0; y < rows; y++) {
           for (let x = 0; x < cols; x++) {
               if (matrix[y][x] === '') {
@@ -2635,7 +2612,6 @@
               }
           }
       }
-
       return { matrix, path };
   }
 
