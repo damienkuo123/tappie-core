@@ -2021,6 +2021,11 @@
   }
 
   const originalOnload = async () => {
+    if(TARGET_UNIT) {
+        const unitDisplay = document.getElementById('unit-title-display');
+        if (unitDisplay) unitDisplay.innerText = `今天挑戰：${TARGET_UNIT}`;
+    }
+    
     playMascot('setup-mascot', 'idle'); // 開始畫面精靈待機
     
     // 🚀 動態對話框替換邏輯
@@ -2042,14 +2047,17 @@
             return; 
         }
         
-        fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`)
-          .then(res => res.json()).then(data => {
-            if (!data.words || data.words.length === 0) { alert("題目為空"); return; }
-            quizData = data.words; 
+        // 🚀 局部修復：加入測試防呆機制。如果沒有 TARGET_UNIT，直接給測試題，避免 API 報錯卡死
+        if (!TARGET_UNIT) {
+            console.log("⚠️ 未指定單元，進入測試模式");
+            quizData = [
+                {en: "APPLE", zh: "蘋果"}, 
+                {en: "BANANA", zh: "香蕉"},
+                {en: "CAT", zh: "貓"}
+            ];
             scores = new Array(quizData.length).fill(null);
             warmupPassed = new Array(quizData.length).fill(false);
             
-            // 🚀 安全檢查：確保元素存在再修改，避免當機跳到 catch 區
             const totalDisplay = document.getElementById('total-display');
             if (totalDisplay) totalDisplay.innerText = quizData.length;
             
@@ -2057,7 +2065,36 @@
             if (setupZone) setupZone.style.display = 'none';
             
             const topNavBar = document.getElementById('top-nav-bar');
-            if (topNavBar) topNavBar.style.display = 'flex'; // 秀出進度列
+            if (topNavBar) topNavBar.style.display = 'flex'; 
+            
+            const studio = document.getElementById('studio');
+            if (studio) studio.style.display = 'block';
+            
+            attachButtonListeners();
+            renderWord();
+            return; // 提早結束，不呼叫 API
+        }
+
+        // 正常的 API 呼叫流程
+        fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`)
+          .then(res => res.json()).then(data => {
+            if (!data.words || data.words.length === 0) { 
+                alert("題目為空"); 
+                setDockButton('重試', true, handleDockClick);
+                return; 
+            }
+            quizData = data.words; 
+            scores = new Array(quizData.length).fill(null);
+            warmupPassed = new Array(quizData.length).fill(false);
+            
+            const totalDisplay = document.getElementById('total-display');
+            if (totalDisplay) totalDisplay.innerText = quizData.length;
+            
+            const setupZone = document.getElementById('setup-zone');
+            if (setupZone) setupZone.style.display = 'none';
+            
+            const topNavBar = document.getElementById('top-nav-bar');
+            if (topNavBar) topNavBar.style.display = 'flex'; 
             
             const studio = document.getElementById('studio');
             if (studio) studio.style.display = 'block';
@@ -2066,7 +2103,7 @@
             renderWord();
           }).catch(err => {
             console.error("載入失敗詳細原因:", err);
-            alert("題目載入失敗，請檢查網路連線或 HTML 結構是否完整！");
+            alert("題目載入失敗，請檢查網路連線！");
             setDockButton('重試', true, handleDockClick);
           });
     });
