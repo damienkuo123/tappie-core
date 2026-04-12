@@ -124,83 +124,38 @@
     .colored-char { font-weight: bold; transition: color 0.3s ease; }
     .word-omission { color: #b2bec3 !important; text-decoration: line-through; opacity: 0.5; }
     
-    /* =======================================================
-       🌟 瑪麗安 3.0：Duolingo 全螢幕畫布與厚實按鍵
-       ======================================================= */
-    body { 
-      font-family: 'Nunito', -apple-system, sans-serif; text-align: center; margin: 0; padding: 0; 
-      user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; 
-      background: #ffffff; color: #4b4b4b; height: 100vh; height: 100dvh; overflow: hidden; 
-    }
-    
+    body { font-family: -apple-system, sans-serif; text-align: center; padding: 20px; background: #eaeff2; margin: 0; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
     .main-panel { 
-      background: transparent; width: 100%; max-width: 600px; margin: 0 auto; 
-      height: 100%; display: flex; flex-direction: column; position: relative; z-index: 100; 
-      border: none; box-shadow: none; padding: 0; border-radius: 0;
+      background: white; padding: 25px; border-radius: 28px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15); max-width: 400px; 
+      margin: 10px auto; border: 1px solid #ddd; 
+      position: relative; z-index: 100; /* 🚀 確保面板在所有東西上面 */
     }
     
-    /* 🚀 頂部導航與進度條 */
-    .top-nav-bar { display: flex; align-items: center; padding: max(15px, env(safe-area-inset-top)) 20px 10px; gap: 15px; }
-    .btn-close-app { background: none; border: none; font-size: 24px; color: #afafaf; cursor: pointer; padding: 5px; font-weight: bold; }
-    .progress-bar-container { flex: 1; background: #e5e5e5; height: 16px; border-radius: 10px; overflow: hidden; }
-    .progress-fill { background: #58cc02; height: 100%; width: 0%; transition: width 0.5s ease-out; border-radius: 10px; }
-
-    /* 🚀 內容滾動區 (避免被底部擋住) */
-    .content-scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px 20px 140px; display: flex; flex-direction: column; }
-
-    /* 🚀 底部固定 Dock */
-    .bottom-dock { 
-      position: fixed; bottom: 0; left: 0; width: 100%; 
-      padding: 15px 20px max(20px, env(safe-area-inset-bottom)); 
-      background: #ffffff; border-top: 2px solid #e5e5e5; 
-      display: flex; justify-content: center; z-index: 500; box-sizing: border-box; 
+    /* 🚀 讓按鈕在被按下去時有明顯的觸感回饋 */
+    .btn:active, .btn-play:active { transform: scale(0.92); opacity: 0.8; }
+    #record-btn { background: var(--marian-red); width: 110px; height: 110px; border-radius: 50%; border: 8px solid white; font-size: 45px; box-shadow: 0 6px 15px rgba(214, 48, 49, 0.4); margin: 20px auto; cursor: pointer; display: none; outline: none; }
+    #record-btn.active { transform: scale(0.95); background: #333; animation: pulse 1s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(214, 48, 49, 0.4); } 100% { box-shadow: 0 0 0 20px rgba(214, 48, 49, 0); } }
+    .btn-play { background: var(--primary-blue); width: 45px; height: 45px; border-radius: 50%; border: none; color: white; font-size: 20px; cursor: pointer; margin-left: 10px; vertical-align: middle; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+    .btn { padding: 12px 25px; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; color: white; margin: 5px; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
+    .btn-nav { background: #4b6584; border-bottom: 4px solid #2c3e50; }
+    .btn-nav:disabled { background: #ccc; border-bottom: none; }
+    .btn-finish { width: 100%; font-size: 22px; padding: 20px; margin-top: 20px; border-bottom: 5px solid rgba(0,0,0,0.2); transition: 0.3s; }
+    .btn-finish:disabled { background: #636e72 !important; cursor: not-allowed; border-bottom: none; opacity: 0.7; }
+    .progress-bar { width: 100%; background: #dfe6e9; height: 12px; border-radius: 6px; margin-bottom: 20px; overflow: hidden; border: 1px solid #ccc; }
+    .progress-fill { 
+      background: var(--primary-blue); 
+      background-color: #0066cc; /* 🚀 備用色：確保變數失效時還是藍色 */
+      height: 100%; 
+      width: 0%; 
+      transition: 0.5s; 
     }
-    .btn-dock { 
-      width: 100%; max-width: 500px; padding: 16px; font-size: 20px; font-weight: 800; letter-spacing: 2px; 
-      border-radius: 16px; cursor: pointer; text-transform: uppercase; border: none; 
-      transition: background 0.1s, transform 0.1s, box-shadow 0.1s; 
-    }
-    .btn-dock.disabled { background: #e5e5e5; color: #afafaf; box-shadow: none; pointer-events: none; }
-    .btn-dock.active { background: #58cc02; color: white; box-shadow: 0 5px 0 #58a700; }
-    .btn-dock.active:active { transform: translateY(5px); box-shadow: 0 0px 0 #58a700; }
-
-    /* 🎭 2D 精靈與對話框 */
-    .avatar-bubble-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 25px; }
-    .speech-bubble { 
-      background: #ffffff; border: 2px solid #e5e5e5; border-radius: 20px; padding: 15px 20px; 
-      position: relative; max-width: 65%; text-align: left; box-shadow: 0 4px 0 #e5e5e5; 
-      color: #4b4b4b; font-weight: bold; font-size: 16px; line-height: 1.5; 
-    }
-    .speech-bubble.left-tail::before { content: ''; position: absolute; left: -12px; top: 20px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 12px solid #e5e5e5; }
-    .speech-bubble.left-tail::after { content: ''; position: absolute; left: -8px; top: 20px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 10px solid #ffffff; }
-
-    /* 🕹️ Duolingo 級遊戲實體按鈕 */
-    .btn-choice-list, .btn-tap-fill, .btn-image-choice, .ws-letter {
-      background: #ffffff; border: 2px solid #e5e5e5; border-bottom-width: 4px; border-radius: 16px;
-      color: #4b4b4b; cursor: pointer; user-select: none; font-weight: 800; text-align: center;
-      transition: background 0.1s, transform 0.1s, border-bottom-width 0.1s;
-    }
-    .btn-choice-list:active, .btn-tap-fill:active, .btn-image-choice:active, .ws-letter:active {
-      border-bottom-width: 0px; transform: translateY(4px); background: #f7f7f7;
-    }
-    .btn-choice-list.correct, .btn-tap-fill.correct, .btn-image-choice.correct, .ws-letter.correct-path {
-      background: #d7ffb8; border-color: #58cc02; border-bottom-color: #58cc02; color: #58a700; pointer-events: none;
-    }
-    .btn-choice-list.wrong, .btn-tap-fill.wrong {
-      background: #ffdfe0; border-color: #ff4b4b; border-bottom-color: #ff4b4b; color: #ea1537; animation: shake-soft 0.4s ease-in-out;
-    }
-    @keyframes shake-soft { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-6px); } }
-
-    /* 單元與排版微調 */
-    .warmup-visual-card { background: white; border: 2px solid #e5e5e5; border-radius: 20px; padding: 10px; margin-bottom: 25px; width: 100%; max-width: 320px; }
-    #warmup-img { border-radius: 14px; width: 100%; height: auto; object-fit: cover; display: none; }
-    #warmup-zh { font-size: 26px; font-weight: 900; color: #4b4b4b; display: none; text-align: center; width: 100%; padding: 10px; }
-    #word-display { font-size: clamp(35px, 8vw, 45px) !important; color: #4b4b4b; text-shadow: none; margin-bottom: 5px; }
-    #production-zh { font-size: 18px; color: #afafaf; font-weight: bold; margin-bottom: 20px; }
-    
-    /* 🎤 新版錄音按鈕 (取消跳動，改為下壓) */
-    #record-btn { background: #1cb0f6; width: 110px; height: 110px; border-radius: 50%; border: none; font-size: 45px; box-shadow: 0 6px 0 #1899d6; margin: 10px auto; color: white; cursor: pointer; outline: none; transition: transform 0.1s, box-shadow 0.1s, background 0.1s; }
-    #record-btn:active, #record-btn.active { transform: translateY(6px); box-shadow: 0 0px 0 #1899d6; background: #1480b3; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 10px; overflow: hidden; }
+    td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+    .score-badge { float: right; font-weight: bold; color: var(--primary-blue); font-size: 18px; }
+    .btn-re { background: var(--marian-red); font-size: 13px; padding: 6px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold; }
+    #zh-display { font-size: 20px; color: #7f8c8d; margin: -10px 0 20px 0; font-weight: bold; }
 
     /* ========================================= */
     /* 🚀 傳送門：頂級 3D 全息對峙 Loading 畫面 (終極隔離防擋版) */
@@ -1456,82 +1411,64 @@
 </div>
 
 <div class="main-panel" id="main-card">
-  
-  <div class="top-nav-bar" id="top-nav-bar" style="display:none;">
-    <button class="btn-close-app" onclick="confirmExit()">✕</button>
-    <div class="progress-bar-container">
-      <div id="progress-fill" class="progress-fill"></div>
-    </div>
+  <div id="progress-container" class="progress-bar" style="display:none;"><div id="progress-fill" class="progress-fill"></div></div>
+  <div id="setup-zone">
+    <h2 id="title-text" style="color:var(--primary-blue);">🎙️ 口說挑戰</h2>
+    <p id="info-text">正在開啟麥克風...</p>
+    <button class="btn" style="background:var(--primary-blue); font-size: 22px; padding: 18px 40px; border-bottom: 4px solid #003366;" id="start-btn" style="display:none;">開始挑戰</button>
   </div>
-
-  <div class="content-scroll-area">
+  <div id="studio" style="display:none;">
+    <p style="color:var(--primary-blue); font-weight:bold; margin-bottom: 15px;">第 <span id="idx-display">1</span> / <span id="total-display">0</span> 題</p>
     
-    <div id="setup-zone">
-      <div style="margin-top: 10vh; display: flex; flex-direction: column; align-items: center;">
-        <lottie-player id="setup-mascot" src="" background="transparent" speed="1" style="width: 180px; height: 180px; margin-bottom: 20px;" loop autoplay></lottie-player>
-        <div class="speech-bubble" style="max-width: 85%; min-height: 50px; display: flex; align-items: center; justify-content: center;">
-          <p id="setup-speech-text" style="margin: 0; color: var(--primary-blue); font-weight: bold; font-size: 18px; text-align: center;">載入中...</p>
-        </div>
+    <div id="warmup-zone">
+       <div class="warmup-visual-card">
+          <img id="warmup-img" src="" alt="提示圖片">
+          <div id="warmup-zh"></div>
+          
+          <button id="warmup-audio-btn" class="btn-listen-huge">
+            <span class="icon">👂</span>
+            <span class="text">聽音辨字</span>
+          </button>
+       </div>
+       
+       <div id="warmup-audio-hint" class="audio-hint-box">
+           <span style="font-size:18px;">🔕</span>
+           <span style="text-align:left; line-height:1.3;">聽不到聲音？<br>請確認手機未開啟靜音</span>
+       </div>
+
+       <div id="warmup-word-skeleton"></div>
+       <div id="warmup-options"></div>
+    </div>
+
+    <div id="production-zone" style="display:none;">
+      <div style="min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; margin-bottom: 0px;">
+        <button id="play-btn" class="btn-play-pill" style="margin-bottom: 10px;">
+          <span>🔊</span> <span>標準發音</span>
+        </button>
+        <h1 id="word-display">載入中...</h1>
+        <div id="production-zh" style="font-size: 22px; color: #7f8c8d; margin-top: 5px; font-weight: bold; letter-spacing: 1px;"></div>
       </div>
+      <button type="button" id="record-btn" oncontextmenu="return false;" style="margin-top: 0px;">🎤</button>
+      <p id="status" style="font-weight:bold; color:#636e72; margin-top: 5px;">按住錄音，放開打分</p>
+      <div id="feedback" style="font-size: 26px; font-weight: 800; color: var(--marian-green); margin-top: 10px;"></div>
     </div>
 
-    <div id="studio" style="display:none;">
-      
-      <div id="warmup-zone" style="display:none; flex-direction: column; align-items: center; width: 100%;">
-         <h3 style="color:#afafaf; font-size:16px; margin: 0 0 5px; text-transform: uppercase; letter-spacing: 1px;">✨ 暖身運動</h3>
-         <h2 id="warmup-instruction" style="color:#4b4b4b; font-size:22px; margin: 0 0 25px;">選擇正確的答案</h2>
-         
-         <div class="warmup-visual-card">
-            <img id="warmup-img" src="" alt="提示圖片">
-            <div id="warmup-zh"></div>
-            <button id="warmup-audio-btn" style="display: none; background: #f1f5f9; border: 2px solid #e5e5e5; border-radius: 50%; width: 100px; height: 100px; font-size: 40px; margin: 10px auto; cursor: pointer; box-shadow: 0 4px 0 #e5e5e5;">👂</button>
-         </div>
-         <div id="warmup-audio-hint" style="display:none; color: #ff4b4b; font-size: 14px; font-weight: bold; margin-bottom: 15px;">🔕 請確認手機未開啟靜音</div>
-
-         <div id="warmup-word-skeleton" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; width:100%; margin-bottom:30px;"></div>
-         <div id="warmup-options" style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap; width:100%;"></div>
-      </div>
-
-      <div id="production-zone" style="display:none; flex-direction: column; align-items: center; width: 100%;">
-         <h3 style="color:#afafaf; font-size:16px; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 1px;">🎙️ 口說錄音</h3>
-         
-         <div class="avatar-bubble-row" style="width: 100%;">
-            <lottie-player id="prod-mascot" src="" background="transparent" speed="1" style="width: 110px; height: 110px; flex-shrink: 0;" loop autoplay></lottie-player>
-            <div class="speech-bubble left-tail" id="prod-bubble">
-               <div id="prod-feedback-text" style="display:none; font-size: 15px; color:#4b4b4b; margin-bottom: 8px;"></div>
-               <div id="prod-tts-btn" style="cursor:pointer; display:flex; align-items:center; justify-content: flex-end; gap:5px; color:#1cb0f6;">
-                 <span style="font-size:24px;">🔊</span> <span id="prod-tts-text">我來唸一次</span>
-               </div>
-            </div>
-         </div>
-         
-         <div style="margin: 20px 0;">
-           <h1 id="word-display">載入中...</h1>
-           <div id="production-zh"></div>
-         </div>
-
-         <button type="button" id="record-btn" oncontextmenu="return false;">🎤</button>
-         <p id="status" style="font-weight:bold; color:#afafaf; margin-top: 10px; font-size:14px;">按住錄音，放開打分</p>
-      </div>
+    <div style="margin-top: 30px; display:flex; justify-content:center;">
+      <button class="btn btn-nav" id="prev-btn">◀ 上一題</button>
+      <button class="btn btn-nav" id="next-btn">下一題 ▶</button>
+      <button class="btn btn-nav" id="back-summary-btn" style="display:none; background:var(--marian-green); border-bottom:4px solid #1e8449;">返回結算頁</button>
     </div>
-
-    <div id="summary" style="display:none;">
-      <h2 style="color:#afafaf; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">學習總結</h2>
-      <div style="font-size: 64px; font-weight: 900; color:#58cc02;" id="total-avg">0</div>
-      <p id="reward-hint" style="font-size: 15px; font-weight: bold; color: #ff9900; margin-bottom: 20px;"></p>
-      <table id="word-list"></table>
-    </div>
-
-    <div id="epic-reward-zone" style="display:none; flex-direction: column; align-items: center; justify-content: center; height: 50vh;">
-       <lottie-player id="epic-mascot" src="" background="transparent" speed="1" style="width: 250px; height: 250px;" loop autoplay></lottie-player>
-       <h1 style="color:#58cc02; font-size: 32px; margin: 20px 0 10px;">膜拜學霸！</h1>
-       <div style="background:#fff; border:2px solid #e5e5e5; border-radius:15px; padding:10px 25px; font-weight:bold; font-size: 18px; color:#ff9900; box-shadow: 0 4px 0 #e5e5e5;">獲得 <span id="reward-points-display">0</span> 點</div>
-    </div>
-
   </div>
-
-  <div class="bottom-dock">
-     <button id="global-dock-btn" class="btn-dock active" onclick="handleDockClick()">開始</button>
+  <div id="summary" style="display:none;">
+    <h2 id="summary-title" style="color:var(--primary-blue); margin-bottom:5px;">學習總結</h2>
+    <div id="score-zone">
+      <p style="margin:0; color:#636e72;">平均分數</p>
+      <div style="font-size: 64px; font-weight: 900; color:var(--marian-red);" id="total-avg">0</div>
+      <p id="reward-hint" style="font-size: 18px; font-weight: bold; padding: 10px; border-radius: 10px;"></p>
+    </div>
+    <table id="word-list"></table>
+    <button class="btn btn-finish" id="submit-btn" disabled>完成挑戰並領獎</button>
+    <p id="lock-msg" style="color:var(--marian-red); font-size:14px; margin-top:10px; font-weight:bold;"></p>
   </div>
 </div>
 
@@ -1704,39 +1641,8 @@
   const ROOM_ID = params.get('roomId');
 
   let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
-  let warmupPassed = []; 
-  let assignedWarmupModes = []; // 🚀 解決死機的關鍵變數
-  let azureReports = []; 
-  
-  // ⚓ 底部主按鈕全域控制器
-  window.currentDockAction = null;
-  function handleDockClick() {
-      if (window.currentDockAction) window.currentDockAction();
-  }
-  function setDockButton(text, isActive, actionFn) {
-      const btn = document.getElementById('global-dock-btn');
-      if (btn) {
-          btn.innerText = text;
-          btn.className = isActive ? 'btn-dock active' : 'btn-dock disabled';
-      }
-      window.currentDockAction = isActive ? actionFn : null;
-  }
-
-  // 🎭 精靈動作字典
-  const MASCOT_MAP = {
-      idle: "Star_Click", success: "Star_ClickSmile", fail: "Star_Puzzled",
-      thinking: "Star_Quest", epic: "Star_Dancing"
-  };
-  function playMascot(playerElementId, state) {
-      const player = document.getElementById(playerElementId);
-      if (player) player.load(`avatars/${MASCOT_MAP[state]}.json`);
-  }
-
-  window.confirmExit = () => {
-      if(confirm("確定要離開挑戰嗎？目前的進度將不會儲存。")) {
-          window.location.href = `https://damienkuo123.github.io/marian-app/dashboard.html?id=${STUDENT_ID}`;
-      }
-  };
+  let warmupPassed = []; // 🧠 記錄這 10 題有哪些已經通過暖身了
+  let azureReports = []; // 🚀 專門用來收集微軟的法醫級音素報告
   let audioContext, analyser, dataArray, source, gradingInterval;
   let maxVolume = 0;
   
@@ -2013,55 +1919,36 @@
   }
 
   const originalOnload = async () => {
-      hideLoadingScreen();
+    if(MODE === 'review') document.getElementById('title-text').innerText = "📖 自由練習模式";
+    try {
+      // 🚀 啟動並永久保溫麥克風，不再關閉！
+      globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
       
-      const speechText = document.getElementById('setup-speech-text');
-      if (speechText) {
-          speechText.innerText = "嗨～我們來增進英語口說吧！";
-          setTimeout(() => { speechText.innerText = `今天挑戰：${TARGET_UNIT || '新單元'}`; }, 2000);
-          setTimeout(() => { speechText.innerText = "準備好了嗎！Here we go~"; }, 4000);
-      }
-      playMascot('setup-mascot', 'idle');
+      document.getElementById('info-text').innerText = "麥克風已就緒";
+      document.getElementById('start-btn').style.display = 'inline-block';
+    } catch (e) { 
+      alert("請開啟麥克風權限"); 
+    }
+    hideLoadingScreen();
+  };
 
-      setDockButton('開始', true, async () => {
-          setDockButton('連線中...', false, null);
-          try {
-              globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-          } catch (e) { 
-              alert("請開啟麥克風權限"); 
-              setDockButton('重試', true, handleDockClick);
-              return; 
-          }
-          
-          // 🚀 保持你原本最乾淨的 Fetch 邏輯，不加任何畫蛇添足的檢查！
-          const fetchUrl = TARGET_UNIT 
-              ? `${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`
-              : `${GAS_URL}?id=${STUDENT_ID}&action=get_data`;
-
-          fetch(fetchUrl)
-            .then(res => res.json())
-            .then(data => {
-              if (!data.words || data.words.length === 0) { 
-                  alert("題目為空"); 
-                  setDockButton('重試', true, handleDockClick);
-                  return; 
-              }
-              quizData = data.words; 
-              scores = new Array(quizData.length).fill(null);
-              warmupPassed = new Array(quizData.length).fill(false);
-              assignedWarmupModes = new Array(quizData.length).fill(null);
-              
-              document.getElementById('setup-zone').style.display = 'none';
-              document.getElementById('top-nav-bar').style.display = 'flex';
-              document.getElementById('studio').style.display = 'block';
-              
-              renderWord();
-            })
-            .catch(err => {
-              console.error("載入失敗", err);
-              alert("題目載入失敗，請檢查網路連線");
-              setDockButton('重試', true, handleDockClick);
-            });
+  document.getElementById('start-btn').onclick = () => {
+    document.getElementById('info-text').innerText = "正在載入題目...";
+    fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`)
+      .then(res => res.json()).then(data => {
+        if (!data.words || data.words.length === 0) { alert("題目為空"); return; }
+        quizData = data.words; 
+        scores = new Array(quizData.length).fill(null);
+        warmupPassed = new Array(quizData.length).fill(false); // 🚀 補上這行：初始化暖身記憶體
+        
+        document.getElementById('total-display').innerText = quizData.length;
+        document.getElementById('setup-zone').style.display = 'none';
+        document.getElementById('progress-container').style.display = 'block';
+        document.getElementById('studio').style.display = 'block';
+        
+        // 🚀 關鍵：先綁定監聽器，再畫出第一題，按鈕才不會失效！
+        attachButtonListeners(); 
+        renderWord();
       });
   };
   
@@ -2079,313 +1966,6 @@
     document.getElementById('next-btn').onclick = () => { if (currentIndex < quizData.length - 1) { currentIndex++; renderWord(); } else { showSummary(); } };
     document.getElementById('back-summary-btn').onclick = () => { isReReading = false; showSummary(); };
   }
-
-  // 🚀 動態心流渲染引擎
-  function renderWord() {
-    const current = quizData[currentIndex];
-    if (!current) return;
-
-    const progFill = document.getElementById('progress-fill');
-    if (progFill && quizData.length > 0) {
-        progFill.style.width = ((currentIndex + 1) / quizData.length) * 100 + "%";
-    }
-
-    if (warmupPassed[currentIndex]) {
-        document.getElementById('warmup-zone').style.display = 'none';
-        document.getElementById('production-zone').style.display = 'flex'; 
-        setupProductionZone(current);
-    } else {
-        document.getElementById('warmup-zone').style.display = 'flex';
-        document.getElementById('production-zone').style.display = 'none';
-        setupWarmupZone(current);
-    }
-  }
-
-  // 🎮 建立暖身小遊戲
-  function setupWarmupZone(current) {
-      const visualCard = document.querySelector('.warmup-visual-card');
-      const audioHint = document.getElementById('warmup-audio-hint'); 
-      const skeletonContainer = document.getElementById('warmup-word-skeleton');
-      const optionsContainer = document.getElementById('warmup-options');
-      
-      if (window.warmupAutoPlayTimer) clearTimeout(window.warmupAutoPlayTimer);
-
-      skeletonContainer.innerHTML = '';
-      optionsContainer.removeAttribute('class');
-      optionsContainer.innerHTML = '';
-      audioHint.style.display = 'none'; 
-
-      visualCard.innerHTML = `
-          <img id="warmup-img" src="" alt="提示圖片" style="display: none; width: 100%; height: auto; border-radius: 16px; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-          <div id="warmup-zh" style="display: none; font-size: clamp(24px, 7vw, 32px); font-weight: 900; color: #334155; letter-spacing: 2px; word-break: break-word; overflow-wrap: break-word; text-align: center; width: 100%; line-height: 1.4; padding: 10px;"></div>
-          <button id="warmup-audio-btn" class="btn-listen-huge" style="display: none;">
-            <span class="icon">👂</span>
-            <span class="text">聽音辨字</span>
-          </button>
-      `;
-
-      const imgEl = document.getElementById('warmup-img');
-      const zhEl = document.getElementById('warmup-zh');
-      const audioBtn = document.getElementById('warmup-audio-btn');
-
-      if (!assignedWarmupModes || assignedWarmupModes.length === 0) {
-          assignedWarmupModes = new Array(quizData.length).fill(null);
-      }
-
-      let warmupMode = assignedWarmupModes[currentIndex];
-
-      if (warmupMode === null) {
-          const hasImage = (current.img && current.img.trim() !== "");
-          const wordLen = current.en.length;
-          const isSentence = current.en.includes(" ");
-          const availableImages = quizData.filter(q => q.en !== current.en && q.img && q.img.trim() !== "");
-          const canPlayImageChoice = hasImage && availableImages.length >= 3;
-
-          let availableModes = [0, 2]; 
-          if (wordLen >= 3 && !isSentence) { availableModes.push(1); availableModes.push(4); }
-          if (canPlayImageChoice) { availableModes.push(3); }
-
-          let candidateMode; let safeCounter = 0;
-          do {
-              candidateMode = Math.floor(Math.random() * 5); 
-              safeCounter++;
-              if (safeCounter > 50) { candidateMode = availableModes[0]; break; } 
-          } while (!availableModes.includes(candidateMode));
-          
-          warmupMode = candidateMode;
-          assignedWarmupModes[currentIndex] = warmupMode; 
-      }
-
-      if (warmupMode === 2) {
-          if(audioBtn) audioBtn.style.display = 'flex'; 
-          if(audioHint) audioHint.style.display = 'flex'; 
-          if(audioBtn) {
-              audioBtn.onclick = () => {
-                  audioBtn.style.transform = "scale(1.1)";
-                  setTimeout(() => audioBtn.style.transform = "scale(1)", 150);
-                  speakWordCloudCached(current.en, 1.8, null, null);
-              };
-          }
-          window.warmupAutoPlayTimer = setTimeout(() => { 
-              if(audioBtn && audioBtn.style.display !== 'none') audioBtn.click();
-          }, 300);
-      } else if (warmupMode === 3) {
-          if(zhEl) {
-              zhEl.innerText = current.en; 
-              zhEl.style.fontSize = "clamp(30px, 8vw, 45px)";
-              zhEl.style.display = 'block';
-              zhEl.style.color = "var(--primary-blue)";
-          }
-      } else {
-          if (current.img && current.img.trim() !== "") {
-              if(imgEl) {
-                  imgEl.src = current.img.includes('sz=') ? current.img.replace(/sz=w\d+/, 'sz=w400') : current.img;
-                  imgEl.style.display = 'block';
-              }
-          } else {
-              if(zhEl) {
-                  zhEl.innerText = current.zh || "看字發音";
-                  zhEl.style.display = 'block';
-                  zhEl.style.fontSize = "clamp(24px, 7vw, 32px)";
-                  zhEl.style.color = "#334155";
-              }
-          }
-      }
-
-      setDockButton('請回答問題', false, null);
-
-      const proceedToNext = () => {
-          try { const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'); audio.volume=0.5; audio.play(); } catch(e){}
-          setDockButton('繼續', true, () => {
-              warmupPassed[currentIndex] = true;
-              renderWord();
-          });
-      };
-
-      const handleWrong = (element) => {
-          element.classList.remove('wrong');
-          void element.offsetWidth; 
-          element.classList.add('wrong');
-      };
-
-      if (warmupMode === 0 || warmupMode === 2) {
-          skeletonContainer.style.display = 'none';
-          optionsContainer.classList.add('list-mode');
-          let distractors = getWordDistractors(current.en, 3);
-          let finalOptions = [current.en, ...distractors].sort(() => Math.random() - 0.5);
-
-          finalOptions.forEach(opt => {
-              let btn = document.createElement('button');
-              btn.className = 'btn-choice-list'; 
-              btn.innerText = opt;
-              btn.onclick = function() {
-                  if (opt === current.en) { this.classList.add('correct'); proceedToNext(); } 
-                  else { handleWrong(this); }
-              };
-              optionsContainer.appendChild(btn);
-          });
-      } else if (warmupMode === 3) {
-          skeletonContainer.style.display = 'none';
-          optionsContainer.classList.add('grid-image-mode');
-          let distractors = getImageDistractors(current.en, 3);
-          let finalOptions = [{img: current.img, isCorrect: true}, ...distractors].sort(() => Math.random() - 0.5);
-
-          finalOptions.forEach(opt => {
-              let btn = document.createElement('button');
-              btn.className = 'btn-image-choice';
-              let iEl = document.createElement('img');
-              iEl.src = opt.img.includes('sz=') ? opt.img.replace(/sz=w\d+/, 'sz=w400') : opt.img;
-              btn.appendChild(iEl);
-
-              btn.onclick = function() {
-                  optionsContainer.classList.add('has-answered'); 
-                  if (opt.isCorrect) { this.classList.add('correct'); proceedToNext(); } 
-                  else { handleWrong(this); }
-              };
-              optionsContainer.appendChild(btn);
-          });
-      } else if (warmupMode === 1) {
-          skeletonContainer.style.display = 'flex'; 
-          const wordStr = current.en.toUpperCase();
-          let targetCharObj = extractMissingTarget(wordStr); 
-          
-          for (let i = 0; i < wordStr.length; i++) {
-              let char = wordStr[i];
-              if (char === ' ' || char === '-') skeletonContainer.innerHTML += `<span style="width: 15px;"></span>`;
-              else if (i === targetCharObj.index) skeletonContainer.innerHTML += `<span class="skeleton-char" id="skel-target"></span>`;
-              else skeletonContainer.innerHTML += `<span class="skeleton-char filled">${char}</span>`;
-          }
-
-          let options = generateDistractors(targetCharObj.char);
-          options.forEach(opt => {
-              let btn = document.createElement('button');
-              btn.className = 'btn-tap-fill'; btn.innerText = opt;
-              btn.onclick = function() {
-                  if (opt === targetCharObj.char) {
-                      this.classList.add('correct');
-                      document.getElementById('skel-target').innerText = opt;
-                      document.getElementById('skel-target').classList.add('filled');
-                      proceedToNext();
-                  } else { handleWrong(this); }
-              };
-              optionsContainer.appendChild(btn);
-          });
-      } else if (warmupMode === 4) {
-          skeletonContainer.style.display = 'none';
-          optionsContainer.classList.add('word-search-mode');
-          const word = current.en.toUpperCase().replace(/\s+/g, ''); 
-          const cols = 6; const rows = Math.max(4, Math.ceil((word.length + 10) / cols)); 
-          optionsContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-          const { matrix, path } = generateWordSearchMatrix(word, cols, rows);
-          let selectedPath = []; 
-
-          matrix.forEach((row, y) => {
-              row.forEach((char, x) => {
-                  let btn = document.createElement('button');
-                  btn.className = 'ws-letter'; btn.innerText = char; btn.dataset.x = x; btn.dataset.y = y;
-
-                  btn.onclick = function() {
-                      if (selectedPath.length >= 2) return;
-                      selectedPath.push({x: x, y: y, el: this});
-                      this.classList.add('selected');
-
-                      if (selectedPath.length === 2) {
-                          const p1 = selectedPath[0]; const p2 = selectedPath[1];
-                          const isMatch = 
-                              (p1.x === path[0].x && p1.y === path[0].y && p2.x === path[path.length-1].x && p2.y === path[path.length-1].y) ||
-                              (p1.x === path[path.length-1].x && p1.y === path[path.length-1].y && p2.x === path[0].x && p2.y === path[0].y);
-
-                          if (isMatch) {
-                              path.forEach((pObj, pIdx) => {
-                                  setTimeout(() => {
-                                      let targetBtn = optionsContainer.children[pObj.y * cols + pObj.x];
-                                      targetBtn.classList.remove('selected'); targetBtn.classList.add('correct-path');
-                                  }, pIdx * 80); 
-                              });
-                              proceedToNext();
-                          } else {
-                              p1.el.classList.add('wrong-path'); p2.el.classList.add('wrong-path');
-                              setTimeout(() => {
-                                  p1.el.classList.remove('selected', 'wrong-path');
-                                  p2.el.classList.remove('selected', 'wrong-path');
-                                  selectedPath = []; 
-                              }, 500);
-                          }
-                      }
-                  };
-                  optionsContainer.appendChild(btn);
-              });
-          });
-      }
-  }
-
-  // 🎙️ 建立開口決戰區
-  function setupProductionZone(current) {
-      const wordDisplay = document.getElementById('word-display');
-      const currentScore = scores[currentIndex];
-      const currentFeedback = (window.feedbacks && window.feedbacks[currentIndex]) ? window.feedbacks[currentIndex] : "";
-      
-      const charCount = current.en.length;
-      if (charCount > 20) wordDisplay.style.fontSize = "32px";
-      else if (charCount > 10) wordDisplay.style.fontSize = "42px";
-      else wordDisplay.style.fontSize = "52px";
-
-      const existingReport = azureReports[currentIndex];
-      if (existingReport) { wordDisplay.innerHTML = generateColoredHTML(existingReport, current.en); } 
-      else { wordDisplay.innerText = current.en; wordDisplay.style.color = "#0d47a1"; }
-
-      const prodZh = document.getElementById('production-zh');
-      if(prodZh) prodZh.innerText = current.zh || "";
-
-      const feedbackEl = document.getElementById('prod-feedback-text');
-      const ttsText = document.getElementById('prod-tts-text');
-
-      const ttsBtn = document.getElementById('prod-tts-btn');
-      if (ttsBtn) {
-          ttsBtn.onclick = () => {
-              speakWordCloudCached(current.en, 1.8, null, null); 
-              playMascot('prod-mascot', 'thinking');
-          };
-      }
-
-      if (currentScore !== null) {
-          if (feedbackEl) {
-              feedbackEl.style.display = 'block';
-              feedbackEl.innerHTML = `<span style="color:var(--marian-green); font-weight:900;">得分：${currentScore}</span><br><small>${currentFeedback}</small>`;
-          }
-          if (ttsText) ttsText.style.display = 'none'; 
-          playMascot('prod-mascot', currentScore >= 70 ? 'success' : 'fail');
-          
-          setDockButton(currentIndex === quizData.length - 1 ? '查看結算' : '繼續', true, () => {
-              if (currentIndex < quizData.length - 1) { currentIndex++; renderWord(); } 
-              else { showSummary(); }
-          });
-      } else {
-          if (feedbackEl) feedbackEl.style.display = 'none';
-          if (ttsText) ttsText.style.display = 'inline'; 
-          playMascot('prod-mascot', 'idle');
-          setDockButton('請錄音', false, null);
-      }
-      
-      isGrading = false; isRecording = false;
-      const statusEl = document.getElementById('status');
-      if (statusEl) { statusEl.innerText = "按住錄音，放開打分"; statusEl.style.color = "#afafaf"; }
-  }
-
-
-  function handleClaimReward(avg, reward) {
-    let detailArr = quizData.map((item, i) => ({
-        word: item.en, score: scores[i] || 0,
-        feedback: (window.feedbacks && window.feedbacks[i]) ? window.feedbacks[i] : "尚未錄音",
-        azure_report: (typeof azureReports !== 'undefined' && azureReports[i]) ? azureReports[i] : null
-    }));
-    
-    fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}&mode=${MODE}`, { method: 'POST', body: JSON.stringify(detailArr) })
-      .then(() => { setTimeout(() => { window.location.href = `https://damienkuo123.github.io/marian-app/dashboard.html?id=${STUDENT_ID}`; }, 3000); })
-      .catch(() => { setTimeout(() => { window.location.href = `https://damienkuo123.github.io/marian-app/dashboard.html?id=${STUDENT_ID}`; }, 3000); });
-  }
-
-  // 接著請把你原本下方的 "function fetchBattleDataAndStart(roomId) {" 留著。
   
   window.onload = async () => {
     // 🚀 開發者測試外掛：直接進入高階 AI 抽獎畫面
@@ -3307,6 +2887,46 @@
       }
     }
     submitBtn.onclick = handleClaimReward;
+  }
+
+  function handleClaimReward() {
+    const btn = document.getElementById('submit-btn');
+    const avg = parseInt(document.getElementById('total-avg').innerText);
+    
+    btn.innerText = "正在儲存中...";
+    btn.style.pointerEvents = "none";
+    btn.style.backgroundColor = "#95a5a6";
+
+    let detailArr = [];
+    quizData.forEach((item, i) => {
+      detailArr.push({
+        word: item.en,
+        score: scores[i] || 0,
+        feedback: (window.feedbacks && window.feedbacks[i]) ? window.feedbacks[i] : "尚未錄音",
+        // 🚀 加上微軟的法醫報告
+        azure_report: (typeof azureReports !== 'undefined' && azureReports[i]) ? azureReports[i] : null
+      });
+    });
+    
+    const detailJSON = JSON.stringify(detailArr);
+
+    // 🚀 1. 網址瘦身：把 details 從網址裡面拔掉！只留輕量參數
+    const finalUrl = `${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}&mode=${MODE}`;
+    
+    // 🚀 2. 改走 POST 通道：把巨大資料裝進 body 裡面送！
+    fetch(finalUrl, { 
+        method: 'POST', 
+        body: detailJSON 
+    })
+      .then(() => { 
+        alert(MODE === 'review' ? "👍 練習辛苦了！" : "🎉 挑戰完成！"); 
+        window.location.href = `https://damienkuo123.github.io/marian-app/dashboard.html?id=${STUDENT_ID}`; 
+      }).catch(err => {
+        // 如果遇到極端網路問題
+        console.log("Fetch 失敗", err);
+        alert("🎉 挑戰完成！(已進入背景備用存檔)");
+        window.location.href = `https://damienkuo123.github.io/marian-app/dashboard.html?id=${STUDENT_ID}`;
+      });
   }
   
   function reRead(i) { 
