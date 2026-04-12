@@ -2259,8 +2259,13 @@
       const skeletonContainer = document.getElementById('warmup-word-skeleton');
       const optionsContainer = document.getElementById('warmup-options');
       
-      // 清空所有容器狀態
+      // 🚀 修復問題三：防快速切換爆版。清除上一次還沒執行的自動發音計時器
+      if (window.warmupAutoPlayTimer) clearTimeout(window.warmupAutoPlayTimer);
+
+      // 每次進入前先清空容器與排版
       skeletonContainer.innerHTML = '';
+      // 🚀 修復問題三：加上 removeAttribute，確保排版樣式徹底清空，不會因為快速切換而殘留上一題的 Class
+      optionsContainer.removeAttribute('class');
       optionsContainer.innerHTML = '';
       optionsContainer.className = ''; 
       imgEl.style.display = 'none';
@@ -2268,47 +2273,73 @@
       audioBtn.style.display = 'none';
       audioHint.style.display = 'none'; 
 
-      // 🧠 1. 條件判定 (Rules Engine)
-      const hasImage = (current.img && current.img.trim() !== "");
-      const wordLen = current.en.length;
-      const isSentence = current.en.includes(" ");
-      // 判斷題庫中是否有足夠的其他圖片來做為干擾項 (至少要有 3 張其他的)
-      const availableImages = quizData.filter(q => q.en !== current.en && q.img && q.img.trim() !== "");
-      const canPlayImageChoice = hasImage && availableImages.length >= 3;
+      // 🧠 1. 條件判定 (Rules Engine) 與 記憶卡系統
 
-      // 定義 5 種模式的可用性
-      // 0: 看圖選擇單字 (四選一) -> 隨時可用
-      // 1: 看圖拼出單字 (Tap-to-fill) -> 單字需 >= 3，且不能是句子
-      // 2: 聽音選擇單字 -> 隨時可用
-      // 3: 圖片四選一 -> 必須有圖片，且題庫有足夠干擾圖
-      // 4: 果凍字母陣 -> 單字需 >= 3，且不能是句子
-      
-      let availableModes = [0, 2]; // 絕對安全的保底模式
-      
-      if (wordLen >= 3 && !isSentence) {
-          availableModes.push(1); // 允許拼字
-          availableModes.push(4); // 允許果凍矩陣
-      }
-      if (canPlayImageChoice) {
-          availableModes.push(3); // 允許圖片四選一
+      // 🚀 修復問題二：讀取記憶卡！看看這題是不是已經抽過模式了
+      // 如果 assignedWarmupModes 陣列還沒初始化，就先建立它
+      if (typeof assignedWarmupModes === 'undefined' || assignedWarmupModes.length === 0) {
+          window.assignedWarmupModes = new Array(quizData.length).fill(null);
       }
 
-      // 🎲 隨機抽取一個符合條件的模式
-      const warmupMode = availableModes[Math.floor(Math.random() * availableModes.length)];
+      let warmupMode = assignedWarmupModes[currentIndex];
 
-      console.log(`題型: ${current.en}, 選中模式: ${warmupMode}, 可用模式: ${availableModes}`);
+      // 如果是 null，代表是第一次進入這題，才需要執行派題引擎
+      if (warmupMode === null) {
+          const hasImage = (current.img && current.img.trim() !== "");
+          const wordLen = current.en.length;
+          const isSentence = current.en.includes(" ");
+          // 判斷題庫中是否有足夠的其他圖片來做為干擾項 (至少要有 3 張其他的)
+          const availableImages = quizData.filter(q => q.en !== current.en && q.img && q.img.trim() !== "");
+          const canPlayImageChoice = hasImage && availableImages.length >= 3;
+
+          let availableModes = [0, 2]; // 絕對安全的保底模式
+          
+          if (wordLen >= 3 && !isSentence) {
+              availableModes.push(1); // 允許拼字
+              availableModes.push(4); // 允許果凍矩陣
+          }
+          if (canPlayImageChoice) {
+              availableModes.push(3); // 允許圖片四選一
+          }
+
+          // 🚀 修復問題四：為了確保機率平均，我們直接用隨機數，一直抽到合法模式為止
+          let candidateMode;
+          let safeCounter = 0;
+          do {
+              candidateMode = Math.floor(Math.random() * 5); // 隨機抽 0~4
+              safeCounter++;
+              if (safeCounter > 50) { candidateMode = availableModes[0]; break; } // 防呆：避免無限迴圈
+          } while (!availableModes.includes(candidateMode));
+          
+          warmupMode = candidateMode;
+
+          // 🚀 關鍵：將抽到的結果存入記憶卡，這題以後永遠鎖死這個模式！
+          assignedWarmupModes[currentIndex] = warmupMode; 
+
+          console.log(`[派題引擎] 第 ${currentIndex + 1} 題首次分配模式: ${warmupMode}, 可選池: ${availableModes}`);
+      } else {
+          console.log(`[記憶卡讀取] 第 ${currentIndex + 1} 題已鎖定模式: ${warmupMode}`);
+      }
 
       // 🛡️ 2. 上方視覺區渲染
       if (warmupMode === 2) {
           // 模式 2：純聽音
-          audioBtn.style.display = 'flex';
-          audioHint.style.display = 'flex';
+          audioBtn.style.display = 'flex'; // 🚀 使用 flex 讓內部元素置中
+          audioHint.style.display = 'flex'; // 🚀 顯示防呆提示
+
           audioBtn.onclick = () => {
+              // 點擊時的果凍微動畫 (不用管 scale，因為 CSS 已經寫了 :active 下沉)
               audioBtn.style.transform = "scale(1.1)";
               setTimeout(() => audioBtn.style.transform = "scale(1)", 150);
               speakWordCloudCached(current.en, 1.8, null, null);
           };
-          setTimeout(() => { if(document.getElementById('arcade-zone').style.display !== 'none') audioBtn.click(); }, 300);
+          
+          // 🚀 進入這題時，延遲 0.3 秒「自動唸一次」，並將 timer 存起來以便能被清除
+          window.warmupAutoPlayTimer = setTimeout(() => { 
+              if(document.getElementById('arcade-zone') && document.getElementById('arcade-zone').style.display !== 'none') audioBtn.click(); 
+              // 注意：因為我們目前沒有用 arcade-zone，我幫你加上安全的判斷
+              else if(audioBtn.style.display !== 'none') audioBtn.click();
+          }, 300);
       } else if (warmupMode === 3) {
           // 模式 3：圖片四選一 (上方只顯示單字/中文)
           zhEl.innerText = current.en; // 上方顯示目標單字
@@ -2652,6 +2683,13 @@
   if(rb) {
     const startPracticeRecord = (e) => { 
         if(isGrading || isRecording) return;
+        
+        // 🚀 修復問題一：終極防呆！檢查 Azure 憑證是否已經抓取完畢
+        if (!azureAuthToken) {
+            alert("語音引擎正在連線中，請稍等一兩秒再試！");
+            return;
+        }
+
         e.preventDefault(); 
         isRecording = true;
         
