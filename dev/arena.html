@@ -2276,35 +2276,47 @@
       audioBtn.style.display = 'none';
       audioHint.style.display = 'none'; 
 
-      // 🧠 1. 條件判定 (Rules Engine)
-      const hasImage = (current.img && current.img.trim() !== "");
-      const wordLen = current.en.length;
-      const isSentence = current.en.includes(" ");
-      // 判斷題庫中是否有足夠的其他圖片來做為干擾項 (至少要有 3 張其他的)
-      const availableImages = quizData.filter(q => q.en !== current.en && q.img && q.img.trim() !== "");
-      const canPlayImageChoice = hasImage && availableImages.length >= 3;
+      // 🧠 1. 條件判定 (Rules Engine) 與 記憶卡系統
 
-      // 定義 5 種模式的可用性
-      // 0: 看圖選擇單字 (四選一) -> 隨時可用
-      // 1: 看圖拼出單字 (Tap-to-fill) -> 單字需 >= 3，且不能是句子
-      // 2: 聽音選擇單字 -> 隨時可用
-      // 3: 圖片四選一 -> 必須有圖片，且題庫有足夠干擾圖
-      // 4: 果凍字母陣 -> 單字需 >= 3，且不能是句子
-      
-      let availableModes = [0, 2]; // 絕對安全的保底模式
-      
-      if (wordLen >= 3 && !isSentence) {
-          availableModes.push(1); // 允許拼字
-          availableModes.push(4); // 允許果凍矩陣
+      // 🚀 手術點 3：讀取記憶卡！看看這題是不是已經抽過模式了
+      let warmupMode = assignedWarmupModes[currentIndex];
+
+      // 如果是 null，代表是第一次進入這題，才需要執行派題引擎
+      if (warmupMode === null) {
+          const hasImage = (current.img && current.img.trim() !== "");
+          const wordLen = current.en.length;
+          const isSentence = current.en.includes(" ");
+          // 判斷題庫中是否有足夠的其他圖片來做為干擾項 (至少要有 3 張其他的)
+          const availableImages = quizData.filter(q => q.en !== current.en && q.img && q.img.trim() !== "");
+          const canPlayImageChoice = hasImage && availableImages.length >= 3;
+
+          // 定義 5 種模式的可用性
+          // 0: 看圖選擇單字 (四選一) -> 隨時可用
+          // 1: 看圖拼出單字 (Tap-to-fill) -> 單字需 >= 3，且不能是句子
+          // 2: 聽音選擇單字 -> 隨時可用
+          // 3: 圖片四選一 -> 必須有圖片，且題庫有足夠干擾圖
+          // 4: 果凍字母陣 -> 單字需 >= 3，且不能是句子
+          
+          let availableModes = [0, 2]; // 絕對安全的保底模式
+          
+          if (wordLen >= 3 && !isSentence) {
+              availableModes.push(1); // 允許拼字
+              availableModes.push(4); // 允許果凍矩陣
+          }
+          if (canPlayImageChoice) {
+              availableModes.push(3); // 允許圖片四選一
+          }
+
+          // 🎲 隨機抽取一個符合條件的模式
+          warmupMode = availableModes[Math.floor(Math.random() * availableModes.length)];
+
+          // 🚀 關鍵：將抽到的結果存入記憶卡，這題以後永遠鎖死這個模式！
+          assignedWarmupModes[currentIndex] = warmupMode; 
+
+          console.log(`[派題引擎] 第 ${currentIndex + 1} 題 (${current.en}) 首次分配模式: ${warmupMode}, 可選池: ${availableModes}`);
+      } else {
+          console.log(`[記憶卡讀取] 第 ${currentIndex + 1} 題已鎖定模式: ${warmupMode}`);
       }
-      if (canPlayImageChoice) {
-          availableModes.push(3); // 允許圖片四選一
-      }
-
-      // 🎲 隨機抽取一個符合條件的模式
-      const warmupMode = availableModes[Math.floor(Math.random() * availableModes.length)];
-
-      console.log(`題型: ${current.en}, 選中模式: ${warmupMode}, 可用模式: ${availableModes}`);
 
       // 🛡️ 2. 上方視覺區渲染
       if (warmupMode === 2) {
