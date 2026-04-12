@@ -2079,6 +2079,357 @@
     document.getElementById('next-btn').onclick = () => { if (currentIndex < quizData.length - 1) { currentIndex++; renderWord(); } else { showSummary(); } };
     document.getElementById('back-summary-btn').onclick = () => { isReReading = false; showSummary(); };
   }
+
+  // 🚀 動態心流渲染引擎
+  function renderWord() {
+    const current = quizData[currentIndex];
+    if (!current) return;
+
+    const progFill = document.getElementById('progress-fill');
+    if (progFill && quizData.length > 0) {
+        progFill.style.width = ((currentIndex + 1) / quizData.length) * 100 + "%";
+    }
+
+    if (warmupPassed[currentIndex]) {
+        document.getElementById('warmup-zone').style.display = 'none';
+        document.getElementById('production-zone').style.display = 'flex'; 
+        setupProductionZone(current);
+    } else {
+        document.getElementById('warmup-zone').style.display = 'flex';
+        document.getElementById('production-zone').style.display = 'none';
+        setupWarmupZone(current);
+    }
+  }
+
+  // 🎮 建立暖身小遊戲
+  function setupWarmupZone(current) {
+      const visualCard = document.querySelector('.warmup-visual-card');
+      const audioHint = document.getElementById('warmup-audio-hint'); 
+      const skeletonContainer = document.getElementById('warmup-word-skeleton');
+      const optionsContainer = document.getElementById('warmup-options');
+      
+      if (window.warmupAutoPlayTimer) clearTimeout(window.warmupAutoPlayTimer);
+
+      skeletonContainer.innerHTML = '';
+      optionsContainer.removeAttribute('class');
+      optionsContainer.innerHTML = '';
+      audioHint.style.display = 'none'; 
+
+      visualCard.innerHTML = `
+          <img id="warmup-img" src="" alt="提示圖片" style="display: none; width: 100%; height: auto; border-radius: 16px; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+          <div id="warmup-zh" style="display: none; font-size: clamp(24px, 7vw, 32px); font-weight: 900; color: #334155; letter-spacing: 2px; word-break: break-word; overflow-wrap: break-word; text-align: center; width: 100%; line-height: 1.4; padding: 10px;"></div>
+          <button id="warmup-audio-btn" class="btn-listen-huge" style="display: none;">
+            <span class="icon">👂</span>
+            <span class="text">聽音辨字</span>
+          </button>
+      `;
+
+      const imgEl = document.getElementById('warmup-img');
+      const zhEl = document.getElementById('warmup-zh');
+      const audioBtn = document.getElementById('warmup-audio-btn');
+
+      if (!assignedWarmupModes || assignedWarmupModes.length === 0) {
+          assignedWarmupModes = new Array(quizData.length).fill(null);
+      }
+
+      let warmupMode = assignedWarmupModes[currentIndex];
+
+      if (warmupMode === null) {
+          const hasImage = (current.img && current.img.trim() !== "");
+          const wordLen = current.en.length;
+          const isSentence = current.en.includes(" ");
+          const availableImages = quizData.filter(q => q.en !== current.en && q.img && q.img.trim() !== "");
+          const canPlayImageChoice = hasImage && availableImages.length >= 3;
+
+          let availableModes = [0, 2]; 
+          if (wordLen >= 3 && !isSentence) { availableModes.push(1); availableModes.push(4); }
+          if (canPlayImageChoice) { availableModes.push(3); }
+
+          let candidateMode; let safeCounter = 0;
+          do {
+              candidateMode = Math.floor(Math.random() * 5); 
+              safeCounter++;
+              if (safeCounter > 50) { candidateMode = availableModes[0]; break; } 
+          } while (!availableModes.includes(candidateMode));
+          
+          warmupMode = candidateMode;
+          assignedWarmupModes[currentIndex] = warmupMode; 
+      }
+
+      if (warmupMode === 2) {
+          if(audioBtn) audioBtn.style.display = 'flex'; 
+          if(audioHint) audioHint.style.display = 'flex'; 
+          if(audioBtn) {
+              audioBtn.onclick = () => {
+                  audioBtn.style.transform = "scale(1.1)";
+                  setTimeout(() => audioBtn.style.transform = "scale(1)", 150);
+                  speakWordCloudCached(current.en, 1.8, null, null);
+              };
+          }
+          window.warmupAutoPlayTimer = setTimeout(() => { 
+              if(audioBtn && audioBtn.style.display !== 'none') audioBtn.click();
+          }, 300);
+      } else if (warmupMode === 3) {
+          if(zhEl) {
+              zhEl.innerText = current.en; 
+              zhEl.style.fontSize = "clamp(30px, 8vw, 45px)";
+              zhEl.style.display = 'block';
+              zhEl.style.color = "var(--primary-blue)";
+          }
+      } else {
+          if (current.img && current.img.trim() !== "") {
+              if(imgEl) {
+                  imgEl.src = current.img.includes('sz=') ? current.img.replace(/sz=w\d+/, 'sz=w400') : current.img;
+                  imgEl.style.display = 'block';
+              }
+          } else {
+              if(zhEl) {
+                  zhEl.innerText = current.zh || "看字發音";
+                  zhEl.style.display = 'block';
+                  zhEl.style.fontSize = "clamp(24px, 7vw, 32px)";
+                  zhEl.style.color = "#334155";
+              }
+          }
+      }
+
+      setDockButton('請回答問題', false, null);
+
+      const proceedToNext = () => {
+          try { const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'); audio.volume=0.5; audio.play(); } catch(e){}
+          setDockButton('繼續', true, () => {
+              warmupPassed[currentIndex] = true;
+              renderWord();
+          });
+      };
+
+      const handleWrong = (element) => {
+          element.classList.remove('wrong');
+          void element.offsetWidth; 
+          element.classList.add('wrong');
+      };
+
+      if (warmupMode === 0 || warmupMode === 2) {
+          skeletonContainer.style.display = 'none';
+          optionsContainer.classList.add('list-mode');
+          let distractors = getWordDistractors(current.en, 3);
+          let finalOptions = [current.en, ...distractors].sort(() => Math.random() - 0.5);
+
+          finalOptions.forEach(opt => {
+              let btn = document.createElement('button');
+              btn.className = 'btn-choice-list'; 
+              btn.innerText = opt;
+              btn.onclick = function() {
+                  if (opt === current.en) { this.classList.add('correct'); proceedToNext(); } 
+                  else { handleWrong(this); }
+              };
+              optionsContainer.appendChild(btn);
+          });
+      } else if (warmupMode === 3) {
+          skeletonContainer.style.display = 'none';
+          optionsContainer.classList.add('grid-image-mode');
+          let distractors = getImageDistractors(current.en, 3);
+          let finalOptions = [{img: current.img, isCorrect: true}, ...distractors].sort(() => Math.random() - 0.5);
+
+          finalOptions.forEach(opt => {
+              let btn = document.createElement('button');
+              btn.className = 'btn-image-choice';
+              let iEl = document.createElement('img');
+              iEl.src = opt.img.includes('sz=') ? opt.img.replace(/sz=w\d+/, 'sz=w400') : opt.img;
+              btn.appendChild(iEl);
+
+              btn.onclick = function() {
+                  optionsContainer.classList.add('has-answered'); 
+                  if (opt.isCorrect) { this.classList.add('correct'); proceedToNext(); } 
+                  else { handleWrong(this); }
+              };
+              optionsContainer.appendChild(btn);
+          });
+      } else if (warmupMode === 1) {
+          skeletonContainer.style.display = 'flex'; 
+          const wordStr = current.en.toUpperCase();
+          let targetCharObj = extractMissingTarget(wordStr); 
+          
+          for (let i = 0; i < wordStr.length; i++) {
+              let char = wordStr[i];
+              if (char === ' ' || char === '-') skeletonContainer.innerHTML += `<span style="width: 15px;"></span>`;
+              else if (i === targetCharObj.index) skeletonContainer.innerHTML += `<span class="skeleton-char" id="skel-target"></span>`;
+              else skeletonContainer.innerHTML += `<span class="skeleton-char filled">${char}</span>`;
+          }
+
+          let options = generateDistractors(targetCharObj.char);
+          options.forEach(opt => {
+              let btn = document.createElement('button');
+              btn.className = 'btn-tap-fill'; btn.innerText = opt;
+              btn.onclick = function() {
+                  if (opt === targetCharObj.char) {
+                      this.classList.add('correct');
+                      document.getElementById('skel-target').innerText = opt;
+                      document.getElementById('skel-target').classList.add('filled');
+                      proceedToNext();
+                  } else { handleWrong(this); }
+              };
+              optionsContainer.appendChild(btn);
+          });
+      } else if (warmupMode === 4) {
+          skeletonContainer.style.display = 'none';
+          optionsContainer.classList.add('word-search-mode');
+          const word = current.en.toUpperCase().replace(/\s+/g, ''); 
+          const cols = 6; const rows = Math.max(4, Math.ceil((word.length + 10) / cols)); 
+          optionsContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+          const { matrix, path } = generateWordSearchMatrix(word, cols, rows);
+          let selectedPath = []; 
+
+          matrix.forEach((row, y) => {
+              row.forEach((char, x) => {
+                  let btn = document.createElement('button');
+                  btn.className = 'ws-letter'; btn.innerText = char; btn.dataset.x = x; btn.dataset.y = y;
+
+                  btn.onclick = function() {
+                      if (selectedPath.length >= 2) return;
+                      selectedPath.push({x: x, y: y, el: this});
+                      this.classList.add('selected');
+
+                      if (selectedPath.length === 2) {
+                          const p1 = selectedPath[0]; const p2 = selectedPath[1];
+                          const isMatch = 
+                              (p1.x === path[0].x && p1.y === path[0].y && p2.x === path[path.length-1].x && p2.y === path[path.length-1].y) ||
+                              (p1.x === path[path.length-1].x && p1.y === path[path.length-1].y && p2.x === path[0].x && p2.y === path[0].y);
+
+                          if (isMatch) {
+                              path.forEach((pObj, pIdx) => {
+                                  setTimeout(() => {
+                                      let targetBtn = optionsContainer.children[pObj.y * cols + pObj.x];
+                                      targetBtn.classList.remove('selected'); targetBtn.classList.add('correct-path');
+                                  }, pIdx * 80); 
+                              });
+                              proceedToNext();
+                          } else {
+                              p1.el.classList.add('wrong-path'); p2.el.classList.add('wrong-path');
+                              setTimeout(() => {
+                                  p1.el.classList.remove('selected', 'wrong-path');
+                                  p2.el.classList.remove('selected', 'wrong-path');
+                                  selectedPath = []; 
+                              }, 500);
+                          }
+                      }
+                  };
+                  optionsContainer.appendChild(btn);
+              });
+          });
+      }
+  }
+
+  // 🎙️ 建立開口決戰區
+  function setupProductionZone(current) {
+      const wordDisplay = document.getElementById('word-display');
+      const currentScore = scores[currentIndex];
+      const currentFeedback = (window.feedbacks && window.feedbacks[currentIndex]) ? window.feedbacks[currentIndex] : "";
+      
+      const charCount = current.en.length;
+      if (charCount > 20) wordDisplay.style.fontSize = "32px";
+      else if (charCount > 10) wordDisplay.style.fontSize = "42px";
+      else wordDisplay.style.fontSize = "52px";
+
+      const existingReport = azureReports[currentIndex];
+      if (existingReport) { wordDisplay.innerHTML = generateColoredHTML(existingReport, current.en); } 
+      else { wordDisplay.innerText = current.en; wordDisplay.style.color = "#0d47a1"; }
+
+      const prodZh = document.getElementById('production-zh');
+      if(prodZh) prodZh.innerText = current.zh || "";
+
+      const feedbackEl = document.getElementById('prod-feedback-text');
+      const ttsText = document.getElementById('prod-tts-text');
+
+      const ttsBtn = document.getElementById('prod-tts-btn');
+      if (ttsBtn) {
+          ttsBtn.onclick = () => {
+              speakWordCloudCached(current.en, 1.8, null, null); 
+              playMascot('prod-mascot', 'thinking');
+          };
+      }
+
+      if (currentScore !== null) {
+          if (feedbackEl) {
+              feedbackEl.style.display = 'block';
+              feedbackEl.innerHTML = `<span style="color:var(--marian-green); font-weight:900;">得分：${currentScore}</span><br><small>${currentFeedback}</small>`;
+          }
+          if (ttsText) ttsText.style.display = 'none'; 
+          playMascot('prod-mascot', currentScore >= 70 ? 'success' : 'fail');
+          
+          setDockButton(currentIndex === quizData.length - 1 ? '查看結算' : '繼續', true, () => {
+              if (currentIndex < quizData.length - 1) { currentIndex++; renderWord(); } 
+              else { showSummary(); }
+          });
+      } else {
+          if (feedbackEl) feedbackEl.style.display = 'none';
+          if (ttsText) ttsText.style.display = 'inline'; 
+          playMascot('prod-mascot', 'idle');
+          setDockButton('請錄音', false, null);
+      }
+      
+      isGrading = false; isRecording = false;
+      const statusEl = document.getElementById('status');
+      if (statusEl) { statusEl.innerText = "按住錄音，放開打分"; statusEl.style.color = "#afafaf"; }
+  }
+
+  // 🏆 結算與傳送機制
+  function showSummary() {
+    document.getElementById('top-nav-bar').style.display = 'none';
+    document.getElementById('studio').style.display = 'none';
+    document.getElementById('summary').style.display = 'block';
+    
+    let sum = 0, count = 0;
+    const list = document.getElementById('word-list');
+    list.innerHTML = "";
+
+    quizData.forEach((item, i) => {
+      let s = scores[i] || 0;
+      let f = (window.feedbacks && window.feedbacks[i]) ? window.feedbacks[i] : "尚未錄音";
+      sum += s; count++;
+      list.innerHTML += `<tr><td><b style="color:#0d47a1">${item.en}</b><br><span style="color:#afafaf; font-size:14px">${item.zh}</span><br><p style="margin:5px 0; font-size:13px; color:#4b4b4b;">💡 ${f}</p></td><td><span class="score-badge">${s} 分</span></td></tr>`;
+    });
+
+    const avg = count > 0 ? Math.round(sum / count) : 0;
+    document.getElementById('total-avg').innerText = avg;
+    const rewardHint = document.getElementById('reward-hint');
+
+    if (MODE === 'review') {
+        rewardHint.innerText = `✅ 練習完成！`;
+        setDockButton('完成練習', true, () => handleClaimReward(avg, 0));
+    } else {
+        if (avg >= 70) {
+            let reward = (avg >= 90) ? 30 : (avg >= 80 ? 10 : 0);
+            rewardHint.innerText = reward > 0 ? `🎁 可獲得：${reward} 點` : `✅ 挑戰成功！`;
+            
+            setDockButton('領取獎勵', true, () => {
+                document.getElementById('summary').style.display = 'none';
+                document.querySelector('.bottom-dock').style.display = 'none'; 
+                document.getElementById('epic-reward-zone').style.display = 'flex';
+                document.getElementById('reward-points-display').innerText = reward;
+                
+                playMascot('epic-mascot', 'epic'); 
+                handleClaimReward(avg, reward);
+            });
+        } else {
+            rewardHint.innerText = `❌ 平均需達 70 分才能領獎`;
+            setDockButton('平均需達 70 分才能領獎', false, null);
+        }
+    }
+  }
+
+  function handleClaimReward(avg, reward) {
+    let detailArr = quizData.map((item, i) => ({
+        word: item.en, score: scores[i] || 0,
+        feedback: (window.feedbacks && window.feedbacks[i]) ? window.feedbacks[i] : "尚未錄音",
+        azure_report: (typeof azureReports !== 'undefined' && azureReports[i]) ? azureReports[i] : null
+    }));
+    
+    fetch(`${GAS_URL}?id=${STUDENT_ID}&action=add_score&score=${avg}&mode=${MODE}`, { method: 'POST', body: JSON.stringify(detailArr) })
+      .then(() => { setTimeout(() => { window.location.href = `https://damienkuo123.github.io/marian-app/dashboard.html?id=${STUDENT_ID}`; }, 3000); })
+      .catch(() => { setTimeout(() => { window.location.href = `https://damienkuo123.github.io/marian-app/dashboard.html?id=${STUDENT_ID}`; }, 3000); });
+  }
+
+  // 接著請把你原本下方的 "function fetchBattleDataAndStart(roomId) {" 留著。
   
   window.onload = async () => {
     // 🚀 開發者測試外掛：直接進入高階 AI 抽獎畫面
