@@ -2021,12 +2021,15 @@
   }
 
   const originalOnload = async () => {
-    if(TARGET_UNIT) {
-        const unitDisplay = document.getElementById('unit-title-display');
-        if (unitDisplay) unitDisplay.innerText = `今天挑戰：${TARGET_UNIT}`;
-    }
-    
     playMascot('setup-mascot', 'idle'); // 開始畫面精靈待機
+    
+    // 🚀 局部修正 2：對話框一句一句替換的動畫
+    const speechText = document.getElementById('setup-speech-text');
+    if (speechText) {
+        speechText.innerText = "嗨～我們來增進英語口說吧！";
+        setTimeout(() => { speechText.innerText = `今天挑戰：${TARGET_UNIT || '新單元'}`; }, 2000);
+        setTimeout(() => { speechText.innerText = "準備好了嗎！Here we go~"; }, 4000);
+    }
     
     // 初始化底座按鈕為「開始」
     setDockButton('開始', true, async () => {
@@ -2048,10 +2051,16 @@
             
             document.getElementById('total-display').innerText = quizData.length;
             document.getElementById('setup-zone').style.display = 'none';
-            document.getElementById('top-nav-bar').style.display = 'flex'; // 秀出進度列
+            document.getElementById('top-nav-bar').style.display = 'flex'; 
             document.getElementById('studio').style.display = 'block';
             
+            attachButtonListeners(); // 🚀 關鍵：把按鈕監聽器加回來，不然麥克風會壞掉
             renderWord();
+          }).catch(err => {
+            // 🚀 加入錯誤捕捉，萬一網路出錯不會卡死在「連線中...」
+            console.error("載入失敗:", err);
+            alert("題目載入失敗，請重試！");
+            setDockButton('重試', true, handleDockClick);
           });
     });
     hideLoadingScreen();
