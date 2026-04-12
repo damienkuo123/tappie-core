@@ -131,6 +131,39 @@
       position: relative; z-index: 100; /* 🚀 確保面板在所有東西上面 */
     }
     
+    /* =======================================================
+       🌟 瑪麗安 3.0：暖身專屬 Juicy 果凍漸層與過關動畫
+       ======================================================= */
+    
+    /* 確保主卡片有平滑的過渡效果 */
+    .main-panel {
+      transition: background 0.6s ease, box-shadow 0.6s ease, border-color 0.6s ease !important;
+    }
+    
+    /* 🚀 暖身狀態下的背景 (會像呼吸一樣緩慢移動的漸層) */
+    .main-panel.warmup-bg {
+      background: linear-gradient(120deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%);
+      background-size: 200% 200%;
+      animation: gradient-shift 4s ease infinite;
+      border-color: #bae6fd;
+      box-shadow: 0 15px 35px rgba(0, 102, 204, 0.12), inset 0 0 20px rgba(255,255,255,0.9);
+    }
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ✅ 完成暖身的打勾彈出特效 */
+    .check-pop {
+      animation: check-pop-anim 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes check-pop-anim {
+      0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+      50% { transform: scale(1.4) rotate(10deg); opacity: 1; }
+      100% { transform: scale(1.1) rotate(0deg); opacity: 1; }
+    }
+    
     /* 🚀 讓按鈕在被按下去時有明顯的觸感回饋 */
     .btn:active, .btn-play:active { transform: scale(0.92); opacity: 0.8; }
     #record-btn { background: var(--marian-red); width: 110px; height: 110px; border-radius: 50%; border: 8px solid white; font-size: 45px; box-shadow: 0 6px 15px rgba(214, 48, 49, 0.4); margin: 20px auto; cursor: pointer; display: none; outline: none; }
@@ -2255,15 +2288,20 @@
         }
     }
   }
-  // 🎮 建立暖身小遊戲 (五大模式智能派題引擎)
+  // 🎮 建立暖身小遊戲 (五大模式智能派題引擎 - 終極記憶鎖定版)
   function setupWarmupZone(current) {
-      // 🚀 手術點 1：抓取父容器，準備實體重建防殘留
       const visualCard = document.querySelector('.warmup-visual-card');
       const audioHint = document.getElementById('warmup-audio-hint'); 
       const skeletonContainer = document.getElementById('warmup-word-skeleton');
       const optionsContainer = document.getElementById('warmup-options');
       
       if (window.warmupAutoPlayTimer) clearTimeout(window.warmupAutoPlayTimer);
+
+      // 🚀 手術 3-A：套用漸層底色與暖身標題
+      document.getElementById('main-card').classList.add('warmup-bg'); 
+      document.getElementById('normal-header').style.display = 'none';
+      document.getElementById('warmup-header').style.display = 'flex';
+      document.getElementById('warmup-check').classList.remove('check-pop'); // 確保打勾藏起來
 
       skeletonContainer.innerHTML = '';
       optionsContainer.removeAttribute('class');
@@ -2357,9 +2395,18 @@
       // ==========================================
       // 🕹️ 3. 下方互動區渲染與邏輯
       // ==========================================
+      // 🚀 手術 3-B：過關時先秀打勾，再切換畫面
       const proceedToNext = () => {
           try { const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'); audio.volume=0.5; audio.play(); } catch(e){}
-          setTimeout(() => { warmupPassed[currentIndex] = true; renderWord(); }, 600);
+          
+          // 彈出綠色打勾！
+          document.getElementById('warmup-check').classList.add('check-pop');
+          
+          // 延遲 800 毫秒，讓學生看清楚打勾的成就感，然後才進入下一階段
+          setTimeout(() => { 
+              warmupPassed[currentIndex] = true; 
+              renderWord(); 
+          }, 800);
       };
 
       const handleWrong = (element) => {
@@ -2620,8 +2667,13 @@
       return { matrix, path };
   }
 
-  // 🎙️ 建立開口決戰區 (保留你原本的所有強大機制)
+  // 🎙️ 建立開口決戰區 
   function setupProductionZone(current) {
+      // 🚀 手術 3-C：移除漸層底色，恢復純白嚴肅的錄音標題
+      document.getElementById('main-card').classList.remove('warmup-bg');
+      document.getElementById('normal-header').style.display = 'block';
+      document.getElementById('warmup-header').style.display = 'none';
+      
       const wordDisplay = document.getElementById('word-display');
       const rb = document.getElementById('record-btn');
       
