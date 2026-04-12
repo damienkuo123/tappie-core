@@ -2752,19 +2752,30 @@
       // 🚀 關鍵修復：在這裡把中文印出來！
       document.getElementById('production-zh').innerText = current.zh || "";
       
-      // 按鈕重置
-      document.getElementById('play-btn').disabled = false;
-      if (rb) {
-          rb.style.display = 'block';
-          rb.style.pointerEvents = "auto"; 
-          rb.style.opacity = "1";
-          rb.classList.remove('active');
+      document.getElementById('prod-feedback-text').style.display = 'none';
+      document.getElementById('prod-tts-btn').onclick = () => {
+          playModularAudio(null, current.en); // 呼叫你原本的發音引擎
+          playMascot('prod-mascot', 'thinking');
+      };
+
+      if (currentScore !== null) {
+          // 已錄音狀態：顯示回饋、解鎖繼續按鈕
+          document.getElementById('prod-feedback-text').style.display = 'block';
+          document.getElementById('prod-feedback-text').innerHTML = `得分：${currentScore}<br><small>${currentFeedback}</small>`;
+          playMascot('prod-mascot', currentScore >= 70 ? 'success' : 'fail');
+          
+          setDockButton(currentIndex === quizData.length - 1 ? '查看結算' : '繼續', true, () => {
+              if (currentIndex < quizData.length - 1) { currentIndex++; renderWord(); } 
+              else { showSummary(); }
+          });
+      } else {
+          // 未錄音狀態：鎖死按鈕
+          playMascot('prod-mascot', 'idle');
+          setDockButton('請錄音', false, null);
       }
       
-      isGrading = false;
-      isRecording = false;
+      isGrading = false; isRecording = false;
       document.getElementById('status').innerText = "按住錄音，放開打分";
-      document.getElementById('status').style.color = "#636e72"; 
   }
   
   let isGrading = false; 
