@@ -2760,7 +2760,12 @@
       
       const currentScore = scores[currentIndex];
       const currentFeedback = (window.feedbacks && window.feedbacks[currentIndex]) ? window.feedbacks[currentIndex] : "";
-      document.getElementById('feedback').innerHTML = currentScore !== null ? `得分：${currentScore}<br><small>${currentFeedback}</small>` : "";
+      
+      // 🛡️ 防呆鎖：我們已經把舊的 feedback 刪除了，加上檢查避免當機
+      const oldFeedback = document.getElementById('feedback');
+      if (oldFeedback) {
+          oldFeedback.innerHTML = currentScore !== null ? `得分：${currentScore}<br><small>${currentFeedback}</small>` : "";
+      }
 
       // 字體智慧縮放
       const charCount = current.en.length;
