@@ -1641,9 +1641,11 @@
 
   let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
   let warmupPassed = []; // 🧠 記錄這 10 題有哪些已經通過暖身了
-  let azureReports = []; // 🚀 專門用來收集微軟的法醫級音素報告
+  let assignedWarmupModes = []; // 🚀 新增：記錄每一題「抽中」的遊戲模式，防重抽！
+  let azureReports = []; 
   let audioContext, analyser, dataArray, source, gradingInterval;
   let maxVolume = 0;
+  let warmupAutoPlayTimer = null; // 🚀 新增：防快速切換連點的計時器
   
   let hasUsedSkill = false; 
   let isUltimateMode = false; 
@@ -1938,7 +1940,8 @@
         if (!data.words || data.words.length === 0) { alert("題目為空"); return; }
         quizData = data.words; 
         scores = new Array(quizData.length).fill(null);
-        warmupPassed = new Array(quizData.length).fill(false); // 🚀 補上這行：初始化暖身記憶體
+        warmupPassed = new Array(quizData.length).fill(false); 
+        assignedWarmupModes = new Array(quizData.length).fill(null); // 🚀 補上這行：初始化遊戲記憶卡
         
         document.getElementById('total-display').innerText = quizData.length;
         document.getElementById('setup-zone').style.display = 'none';
@@ -2652,6 +2655,13 @@
   if(rb) {
     const startPracticeRecord = (e) => { 
         if(isGrading || isRecording) return;
+        
+        // 🚀 終極防呆：檢查 Azure 憑證是否已經抓取完畢！
+        if (!azureAuthToken) {
+            alert("語音引擎正在連線中，請稍等一兩秒再試！");
+            return;
+        }
+
         e.preventDefault(); 
         isRecording = true;
         
