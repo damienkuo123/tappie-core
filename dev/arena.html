@@ -626,15 +626,13 @@
          </div>
          
          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; min-height: 250px;">
-             
-             <div id="score-display" style="height: 35px; font-size: 26px; font-weight: 900; margin-bottom: 5px; opacity: 0; transition: opacity 0.3s; letter-spacing: 1px;"></div>
-
-             <div style="margin-bottom: 10px;">
+             <div style="margin-bottom: 20px;">
                <h1 id="word-display" style="margin:0;">載入中...</h1>
-               <div id="production-zh"></div>
+               <div id="production-zh" style="font-size: 18px; color: #afafaf; font-weight: bold; margin-top: 5px;"></div>
              </div>
 
              <button type="button" id="record-btn" oncontextmenu="return false;">🎤</button>
+             <p id="status" style="font-weight:bold; color:#afafaf; margin-top: 15px; font-size:14px;">按住錄音，放開打分</p>
          </div>
       </div>
     </div>
@@ -1341,23 +1339,18 @@
       return { matrix, path };
   }
 
-  // 🎙️ 升級版：開口決戰區 (自體修復防呆 + 對話框 3秒切換)
+  // 🎙️ 升級版：開口決戰區 (對接隨機精靈)
   function setupProductionZone(current) {
       const wordDisplay = document.getElementById('word-display');
       const rb = document.getElementById('record-btn');
-      
-      // 🛡️ 終極防呆：如果 HTML 漏了分數預留區，JS 自動幫你生出來！絕對不當機！
-      let scoreEl = document.getElementById('score-display');
-      if (!scoreEl && wordDisplay) {
-          scoreEl = document.createElement('div');
-          scoreEl.id = 'score-display';
-          scoreEl.style = "height: 35px; font-size: 26px; font-weight: 900; margin-bottom: 5px; opacity: 0; transition: opacity 0.3s; letter-spacing: 1px;";
-          wordDisplay.parentNode.insertBefore(scoreEl, wordDisplay);
-      }
-
       const currentScore = scores[currentIndex];
       const currentFeedback = (window.feedbacks && window.feedbacks[currentIndex]) ? window.feedbacks[currentIndex] : "";
       
+      const charCount = current.en.length;
+      if (charCount > 20) wordDisplay.style.fontSize = "32px";
+      else if (charCount > 10) wordDisplay.style.fontSize = "42px";
+      else wordDisplay.style.fontSize = "52px";
+
       const existingReport = azureReports[currentIndex];
       if (existingReport) { wordDisplay.innerHTML = generateColoredHTML(existingReport, current.en); } 
       else { wordDisplay.innerText = current.en; wordDisplay.style.color = "#0d47a1"; }
@@ -1366,38 +1359,25 @@
       if(prodZh) prodZh.innerText = current.zh || "";
 
       const feedbackEl = document.getElementById('prod-feedback-text');
-      const ttsBtnWrap = document.getElementById('prod-tts-btn'); 
+      const ttsText = document.getElementById('prod-tts-text');
 
-      if (window.bubbleTimeout) clearTimeout(window.bubbleTimeout);
-
+      // 🚀 智慧隨機精靈指派：這題有精靈了嗎？沒有就抽一隻！
       if (!assignedMascots[currentIndex]) {
           assignedMascots[currentIndex] = AVAILABLE_MASCOTS[Math.floor(Math.random() * AVAILABLE_MASCOTS.length)];
       }
       const currentMascot = assignedMascots[currentIndex];
 
       if (currentScore !== null) {
-          // 🚀 1. 分數獨立顯示在單字上方
-          const fbColor = currentScore >= 70 ? 'var(--marian-green)' : '#ea1537';
-          if (scoreEl) {
-              scoreEl.innerHTML = `<span style="color:${fbColor};">得分：${currentScore}</span>`;
-              scoreEl.style.opacity = "1"; 
-          }
-
-          // 🚀 2. 對話框只顯示導師純文字回饋
           if (feedbackEl) {
               feedbackEl.style.display = 'block';
-              feedbackEl.innerHTML = currentFeedback;
+              // 依據分數給予不同顏色的文字回饋
+              const fbColor = currentScore >= 70 ? 'var(--marian-green)' : '#ea1537';
+              feedbackEl.innerHTML = `<span style="color:${fbColor}; font-weight:900;">得分：${currentScore}</span><br><small>${currentFeedback}</small>`;
           }
-          if (ttsBtnWrap) ttsBtnWrap.style.display = 'none'; 
-          
+          if (ttsText) ttsText.style.display = 'none'; 
           playMascot('prod-mascot', currentScore >= 70 ? 'success' : 'fail', currentMascot); 
           
-          // 🚀 3. 三秒後，對話框變回「我來唸一次」
-          window.bubbleTimeout = setTimeout(() => {
-              if (feedbackEl) feedbackEl.style.display = 'none';
-              if (ttsBtnWrap) ttsBtnWrap.style.display = 'flex';
-          }, 3000);
-
+          // 🚀 依據分數變換底部顏色 (>=70亮綠色，<70亮紅色)
           const isPass = currentScore >= 70;
           setDockButton(
               currentIndex === quizData.length - 1 ? '查看結算' : '繼續', 
@@ -1409,21 +1389,15 @@
               isPass ? 'correct' : 'wrong'
           );
       } else {
-          if (scoreEl) {
-              scoreEl.style.opacity = "0"; 
-              scoreEl.innerHTML = "";
-          }
-          
           if (feedbackEl) feedbackEl.style.display = 'none';
-          if (ttsBtnWrap) ttsBtnWrap.style.display = 'flex'; 
+          if (ttsText) ttsText.style.display = 'inline'; 
           playMascot('prod-mascot', 'idle', currentMascot); 
           
-          setDockButton('請錄音', false, null);
+          setDockButton('請錄音', false, null); // 預設白底
       }
       
-      // 🚀 4. 解開封印按鈕 (只要前面沒當機，這裡就一定會執行)
       if (rb) {
-          rb.style.display = 'flex';
+          rb.style.display = 'block';
           rb.style.pointerEvents = "auto"; 
           rb.style.opacity = "1";
           rb.classList.remove('active');
