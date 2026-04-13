@@ -195,22 +195,37 @@
           margin-top: -10px; /* 稍微往上提，貼合腳底 */
       }
 
-      /* 💬 動態彈性對話框 */
+      /* 🌟 實體 2D 陰影 (移除模糊，加高橢圓，完美貼合扁平風) */
+      .mascot-container {
+          position: relative;
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+      }
+      .mascot-shadow {
+          width: 70px; height: 18px; /* 加高橢圓，不要太扁 */
+          background: #e5e5e5; /* 純色扁平灰，絕對不模糊 */
+          border-radius: 50%;
+          margin-top: -8px; 
+      }
+
+      /* 💬 對話框與字體統一 (強制特粗體與合適的字級) */
       .speech-bubble { 
           background: #ffffff; border: 2px solid #e5e5e5; border-radius: 20px; 
-          padding: 15px 20px; position: relative; 
-          max-width: 65%; /* 限制最大寬度，避免文字貼邊 */
-          width: fit-content; /* 內容多寬就多寬 */
-          min-height: 50px; /* 給予基本高度 */
+          padding: 14px 20px; position: relative; 
+          max-width: 65%; width: fit-content; min-height: 50px; 
           text-align: left; box-shadow: 0 4px 0 #e5e5e5; 
-          color: #4b4b4b; font-weight: bold; 
+          color: #4b4b4b; font-weight: 800; /* 統一字重 */
+          font-size: 16px; line-height: 1.4; /* 統一字級與行高 */
           display: flex; flex-direction: column; justify-content: center; 
-          word-break: break-word; /* 允許長文字換行 */
-          margin-bottom: 15px; /* 把對話框往上提一點，對齊精靈嘴巴 */
+          word-break: break-word; margin-bottom: 15px; 
       }
-      /* 調整小尾巴的位置 */
       .speech-bubble.left-tail::before { content: ""; position: absolute; left: -14px; bottom: 25px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 14px solid #e5e5e5; }
       .speech-bubble.left-tail::after { content: ""; position: absolute; left: -10px; bottom: 25px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 12px solid #ffffff; }
+      
+      /* 確保單字與中文翻譯的字體也統一粗細 */
+      #word-display { font-size: clamp(35px, 8vw, 45px) !important; color: #4b4b4b; font-weight: 900 !important; margin-bottom: 5px; }
+      #production-zh { font-size: 18px; color: #afafaf; font-weight: 800; margin-bottom: 15px; }
   
       .btn-choice-list, .btn-tap-fill, .btn-image-choice, .ws-letter { background: #ffffff; border: 2px solid #e5e5e5; border-bottom-width: 4px; border-radius: 16px; font-weight: 800; width: 100%; box-sizing: border-box; }
       .btn-choice-list.correct, .btn-tap-fill.correct, .btn-image-choice.correct, .ws-letter.correct-path { background: #d7ffb8; border-color: #58cc02; color: #58a700; }
