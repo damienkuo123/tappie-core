@@ -173,52 +173,43 @@
       .btn-dock.wrong-btn { background: #ff4b4b; border-color: #ea1537; color: white; }
       .btn-dock.wrong-btn:active { border-bottom-width: 2px; transform: translateY(4px); margin-top: 4px; }
   
-      /* 🚀 修正排版：精靈靠左對齊，建立對話流動感 */
+      /* 🚀 修正排版：精靈與標題靠左對齊，緊湊對話流 */
       .avatar-bubble-row { 
-          display: flex; align-items: flex-end; /* 讓精靈與對話框底部對齊 */
-          justify-content: flex-start; /* 靠左排列 */
-          gap: 15px; margin-bottom: 20px; flex-shrink: 0; width: 100%; 
-          padding: 0 10px; box-sizing: border-box;
+          display: flex; align-items: flex-end; 
+          justify-content: flex-start; /* 強制靠左 */
+          gap: 10px; margin-bottom: 20px; flex-shrink: 0; width: 100%; 
+          padding: 0 15px; box-sizing: border-box;
       }
       
-      /* 🌟 實體陰影產生器：利用外層容器製造地面陰影 */
+      /* 🌟 2D 實體陰影：絕對定位貼合腳底，無模糊純色 */
       .mascot-container {
           position: relative;
           display: inline-flex;
           flex-direction: column;
           align-items: center;
+          width: 140px; /* 對齊精靈的寬度 */
       }
       .mascot-shadow {
-          width: 60%; height: 12px;
-          background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 70%);
+          position: absolute;
+          bottom: 6px; /* 絕對定位，緊貼精靈腳底 */
+          left: 50%;
+          transform: translateX(-50%);
+          width: 75px; height: 22px; /* 比例完美的橢圓，不會過扁 */
+          background: #e5e5e5; /* 純色實體灰，沒有漸層！ */
           border-radius: 50%;
-          margin-top: -10px; /* 稍微往上提，貼合腳底 */
+          z-index: -1; /* 藏在精靈圖層後方 */
       }
 
-      /* 🌟 實體 2D 陰影 (移除模糊，加高橢圓，完美貼合扁平風) */
-      .mascot-container {
-          position: relative;
-          display: inline-flex;
-          flex-direction: column;
-          align-items: center;
-      }
-      .mascot-shadow {
-          width: 70px; height: 18px; /* 加高橢圓，不要太扁 */
-          background: #e5e5e5; /* 純色扁平灰，絕對不模糊 */
-          border-radius: 50%;
-          margin-top: -8px; 
-      }
-
-      /* 💬 對話框與字體統一 (強制特粗體與合適的字級) */
+      /* 💬 動態彈性對話框與全站字體統一 (Extra Bold) */
       .speech-bubble { 
           background: #ffffff; border: 2px solid #e5e5e5; border-radius: 20px; 
-          padding: 14px 20px; position: relative; 
+          padding: 12px 18px; position: relative; 
           max-width: 65%; width: fit-content; min-height: 50px; 
           text-align: left; box-shadow: 0 4px 0 #e5e5e5; 
-          color: #4b4b4b; font-weight: 800; /* 統一字重 */
-          font-size: 16px; line-height: 1.4; /* 統一字級與行高 */
+          color: #4b4b4b; font-weight: 800; /* 統一粗體 */
+          font-size: 16px; line-height: 1.4; 
           display: flex; flex-direction: column; justify-content: center; 
-          word-break: break-word; margin-bottom: 15px; 
+          word-break: break-word; margin-bottom: 12px; 
       }
       .speech-bubble.left-tail::before { content: ""; position: absolute; left: -14px; bottom: 25px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 14px solid #e5e5e5; }
       .speech-bubble.left-tail::after { content: ""; position: absolute; left: -10px; bottom: 25px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 12px solid #ffffff; }
