@@ -952,18 +952,15 @@
     });
   };
   
-  // 🚀 升級版：接通 3.0 專屬按鈕神經
+  // 🚀 升級版：接通神經，並連動這題專屬的精靈思考動畫
   function attachButtonListeners() {
-      // 1. 接通 3.0 對話框裡的「🔊 我來唸一次」播放鍵
       const playBtn = document.getElementById('prod-tts-btn');
       if (playBtn) {
           playBtn.onclick = () => { 
               speakWordCloudCached(quizData[currentIndex].en, 1.8, null, null); 
-              playMascot('prod-mascot', 'thinking'); // 🎭 播放時讓精靈思考
+              playMascot('prod-mascot', 'thinking', assignedMascots[currentIndex]);
           };
       }
-      
-      // (舊版 prev/next 按鈕的邏輯已廢棄，由 Dock 統一接管，這裡保持乾淨)
   }
   
   window.onload = async () => {
