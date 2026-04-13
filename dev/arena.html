@@ -474,6 +474,12 @@
 </head>
 <body>
 
+<div id="loading-screen" style="position: fixed; inset: 0; background: var(--bg-color); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s;">
+    <div class="spinner" style="width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3); border-top-color: var(--marian-yellow); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+    <h3 style="color: white; letter-spacing: 2px; font-weight: 900; margin: 0;">瑪麗安學習系統啟動中...</h3>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+</div>
+
 <script>
     (function() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -946,128 +952,6 @@
   window.onload = async () => {
       await originalOnload();
   };
-  
-  // 🚀 傳送門：全息對峙 Loading 畫面邏輯
-  function showPortal() {
-    const portal = document.getElementById('battle-portal-overlay');
-    
-    // 強制重繪與套用 3D 視角
-    portal.className = '';
-    void portal.offsetWidth; 
-    portal.style.display = 'flex';
-    
-    let pCount = 60;
-    
-    // 啟動頂部倒數計時
-    const pTimer = setInterval(() => {
-      pCount--;
-      document.getElementById('portal-countdown').innerText = pCount;
-      if(pCount <= 0) { 
-          clearInterval(pTimer); 
-          if (window.portalJump) window.portalJump(); 
-      }
-    }, 1000);
-
-    // 向後端抓取對戰對手資料
-    fetch(`${GAS_URL}?action=get_battle_status&roomId=${ROOM_ID}&t=${new Date().getTime()}`)
-      .then(res => res.json())
-      .then(data => {
-        const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
-
-        // 判定雙方圖片與名稱 (🚀 對手變數改成 let 才能被覆蓋)
-        const myImgUrl = isMeHost ? data.hostImg : data.guestImg;
-        let opImgUrl = isMeHost ? data.guestImg : data.hostImg;
-        const myName = isMeHost ? data.hostName : (data.guestName || STUDENT_ID);
-        let opName = isMeHost ? (data.guestName || "挑戰者") : data.hostName;
-
-        const finalMyRarity = isMeHost ? (data.hostRarity || 'N') : (data.guestRarity || 'N');
-        let finalOpRarity = isMeHost ? (data.guestRarity || 'N') : (data.hostRarity || 'N');
-        const finalMyMask = isMeHost ? (data.hostMask || '') : (data.guestMask || '');
-        let finalOpMask = isMeHost ? (data.guestMask || '') : (data.hostMask || '');
-
-        // 🚀 核心攔截：如果是突發事件，直接把上面的對手變數強制換成 Boss！
-        if (isEventMode && EVENT_AVATAR && window.characterAssets && window.characterAssets[EVENT_AVATAR]) {
-            const boss = window.characterAssets[EVENT_AVATAR];
-            opName = `[活動] ${boss.name}`;
-            opImgUrl = boss.img;
-            finalOpRarity = boss.rarity || 'SSR';
-            finalOpMask = boss.mask || '';
-        }
-
-        console.log("【偵測】我方 Rarity:", finalMyRarity, "對手 Rarity:", finalOpRarity);
-
-        // 🚀 強制寫入我方特效
-        const myCardEl = document.getElementById('portal-my-card');
-        myCardEl.setAttribute('data-rarity', finalMyRarity);
-        if (finalMyMask) {
-            myCardEl.classList.add('masked');
-            myCardEl.style.setProperty('--mask', finalMyMask.includes('url(') ? finalMyMask : `url('${finalMyMask}')`);
-        } else {
-            myCardEl.classList.remove('masked');
-        }
-
-        // 🚀 強制寫入對手特效
-        const opCardEl = document.getElementById('portal-op-card');
-        opCardEl.setAttribute('data-rarity', finalOpRarity);
-        if (finalOpMask) {
-            opCardEl.classList.add('masked');
-            opCardEl.style.setProperty('--mask', finalOpMask.includes('url(') ? finalOpMask : `url('${finalOpMask}')`);
-        } else {
-            opCardEl.classList.remove('masked');
-        }
-
-        // 填入卡片背景圖與姓名 Tag
-        if(myImgUrl) document.getElementById('portal-my-bg').style.backgroundImage = `url('${myImgUrl}')`;
-        if(opImgUrl) document.getElementById('portal-op-bg').style.backgroundImage = `url('${opImgUrl}')`;
-        document.getElementById('portal-my-name').innerText = myName;
-        document.getElementById('portal-op-name').innerText = opName;
-
-        // 🚀 資料載入完畢，觸發史詩級「卡牌滑入對峙」動畫！
-        const myWrapper = document.getElementById('portal-my-wrapper');
-        const opWrapper = document.getElementById('portal-op-wrapper');
-        const vsSpark = document.querySelector('.portal-vs-spark');
-        
-        myWrapper.classList.remove('clash-in-my');
-        opWrapper.classList.remove('clash-in-op');
-        vsSpark.classList.remove('spark-active');
-        void portal.offsetWidth; 
-
-        myWrapper.classList.add('clash-in-my');
-        opWrapper.classList.add('clash-in-op');
-        vsSpark.classList.add('spark-active');
-
-        // 秀出底部帥氣質感的「進入戰場」毛玻璃按鈕
-        const enterBtn = document.getElementById('portal-enter-btn');
-        enterBtn.classList.remove('portal-btn-hidden');
-        enterBtn.classList.add('portal-btn-show');
-
-        // 綁定「點擊進入戰場」的跳轉功能
-        window.portalJump = () => {
-          clearInterval(pTimer);
-          portal.style.display = 'none';
-          document.getElementById('battle-arena').style.display = 'flex';
-          setTimeout(() => { document.getElementById('battle-arena').classList.add('battle-ready'); }, 100);
-          fetchBattleDataAndStart(ROOM_ID);
-        };
-        // 🚀 加上這行：資料載入完畢後，啟動閃卡互動引擎！
-        setTimeout(() => { initInteractiveHoloCards(); }, 500);
-      })
-      .catch(err => {
-        console.error("Portal Error:", err);
-        // 如果網路連線失敗，備用的顯示機制
-        const enterBtn = document.getElementById('portal-enter-btn');
-        enterBtn.innerText = "強制進入";
-        enterBtn.classList.remove('portal-btn-hidden');
-        enterBtn.classList.add('portal-btn-show');
-        
-        window.portalJump = () => {
-          clearInterval(pTimer);
-          portal.style.display = 'none';
-          document.getElementById('battle-arena').style.display = 'flex';
-          fetchBattleDataAndStart(ROOM_ID);
-        };
-      });
-  }
 
   // 🚀 升級版：動態心流渲染引擎
   function renderWord() {
