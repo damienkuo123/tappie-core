@@ -529,9 +529,10 @@
       </div>
 
       <div id="production-zone" style="display:none; flex-direction: column; align-items: center; width: 100%;">
-         <h3 style="color:#afafaf; font-size:16px; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 1px;">🎙️ 口說錄音</h3>
-         <div class="avatar-bubble-row" style="width: 100%;">
-            <lottie-player id="prod-mascot" src="" background="transparent" speed="1" style="width: 110px; height: 110px; flex-shrink: 0;" loop autoplay></lottie-player>
+         <h3 style="color:#afafaf; font-size:16px; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 1px;">🎙️ 口說錄音</h3>
+         
+         <div class="avatar-bubble-row">
+            <lottie-player id="prod-mascot" src="" background="transparent" speed="1" style="width: 160px; height: 160px; flex-shrink: 0;" loop autoplay></lottie-player>
             <div class="speech-bubble left-tail" id="prod-bubble">
                <div id="prod-feedback-text" style="display:none; font-size: 15px; color:#4b4b4b; margin-bottom: 8px;"></div>
                <div id="prod-tts-btn" style="cursor:pointer; display:flex; align-items:center; justify-content: flex-end; gap:5px; color:#1cb0f6;">
@@ -539,13 +540,14 @@
                </div>
             </div>
          </div>
-         <div style="margin: 20px 0;">
-           <h1 id="word-display">載入中...</h1>
-           <div id="production-zh"></div>
+         
+         <div style="height: 120px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 10px; width: 100%;">
+           <h1 id="word-display" style="margin:0;">載入中...</h1>
+           <div id="production-zh" style="font-size: 18px; color: #afafaf; font-weight: bold; margin-top: 5px;"></div>
          </div>
+
          <button type="button" id="record-btn" oncontextmenu="return false;">🎤</button>
          <p id="status" style="font-weight:bold; color:#afafaf; margin-top: 10px; font-size:14px;">按住錄音，放開打分</p>
-         <div id="feedback" style="display:none;"></div>
       </div>
     </div>
 
@@ -591,6 +593,7 @@
   let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
   let warmupPassed = []; 
   let assignedWarmupModes = []; // 🚀 補上題型記憶體
+  let assignedMascots = []; // 🚀 記憶每題的專屬精靈
   let azureReports = []; 
   let audioContext, analyser, dataArray, source, gradingInterval;
   let maxVolume = 0;
