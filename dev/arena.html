@@ -155,17 +155,32 @@
         display: flex; flex-direction: column; align-items: center; width: 100%; box-sizing: border-box; 
       }
   
-      /* 🚀 底部固定 Dock (防遮擋設定) */
+      /* =======================================================
+         🕹️ 3.0 實體積木按鈕與物理學全面升級 (The 3D Button Rule)
+         ======================================================= */
+         
+      /* 1. 底部固定 Dock 與全域底板張力 */
       .bottom-dock { 
         position: fixed; bottom: 0; left: 0; width: 100%; 
         padding: 15px 20px max(20px, env(safe-area-inset-bottom)); 
         background: #ffffff; border-top: 2px solid #e5e5e5; 
         display: flex; justify-content: center; z-index: 500; box-sizing: border-box; 
+        transition: background 0.3s ease, border-color 0.3s ease; 
       }
-      .btn-dock { width: 100%; max-width: 500px; padding: 16px; font-size: 20px; font-weight: 800; letter-spacing: 2px; border-radius: 16px; cursor: pointer; text-transform: uppercase; border: none; transition: background 0.1s, transform 0.1s, box-shadow 0.1s; }
-      .btn-dock.disabled { background: #e5e5e5; color: #afafaf; pointer-events: none; }
-      .btn-dock.active { background: #58cc02; color: white; box-shadow: 0 5px 0 #58a700; }
-      .btn-dock.active:active { transform: translateY(5px); box-shadow: 0 0px 0 #58a700; }
+      .bottom-dock.correct-bg { background: #d7ffb8; border-top-color: #d7ffb8; }
+      .bottom-dock.wrong-bg { background: #ffdfe0; border-top-color: #ffdfe0; }
+
+      .btn-dock { 
+        width: 100%; max-width: 500px; padding: 16px; font-size: 20px; font-weight: 900; 
+        letter-spacing: 2px; border-radius: 16px; cursor: pointer; text-transform: uppercase; 
+        border: 2px solid transparent; border-bottom-width: 6px; 
+        transition: all 0.1s ease-in-out; 
+      }
+      .btn-dock.disabled { background: #e5e5e5; border-color: #e5e5e5; color: #afafaf; pointer-events: none; }
+      .btn-dock.active { background: #58cc02; border-color: #58a700; color: white; }
+      .btn-dock.active:active { border-bottom-width: 2px; transform: translateY(4px); margin-top: 4px; }
+      .btn-dock.wrong-btn { background: #ff4b4b; border-color: #ea1537; color: white; }
+      .btn-dock.wrong-btn:active { border-bottom-width: 2px; transform: translateY(4px); margin-top: 4px; }
   
       /* 🚀 修正排版：精靈靠左對齊，建立對話流動感 */
       .avatar-bubble-row { 
