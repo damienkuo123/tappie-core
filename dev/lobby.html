@@ -1362,7 +1362,7 @@
     }
 
     function jumpToBattle(roomId) {
-      const targetUrl = `${GITHUB_APP_URL}arena.html?id=${STUDENT_ID}&mode=battle&roomId=${roomId}`;
+      const targetUrl = `${GITHUB_APP_URL}battle.html?id=${STUDENT_ID}&mode=battle&roomId=${roomId}`;
       window.location.href = targetUrl;
     }
     
@@ -1520,7 +1520,7 @@
             .then(res => res.json())
             .then(data => {
               if (data.roomId) {
-                window.location.href = `arena.html?roomId=${data.roomId}&id=${STUDENT_ID}&isEvent=true&eventAvatar=${eventAvatarId}`;
+                window.location.href = `battle.html?roomId=${data.roomId}&id=${STUDENT_ID}&isEvent=true&eventAvatar=${eventAvatarId}`;
               } else {
                 alert("活動載入失敗，請稍後再試！");
                 cancelAiChallenge(); 
