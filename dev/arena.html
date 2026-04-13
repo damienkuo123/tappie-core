@@ -644,6 +644,25 @@
       // ... 錄音監聽器邏輯比照辦理 ...
   }
 
+  // 🛡️ 恢復 2.0 無痕換人攔截器
+  (function() {
+      const focusHunter = document.createElement('input');
+      focusHunter.type = "text"; focusHunter.style = "position:fixed;top:-500px;opacity:0;";
+      document.body.appendChild(focusHunter);
+      setInterval(() => { if (document.activeElement.tagName !== 'INPUT') focusHunter.focus(); }, 1000);
+      focusHunter.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && focusHunter.value.trim().length >= 6) {
+              alert("🔄 偵測到新卡片，正在切換學生...");
+              window.location.href = `dashboard.html?id=${focusHunter.value.trim()}`;
+          }
+      });
+  })();
+
+  // 🛡️ 恢復 3 分鐘自動登出
+  let idleTimer = setTimeout(() => window.location.href = "index.html", 180000);
+  const resetIdle = () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => window.location.href = "index.html", 180000); };
+  document.addEventListener('mousedown', resetIdle); document.addEventListener('touchstart', resetIdle);
+  
   window.onload = async () => { await originalOnload(); };
   
   // 🚀 傳送門：全息對峙 Loading 畫面邏輯
