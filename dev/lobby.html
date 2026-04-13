@@ -715,19 +715,11 @@
       <div class="section-divider" style="margin-top: 40px;">1v1 真人對戰</div>
       <div>
         <div class="pvp-panel">
-          <div class="difficulty-selector">
-            <div class="diff-btn active" onclick="selectDifficulty(this, 'E1')">E1</div>
-            <div class="diff-btn" onclick="selectDifficulty(this, 'E2')">E2</div>
-            <div class="diff-btn" onclick="selectDifficulty(this, 'E3')">E3</div>
-            <div class="diff-btn" onclick="selectDifficulty(this, 'E4')">E4</div>
-            <div class="diff-btn" onclick="selectDifficulty(this, 'E5')">E5</div>
-            <div class="diff-btn" onclick="selectDifficulty(this, 'E6')">E6</div>
-            <div class="diff-btn" onclick="selectDifficulty(this, 'E7')">E7</div>
-            <div class="diff-btn" onclick="selectDifficulty(this, 'E8')">E8</div>
-            <div class="diff-btn" onclick="selectDifficulty(this, 'E9')">E9</div>
+          <div class="difficulty-selector" id="dynamic-difficulty-selector">
+             <div style="color: #a4b0be; font-size: 14px; font-weight: bold; padding: 20px;">🔄 正在載入可用戰場...</div>
           </div>
           
-          <input type="hidden" id="pvp-level" value="E1">
+          <input type="hidden" id="pvp-level" value="">
 
           <button id="create-room-btn" class="btn-portal-epic" onclick="createBattleRoom()">開啟 1v1 戰場</button>
 
@@ -784,7 +776,7 @@
 
   <script>
     // ⚠️ 請替換為你真實的 GAS 網址
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxgc68FXo82HkMieMYriVuIshv7WjvKcV5x6_EGoLqlAuLps_ZynSdyttKSMQeNrJWH/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyWm-WnRO5h3dliEPR36Cq1hCf5DgM4GIgJqXVUREclhtYOHjxq9DptApmQPkU5p5Ys/exec";
     
     const params = new URLSearchParams(window.location.search);
     const STUDENT_ID = params.get('id') || "S001";
@@ -1362,7 +1354,7 @@
     }
 
     function jumpToBattle(roomId) {
-      const targetUrl = `${GITHUB_APP_URL}battle.html?id=${STUDENT_ID}&mode=battle&roomId=${roomId}`;
+      const targetUrl = `${GITHUB_APP_URL}arena.html?id=${STUDENT_ID}&mode=battle&roomId=${roomId}`;
       window.location.href = targetUrl;
     }
     
@@ -1392,7 +1384,55 @@
       document.getElementById('pvp-level').value = level;
     }
     
-    window.onload = initLobby;
+    // =======================================================
+    // 🚀 新增：動態抓取可用戰場 (班級代碼) 並過濾 Event
+    // =======================================================
+    function loadAvailableClasses() {
+      const selector = document.getElementById('dynamic-difficulty-selector');
+      const levelInput = document.getElementById('pvp-level');
+      
+      // 呼叫 GAS 取得有資料的班級代碼 (需確保後端有此 action)
+      fetch(`${GAS_URL}?action=get_available_classes`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success' && data.classes && data.classes.length > 0) {
+            selector.innerHTML = ""; // 清空載入中字樣
+            
+            // 🚀 核心過濾邏輯：排除掉字串中包含 "EVENT" (不分大小寫) 的代碼
+            const validClasses = data.classes.filter(c => !String(c).toUpperCase().includes("EVENT"));
+            
+            if (validClasses.length === 0) {
+               selector.innerHTML = `<div style="color: #e74c3c; font-size: 14px; font-weight: bold; padding: 20px;">⚠️ 目前無開放戰場</div>`;
+               return;
+            }
+
+            // 動態生成按鈕
+            validClasses.forEach((classCode, index) => {
+              const btn = document.createElement('div');
+              // 第一個按鈕預設為 active
+              btn.className = `diff-btn ${index === 0 ? 'active' : ''}`; 
+              btn.innerText = classCode;
+              btn.onclick = function() { selectDifficulty(this, classCode); };
+              selector.appendChild(btn);
+            });
+            
+            // 將隱藏輸入框的值設為第一個有效的班級代碼
+            levelInput.value = validClasses[0]; 
+
+          } else {
+            selector.innerHTML = `<div style="color: #e74c3c; font-size: 14px; font-weight: bold; padding: 20px;">⚠️ 無法取得戰場資料</div>`;
+          }
+        })
+        .catch(err => {
+          console.error("戰場資料載入失敗:", err);
+          selector.innerHTML = `<div style="color: #e74c3c; font-size: 14px; font-weight: bold; padding: 20px;">🚨 連線失敗，請重試</div>`;
+        });
+    }
+    
+    window.onload = () => {
+        initLobby();
+        loadAvailableClasses(); // 🚀 網頁載入時，同步去抓取動態戰場代碼
+    };
 
     let currentEventWords = []; 
 
@@ -1520,7 +1560,7 @@
             .then(res => res.json())
             .then(data => {
               if (data.roomId) {
-                window.location.href = `battle.html?roomId=${data.roomId}&id=${STUDENT_ID}&isEvent=true&eventAvatar=${eventAvatarId}`;
+                window.location.href = `arena.html?roomId=${data.roomId}&id=${STUDENT_ID}&isEvent=true&eventAvatar=${eventAvatarId}`;
               } else {
                 alert("活動載入失敗，請稍後再試！");
                 cancelAiChallenge(); 
