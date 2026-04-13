@@ -1108,13 +1108,25 @@
   }
   
   function reRead(i) { 
-      currentIndex = i; 
-      isReReading = true; 
-      document.getElementById('summary').style.display = 'none'; 
-      document.getElementById('studio').style.display = 'block'; 
-      document.getElementById('progress-container').style.display = 'block';
-      renderWord(); 
-  }
+    currentIndex = i; 
+    isReReading = true; // 進入重讀模式
+    
+    // 🚀 3.0 對接：切換顯示區域
+    document.getElementById('summary').style.display = 'none'; 
+    document.getElementById('studio').style.display = 'block'; 
+    document.getElementById('top-nav-bar').style.display = 'flex';
+    
+    // 🚀 3.0 對接：強制顯示生產區 (口說錄音)，跳過暖身
+    warmupPassed[currentIndex] = true; 
+    
+    renderWord(); 
+    
+    // 🚀 3.0 對接：將 Dock 按鈕改為返回結算
+    setDockButton('返回結算頁', true, () => {
+        isReReading = false;
+        showSummary();
+    });
+}
 
   
 
