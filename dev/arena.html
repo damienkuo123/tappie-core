@@ -609,63 +609,69 @@
   }
 
   const originalOnload = async () => {
-    // 🚀 清理 Loading 畫面與顯示設定
+    // 🚀 1. 喚醒畫面：顯示頂部導航(打叉叉)與清理載入畫面
     hideLoadingScreen();
-    const speechText = document.getElementById('setup-speech-text');
-    if (speechText) speechText.innerText = "正在準備麥克風...";
+    const navBar = document.getElementById('top-nav-bar');
+    if (navBar) navBar.style.display = 'flex';
 
+    const speechText = document.getElementById('setup-speech-text');
+    
+    // 🚀 2. 啟動精靈與歡迎詞
+    playMascot('setup-mascot', 'idle');
+    if (speechText) {
+        speechText.innerText = "嗨～我們來增進英語口說吧！";
+        // 延遲更新對話，營造聊天感
+        setTimeout(() => { 
+            speechText.innerText = `今天挑戰：${TARGET_UNIT || '今日挑戰'}`; 
+        }, 2000);
+    }
+
+    // 🚀 3. 麥克風保溫
     try {
-      // 🚀 啟動麥克風保溫
       globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-      if (speechText) speechText.innerText = "麥克風就緒！點擊下方按鈕開始挑戰";
+      console.log("🎤 麥克風已就緒");
     } catch (e) { 
-      alert("請開啟麥克風權限"); 
-      if (speechText) speechText.innerText = "請開啟麥克風權限後重新整理";
+      alert("請開啟麥克風權限才能開始！");
+      if (speechText) speechText.innerText = "請開啟麥克風權限後重新整理頁面。";
+      setDockButton('請開啟權限', false, null);
       return;
     }
 
-    // 🚀 核心：將 Fetch 邏輯綁定到畫面的 start-btn 上
-    const startBtn = document.getElementById('start-btn');
-    if (startBtn) {
-        startBtn.onclick = () => {
-            if (speechText) speechText.innerText = "正在載入題目...";
+    // 🚀 4. 使用 3.0 專用 Dock 控制器綁定點擊事件
+    // 這裡解決了 ID 錯位的問題，並直接呼叫 fetch 邏輯
+    setDockButton('開始', true, () => {
+        if (speechText) speechText.innerText = "正在為您載入題目...";
+        
+        const fetchUrl = TARGET_UNIT 
+            ? `${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`
+            : `${GAS_URL}?id=${STUDENT_ID}&action=get_data`;
+
+        fetch(fetchUrl)
+          .then(res => res.json())
+          .then(data => {
+            if (!data.words || data.words.length === 0) { alert("題目載入失敗或單元為空"); return; }
             
-            const fetchUrl = TARGET_UNIT 
-                ? `${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`
-                : `${GAS_URL}?id=${STUDENT_ID}&action=get_data`;
-
-            fetch(fetchUrl)
-              .then(res => res.json())
-              .then(data => {
-                if (!data.words || data.words.length === 0) { alert("題目為空"); return; }
-                
-                // 寫入資料
-                quizData = data.words; 
-                scores = new Array(quizData.length).fill(null);
-                warmupPassed = new Array(quizData.length).fill(false);
-                assignedWarmupModes = new Array(quizData.length).fill(null);
-                
-                // 跳轉畫面
-                document.getElementById('setup-zone').style.display = 'none';
-                document.getElementById('progress-container').style.display = 'block';
-                document.getElementById('studio').style.display = 'block';
-                
-                // 顯示進度條
-                const totalDisp = document.getElementById('total-display');
-                if (totalDisp) totalDisp.innerText = quizData.length;
-
-                attachButtonListeners(); // 綁定上一題下一題邏輯
-                renderWord(); // 畫出第一題
-              })
-              .catch(err => {
-                console.error("載入失敗", err);
-                alert("載入失敗，請檢查網路！");
-              });
-        };
-    }
+            // 初始化資料
+            quizData = data.words; 
+            scores = new Array(quizData.length).fill(null);
+            warmupPassed = new Array(quizData.length).fill(false);
+            assignedWarmupModes = new Array(quizData.length).fill(null);
+            
+            // 跳轉至學習區
+            document.getElementById('setup-zone').style.display = 'none';
+            document.getElementById('studio').style.display = 'block';
+            
+            // 更新進度條最大值 (3.0 邏輯)
+            renderWord();
+          })
+          .catch(err => {
+            console.error("Fetch Error:", err);
+            alert("網路連線不穩，請重新嘗試！");
+          });
+    });
   };
 
-  // 🚀 確保網頁載入時啟動
+  // 🚀 確保網頁完全載入後啟動手術後的引擎
   window.onload = async () => {
       await originalOnload();
   };
