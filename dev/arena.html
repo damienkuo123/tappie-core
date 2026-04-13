@@ -746,19 +746,15 @@
       });
   }
 
-  // 🚀 頁面二 & 三：動態心流渲染引擎
   function renderWord() {
     const current = quizData[currentIndex];
     if (!current) return;
 
-    // 更新頂部進度條
     if (quizData.length > 0) {
-        const progressPercent = ((currentIndex + 1) / quizData.length) * 100;
         const progFill = document.getElementById('progress-fill');
-        if (progFill) progFill.style.width = progressPercent + "%";
+        if (progFill) progFill.style.width = ((currentIndex + 1) / quizData.length) * 100 + "%";
     }
 
-    // 分流機制
     if (warmupPassed[currentIndex]) {
         document.getElementById('warmup-zone').style.display = 'none';
         document.getElementById('production-zone').style.display = 'flex'; 
@@ -770,162 +766,94 @@
     }
   }
 
-  // 🎮 暖身運動控制
   function setupWarmupZone(current) {
       const visualCard = document.querySelector('.warmup-visual-card');
-      const audioHint = document.getElementById('warmup-audio-hint'); 
       const skeletonContainer = document.getElementById('warmup-word-skeleton');
       const optionsContainer = document.getElementById('warmup-options');
       
       if (window.warmupAutoPlayTimer) clearTimeout(window.warmupAutoPlayTimer);
-
-      skeletonContainer.innerHTML = '';
-      optionsContainer.removeAttribute('class');
-      optionsContainer.innerHTML = '';
-      audioHint.style.display = 'none'; 
-
-      visualCard.innerHTML = `
-          <img id="warmup-img" src="" alt="提示圖片" style="display: none; width: 100%; height: auto; border-radius: 16px; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-          <div id="warmup-zh" style="display: none; font-size: clamp(24px, 7vw, 32px); font-weight: 900; color: #334155; letter-spacing: 2px; word-break: break-word; overflow-wrap: break-word; text-align: center; width: 100%; line-height: 1.4; padding: 10px;"></div>
-          <button id="warmup-audio-btn" class="btn-listen-huge" style="display: none;">
-            <span class="icon">👂</span>
-            <span class="text">聽音辨字</span>
-          </button>
-      `;
+      skeletonContainer.innerHTML = ''; optionsContainer.innerHTML = ''; optionsContainer.removeAttribute('class');
+      visualCard.innerHTML = `<img id="warmup-img" src="" style="display:none;"><div id="warmup-zh" style="display:none;"></div><button id="warmup-audio-btn" style="display:none; background:#f1f5f9; border:2px solid #e5e5e5; border-radius:50%; width:80px; height:80px; font-size:32px; cursor:pointer;">👂</button>`;
 
       const imgEl = document.getElementById('warmup-img');
       const zhEl = document.getElementById('warmup-zh');
       const audioBtn = document.getElementById('warmup-audio-btn');
 
-      // 確保陣列有正確初始化
-      if (!assignedWarmupModes || assignedWarmupModes.length === 0) {
-          assignedWarmupModes = new Array(quizData.length).fill(null);
-      }
-
+      if (!assignedWarmupModes || assignedWarmupModes.length === 0) assignedWarmupModes = new Array(quizData.length).fill(null);
       let warmupMode = assignedWarmupModes[currentIndex];
 
       if (warmupMode === null) {
-          const hasImage = (current.img && current.img.trim() !== "");
-          const wordLen = current.en.length;
-          const isSentence = current.en.includes(" ");
-          const availableImages = quizData.filter(q => q.en !== current.en && q.img && q.img.trim() !== "");
-          const canPlayImageChoice = hasImage && availableImages.length >= 3;
-
-          let availableModes = [0, 2]; 
-          if (wordLen >= 3 && !isSentence) { availableModes.push(1); availableModes.push(4); }
-          if (canPlayImageChoice) availableModes.push(3); 
-
-          let candidateMode; let safeCounter = 0;
-          do {
-              candidateMode = Math.floor(Math.random() * 5); 
-              safeCounter++;
-              if (safeCounter > 50) { candidateMode = availableModes[0]; break; } 
-          } while (!availableModes.includes(candidateMode));
-          
-          warmupMode = candidateMode;
-          assignedWarmupModes[currentIndex] = warmupMode; 
+          const hasImg = !!(current.img && current.img.trim());
+          const isWord = !current.en.includes(" ");
+          let modes = [0, 2]; // 預設：文字選擇、聽音選擇
+          if (isWord && current.en.length >= 3) { modes.push(1); modes.push(4); } // 拼字、矩陣
+          if (hasImg) modes.push(3); // 圖片選擇
+          warmupMode = modes[Math.floor(Math.random() * modes.length)];
+          assignedWarmupModes[currentIndex] = warmupMode;
       }
 
+      // 渲染提示內容
       if (warmupMode === 2) {
-          if(audioBtn) audioBtn.style.display = 'flex'; 
-          if(audioHint) audioHint.style.display = 'flex'; 
-          if(audioBtn) {
-              audioBtn.onclick = () => {
-                  audioBtn.style.transform = "scale(1.1)";
-                  setTimeout(() => audioBtn.style.transform = "scale(1)", 150);
-                  speakWordCloudCached(current.en, 1.8, null, null);
-              };
-          }
-          window.warmupAutoPlayTimer = setTimeout(() => { 
-              if(audioBtn && audioBtn.style.display !== 'none') audioBtn.click();
-          }, 300);
+          audioBtn.style.display = 'block';
+          audioBtn.onclick = () => speakWordCloudCached(current.en, 1.8, null, null);
+          window.warmupAutoPlayTimer = setTimeout(() => audioBtn.click(), 500);
       } else if (warmupMode === 3) {
-          if(zhEl) { zhEl.innerText = current.en; zhEl.style.fontSize = "clamp(30px, 8vw, 45px)"; zhEl.style.display = 'block'; zhEl.style.color = "var(--primary-blue)"; }
+          zhEl.innerText = current.en; zhEl.style.display = 'block'; zhEl.style.color = '#0066cc';
       } else {
-          if (current.img && current.img.trim() !== "") {
-              if(imgEl) { imgEl.src = current.img.includes('sz=') ? current.img.replace(/sz=w\d+/, 'sz=w400') : current.img; imgEl.style.display = 'block'; }
-          } else {
-              if(zhEl) { zhEl.innerText = current.zh || "看字發音"; zhEl.style.display = 'block'; zhEl.style.fontSize = "clamp(24px, 7vw, 32px)"; zhEl.style.color = "#334155"; }
-          }
+          if (current.img) { imgEl.src = current.img; imgEl.style.display = 'block'; }
+          else { zhEl.innerText = current.zh || "???"; zhEl.style.display = 'block'; }
       }
 
-      // 🛑 設定 Dock 按鈕狀態：未完成
       setDockButton('請回答問題', false, null);
+      const win = () => setDockButton('繼續', true, () => { warmupPassed[currentIndex] = true; renderWord(); });
 
-      const proceedToNext = () => {
-          try { const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'); audio.volume=0.5; audio.play(); } catch(e){}
-          // ✅ 設定 Dock 按鈕狀態：已完成，可點擊進入下一階段
-          setDockButton('繼續', true, () => {
-              warmupPassed[currentIndex] = true;
-              renderWord();
-          });
-      };
-
-      const handleWrong = (element) => { element.classList.remove('wrong'); void element.offsetWidth; element.classList.add('wrong'); };
-
-      // ... 後方遊戲選項邏輯維持不變 ...
+      // 遊戲邏輯實作
       if (warmupMode === 0 || warmupMode === 2) {
-          skeletonContainer.style.display = 'none'; optionsContainer.classList.add('list-mode');
-          let distractors = getWordDistractors(current.en, 3);
-          let finalOptions = [current.en, ...distractors].sort(() => Math.random() - 0.5);
-          finalOptions.forEach(opt => {
-              let btn = document.createElement('button'); btn.className = 'btn-choice-list'; btn.innerText = opt;
-              btn.onclick = function() { if (opt === current.en) { this.classList.add('correct'); proceedToNext(); } else { handleWrong(this); } };
-              optionsContainer.appendChild(btn);
+          optionsContainer.classList.add('list-mode');
+          let opts = [current.en, ...quizData.filter(q=>q.en!==current.en).map(q=>q.en).sort(()=>0.5-Math.random()).slice(0,3)].sort(()=>0.5-Math.random());
+          opts.forEach(t => {
+              let b = document.createElement('button'); b.className='btn-choice-list'; b.style.width='100%'; b.style.padding='15px'; b.style.marginBottom='10px'; b.innerText=t;
+              b.onclick = function(){ if(t===current.en){ this.classList.add('correct'); win(); } else { this.classList.add('wrong'); } };
+              optionsContainer.appendChild(b);
           });
       } else if (warmupMode === 3) {
-          skeletonContainer.style.display = 'none'; optionsContainer.classList.add('grid-image-mode');
-          let distractors = getImageDistractors(current.en, 3);
-          let finalOptions = [{img: current.img, isCorrect: true}, ...distractors].sort(() => Math.random() - 0.5);
-          finalOptions.forEach(opt => {
-              let btn = document.createElement('button'); btn.className = 'btn-image-choice';
-              let iEl = document.createElement('img'); iEl.src = opt.img.includes('sz=') ? opt.img.replace(/sz=w\d+/, 'sz=w400') : opt.img; btn.appendChild(iEl);
-              btn.onclick = function() { optionsContainer.classList.add('has-answered'); if (opt.isCorrect) { this.classList.add('correct'); proceedToNext(); } else { handleWrong(this); } };
-              optionsContainer.appendChild(btn);
+          optionsContainer.classList.add('grid-image-mode');
+          optionsContainer.style.display='grid'; optionsContainer.style.gridTemplateColumns='1fr 1fr'; optionsContainer.style.gap='10px';
+          let opts = [{img:current.img, ok:true}, ...quizData.filter(q=>q.en!==current.en&&q.img).sort(()=>0.5-Math.random()).slice(0,3).map(q=>({img:q.img, ok:false}))].sort(()=>0.5-Math.random());
+          opts.forEach(o => {
+              let b = document.createElement('button'); b.className='btn-image-choice'; b.innerHTML=`<img src="${o.img}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px;">`;
+              b.onclick = function(){ if(o.ok){ this.classList.add('correct'); win(); } else { this.classList.add('wrong'); } };
+              optionsContainer.appendChild(b);
           });
       } else if (warmupMode === 1) {
-          skeletonContainer.style.display = 'flex'; const wordStr = current.en.toUpperCase(); let targetCharObj = extractMissingTarget(wordStr); 
-          for (let i = 0; i < wordStr.length; i++) {
-              let char = wordStr[i];
-              if (char === ' ' || char === '-') skeletonContainer.innerHTML += `<span style="width: 15px;"></span>`;
-              else if (i === targetCharObj.index) skeletonContainer.innerHTML += `<span class="skeleton-char" id="skel-target"></span>`;
-              else skeletonContainer.innerHTML += `<span class="skeleton-char filled">${char}</span>`;
+          const word = current.en.toUpperCase(); let rIdx = Math.floor(Math.random()*word.length);
+          for(let i=0; i<word.length; i++){
+              let s = document.createElement('span'); s.className='skeleton-char'; s.style.display='inline-flex'; s.style.width='40px'; s.style.height='50px'; s.style.border='2px solid #e5e5e5'; s.style.borderRadius='10px'; s.style.alignItems='center'; s.style.justifyContent='center'; s.style.fontSize='24px'; s.style.margin='0 2px';
+              if(i===rIdx){ s.id='skel-target'; s.style.background='#f0f0f0'; } else { s.innerText=word[i]; s.style.background='#fff'; }
+              skeletonContainer.appendChild(s);
           }
-          let options = generateDistractors(targetCharObj.char);
-          options.forEach(opt => {
-              let btn = document.createElement('button'); btn.className = 'btn-tap-fill'; btn.innerText = opt;
-              btn.onclick = function() {
-                  if (opt === targetCharObj.char) {
-                      this.classList.add('correct'); document.getElementById('skel-target').innerText = opt; document.getElementById('skel-target').classList.add('filled'); proceedToNext();
-                  } else { handleWrong(this); }
-              };
-              optionsContainer.appendChild(btn);
+          let charOpts = [word[rIdx], ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".replace(word[rIdx],'').split('').sort(()=>0.5-Math.random()).slice(0,2)].sort(()=>0.5-Math.random());
+          charOpts.forEach(c => {
+              let b = document.createElement('button'); b.className='btn-tap-fill'; b.style.padding='10px 20px'; b.style.margin='5px'; b.innerText=c;
+              b.onclick = function(){ if(c===word[rIdx]){ document.getElementById('skel-target').innerText=c; this.classList.add('correct'); win(); } else { this.classList.add('wrong'); } };
+              optionsContainer.appendChild(b);
           });
       } else if (warmupMode === 4) {
-          skeletonContainer.style.display = 'none'; optionsContainer.classList.add('word-search-mode');
-          const word = current.en.toUpperCase().replace(/\s+/g, ''); const cols = 6; const rows = Math.max(4, Math.ceil((word.length + 10) / cols)); 
-          optionsContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-          const { matrix, path } = generateWordSearchMatrix(word, cols, rows); let selectedPath = []; 
-          matrix.forEach((row, y) => {
-              row.forEach((char, x) => {
-                  let btn = document.createElement('button'); btn.className = 'ws-letter'; btn.innerText = char; btn.dataset.x = x; btn.dataset.y = y;
-                  btn.onclick = function() {
-                      if (selectedPath.length >= 2) return; selectedPath.push({x: x, y: y, el: this}); this.classList.add('selected');
-                      if (selectedPath.length === 2) {
-                          const p1 = selectedPath[0]; const p2 = selectedPath[1];
-                          const isMatch = (p1.x === path[0].x && p1.y === path[0].y && p2.x === path[path.length-1].x && p2.y === path[path.length-1].y) || (p1.x === path[path.length-1].x && p1.y === path[path.length-1].y && p2.x === path[0].x && p2.y === path[0].y);
-                          if (isMatch) {
-                              path.forEach((pObj, pIdx) => { setTimeout(() => { let targetBtn = optionsContainer.children[pObj.y * cols + pObj.x]; targetBtn.classList.remove('selected'); targetBtn.classList.add('correct-path'); }, pIdx * 80); });
-                              proceedToNext();
-                          } else {
-                              p1.el.classList.add('wrong-path'); p2.el.classList.add('wrong-path');
-                              setTimeout(() => { p1.el.classList.remove('selected', 'wrong-path'); p2.el.classList.remove('selected', 'wrong-path'); selectedPath = []; }, 500);
-                          }
-                      }
-                  };
-                  optionsContainer.appendChild(btn);
-              });
-          });
+          const word = current.en.toUpperCase().replace(/\s/g,'');
+          const cols = Math.max(6, word.length + 1); // 🚀 關鍵修復：動態計算欄位數，防止長單字崩潰
+          optionsContainer.style.display='grid'; optionsContainer.style.gridTemplateColumns=`repeat(${cols}, 1fr)`; optionsContainer.style.gap='5px';
+          let matrix = Array(4).fill(null).map(()=>Array(cols).fill(''));
+          let startX = Math.floor(Math.random()*(cols-word.length+1)); let row = Math.floor(Math.random()*4);
+          for(let i=0;i<word.length;i++) matrix[row][startX+i] = word[i];
+          const alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+          matrix.forEach((r, y) => r.forEach((c, x) => {
+              let b = document.createElement('button'); b.className='ws-letter'; b.style.aspectRatio='1'; b.innerText = c || alpha[Math.floor(Math.random()*26)];
+              b.onclick = function(){
+                  if(y===row && x>=startX && x<startX+word.length){ this.classList.add('correct-path'); if(optionsContainer.querySelectorAll('.correct-path').length === word.length) win(); }
+                  else { this.classList.add('wrong'); setTimeout(()=>this.classList.remove('wrong'),500); }
+              };
+              optionsContainer.appendChild(b);
+          }));
       }
   }
 
