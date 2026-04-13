@@ -548,17 +548,9 @@
   let azureAuthToken = "";
   let azureRegionCode = "";
   const TARGET_UNIT = params.get('unit') || "";
+
+  const MODE = params.get('mode') || "challenge";
   
-  // 🚀 判斷是否為突發事件 (直接用上面宣告好的 params 來抓就好，效能更好)
-  const isEventMode = params.get('isEvent') === 'true';
-  
-  // 🚀 這是你設定的活動 Boss，絕對不能少！
-  const EVENT_AVATAR = params.get('eventAvatar') || 'A006'; 
-  
-  // 🚀 關鍵修復：如果是突發事件，強制給予 'battle' 模式；若不是，就讀取原本的 mode，都沒讀到才去 'challenge'
-  const MODE = isEventMode ? 'battle' : (params.get('mode') || "challenge");
-  
-  const ROOM_ID = params.get('roomId');
 
   let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
   let warmupPassed = []; // 🧠 記錄這 10 題有哪些已經通過暖身了
@@ -568,11 +560,6 @@
   
   let hasUsedSkill = false; 
   let isUltimateMode = false; 
-
-  let battleQuizArr = [], currentBattleRound = 0;
-  let readyTimer = null, currentLimitTimer = null, waitOpTimer = null, syncTimer = null; 
-  let myTotalWins = 0, opTotalWins = 0;
-  let roundSubmitted = false, isChecking = false, opponentWaitTimer = null;
 
   // 🚀 瑪麗安專屬：全域解碼器與麥克風保溫
   let sysAudioCtx = null;
