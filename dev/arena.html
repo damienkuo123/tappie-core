@@ -1160,13 +1160,13 @@
       // 🛑 3.0 關鍵：初始鎖死 Dock 按鈕
       setDockButton('請回答問題', false, null);
 
-      // ✅ 3.0 關鍵：答對後解鎖 Dock 按鈕，不再自動跳轉
+      // ✅ 3.0 關鍵：答對後解鎖 Dock，底板變綠色！
       const win = () => {
           try { const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'); audio.volume=0.5; audio.play(); } catch(e){}
           setDockButton('繼續', true, () => { 
               warmupPassed[currentIndex] = true; 
               renderWord(); 
-          });
+          }, 'correct'); // 傳入 'correct' 觸發變色
       };
 
       if (warmupMode === 0 || warmupMode === 2) {
