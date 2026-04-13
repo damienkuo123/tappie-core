@@ -607,21 +607,52 @@
       window.currentDockAction = isActive ? actionFn : null;
   }
 
-  // 🎭 3.0 多重精靈隨機派發引擎
-  // 🚀 老闆可以在這個陣列裡加入所有的精靈前綴 (例："Fox", "Bear")
-  const AVAILABLE_MASCOTS = ["Star"]; 
-  
-  const MASCOT_ANIMATIONS = {
-      idle: "Click", success: "ClickSmile", fail: "Puzzled",
-      thinking: "Quest", epic: "Dancing"
+  // 🎭 3.0 升級版：七大動作與專屬動作字典 (Mascot Registry)
+  const MASCOT_REGISTRY = {
+      "Star": {
+          intro: "ClickSmile",         // 1. 剛進畫面的打招呼
+          idle: "Click",         // 2. 閒置等待
+          recording: "Puzzled",   // 3. 正在錄音聽你說話
+          thinking: "Quest",     // 4. 播放標準音或計算分數中
+          success: "Strong", // 5. 答對/高分
+          fail: "Tired",       // 6. 答錯/低分
+          epic: "Dancing"        // 7. 史詩級滿分/結算慶祝
+      },
+      "Cloud": {
+          intro: "Upload",        // Cloud 的專屬打招呼
+          idle: "Meditation",
+          recording: "Puzzled",      // Cloud 拿麥克風的動作
+          thinking: "Photo_Image",
+          success: "Photo",        // 解決你說的尾綴不同問題！
+          fail: "Angry",
+          epic: "Fun"
+      },
+      "Heart": {
+          intro: "ClickSmile",        // Cloud 的專屬打招呼
+          idle: "Smart",
+          recording: "Quest",      // Cloud 拿麥克風的動作
+          thinking: "Tired",
+          success: "Heart",        // 解決你說的尾綴不同問題！
+          fail: "Sad",
+          epic: "Dancing"
+      }
+      // 老闆！未來有新的精靈，只要按照這個格式往下加即可，系統會自動抓取！
   };
-  
+
+  // 讓系統自動抓取字典裡有設定的所有精靈名稱
+  const AVAILABLE_MASCOTS = Object.keys(MASCOT_REGISTRY);
+
   function playMascot(playerElementId, state, forcedMascot = null) {
       const player = document.getElementById(playerElementId);
       if (!player) return;
-      // 第一頁與最後一頁如果沒傳入 forcedMascot，預設叫出 "Star"
-      const mascotName = forcedMascot ? forcedMascot : "Star";
-      player.load(`avatars/${mascotName}_${MASCOT_ANIMATIONS[state]}.json`);
+      
+      // 決定要叫哪隻精靈 (沒傳入就預設抓字典裡的第一個，目前是 Star)
+      const mascotName = forcedMascot ? forcedMascot : AVAILABLE_MASCOTS[0];
+      
+      // 🛡️ 終極防呆：如果這隻精靈剛好漏設定了某個動作（或是打錯字），系統自動退回 idle 動作，保證網頁絕對不會因為找不到圖片而破圖！
+      const actionSuffix = MASCOT_REGISTRY[mascotName][state] || MASCOT_REGISTRY[mascotName]["idle"];
+      
+      player.load(`avatars/${mascotName}_${actionSuffix}.json`);
   }
 
   // ✕ 按鈕跳轉機制
