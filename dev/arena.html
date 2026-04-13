@@ -897,37 +897,56 @@
   }
 
   const originalOnload = async () => {
-    if(MODE === 'review') document.getElementById('title-text').innerText = "📖 自由練習模式";
-    try {
-      // 🚀 啟動並永久保溫麥克風，不再關閉！
-      globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-      
-      document.getElementById('info-text').innerText = "麥克風已就緒";
-      document.getElementById('start-btn').style.display = 'inline-block';
-    } catch (e) { 
-      alert("請開啟麥克風權限"); 
-    }
     hideLoadingScreen();
-  };
+    const navBar = document.getElementById('top-nav-bar');
+    if (navBar) navBar.style.display = 'flex';
 
-  document.getElementById('start-btn').onclick = () => {
-    document.getElementById('info-text').innerText = "正在載入題目...";
-    fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`)
-      .then(res => res.json()).then(data => {
-        if (!data.words || data.words.length === 0) { alert("題目為空"); return; }
-        quizData = data.words; 
-        scores = new Array(quizData.length).fill(null);
-        warmupPassed = new Array(quizData.length).fill(false); // 🚀 補上這行：初始化暖身記憶體
+    const speechText = document.getElementById('setup-speech-text');
+    playMascot('setup-mascot', 'idle');
+    
+    if (speechText) {
+        speechText.innerText = "嗨～我們來增進英語口說吧！";
+        setTimeout(() => { speechText.innerText = `今天挑戰：${TARGET_UNIT ? TARGET_UNIT : '今日挑戰'}`; }, 2000);
+    }
+
+    try {
+      globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
+    } catch (e) { 
+      alert("請開啟麥克風權限才能開始！");
+      if (speechText) speechText.innerText = "請開啟麥克風權限後重新整理。";
+      setDockButton('請開啟權限', false, null);
+      return;
+    }
+
+    // 🚀 將抓題邏輯綁定到新的 Dock 控制器
+    setDockButton('開始', true, () => {
+        if (speechText) speechText.innerText = "正在為您載入題目...";
         
-        document.getElementById('total-display').innerText = quizData.length;
-        document.getElementById('setup-zone').style.display = 'none';
-        document.getElementById('progress-container').style.display = 'block';
-        document.getElementById('studio').style.display = 'block';
-        
-        // 🚀 關鍵：先綁定監聽器，再畫出第一題，按鈕才不會失效！
-        attachButtonListeners(); 
-        renderWord();
-      });
+        let fetchUrl = GAS_URL + "?id=" + STUDENT_ID + "&action=get_data";
+        if (TARGET_UNIT) fetchUrl += "&unit=" + encodeURIComponent(TARGET_UNIT);
+
+        fetch(fetchUrl)
+          .then(res => res.json())
+          .then(data => {
+            if (!data || !data.words || data.words.length === 0) { alert("題目為空"); return; }
+            
+            quizData = data.words; 
+            scores = new Array(quizData.length).fill(null);
+            warmupPassed = new Array(quizData.length).fill(false);
+            assignedWarmupModes = new Array(quizData.length).fill(null);
+            
+            document.getElementById('setup-zone').style.display = 'none';
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('studio').style.display = 'block';
+            
+            attachButtonListeners(); 
+            renderWord();
+          })
+          .catch(err => {
+            console.error("Quiz Fetch Error:", err);
+            alert("載入失敗！請確認網路連線。");
+          });
+    });
   };
   
   function attachButtonListeners() {
