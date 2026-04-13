@@ -607,11 +607,21 @@
       window.currentDockAction = isActive ? actionFn : null;
   }
 
-  // 🎭 精靈動作字典 (Mascot Engine)
-  const MASCOT_MAP = { idle: "Star_Click", success: "Star_ClickSmile", fail: "Star_Puzzled", thinking: "Star_Quest", epic: "Star_Dancing" };
-  function playMascot(playerElementId, state) {
+  // 🎭 3.0 多重精靈隨機派發引擎
+  // 🚀 老闆可以在這個陣列裡加入所有的精靈前綴 (例："Fox", "Bear")
+  const AVAILABLE_MASCOTS = ["Star"]; 
+  
+  const MASCOT_ANIMATIONS = {
+      idle: "Click", success: "ClickSmile", fail: "Puzzled",
+      thinking: "Quest", epic: "Dancing"
+  };
+  
+  function playMascot(playerElementId, state, forcedMascot = null) {
       const player = document.getElementById(playerElementId);
-      if (player) player.load(`avatars/${MASCOT_MAP[state]}.json`);
+      if (!player) return;
+      // 第一頁與最後一頁如果沒傳入 forcedMascot，預設叫出 "Star"
+      const mascotName = forcedMascot ? forcedMascot : "Star";
+      player.load(`avatars/${mascotName}_${MASCOT_ANIMATIONS[state]}.json`);
   }
 
   // ✕ 按鈕跳轉機制
