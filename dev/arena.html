@@ -228,14 +228,32 @@
       #record-btn { position: relative; z-index: 1500; background: #1cb0f6; width: 85px; height: 85px; border-radius: 50%; border: none; font-size: 35px; box-shadow: 0 6px 0 #1899d6; color: white; cursor: pointer; flex-shrink: 0; margin-top: 10px; }
       #record-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1899d6; }
   
-      /* 🕹️ Duolingo 級氣墊按鈕 (強制鎖死寬度防爆出) */
-      #warmup-options { width: 100%; max-width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+      /* 2. 選擇題與拼字按鈕 */
+      #warmup-options { width: 100%; max-width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 10px; }
       #warmup-options.grid-image-mode { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-      .btn-choice-list, .btn-tap-fill, .btn-image-choice, .ws-letter { background: #ffffff; border: 2px solid #e5e5e5; border-bottom-width: 4px; border-radius: 16px; color: #4b4b4b; cursor: pointer; user-select: none; font-weight: 800; text-align: center; transition: background 0.1s, transform 0.1s, border-bottom-width 0.1s; width: 100%; max-width: 400px; padding: 16px 20px; box-sizing: border-box; }
-      .btn-image-choice { padding: 0; aspect-ratio: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-      .btn-choice-list:active, .btn-tap-fill:active, .btn-image-choice:active, .ws-letter:active { border-bottom-width: 0px; transform: translateY(4px); background: #f7f7f7; }
-      .btn-choice-list.correct, .btn-tap-fill.correct, .btn-image-choice.correct, .ws-letter.correct-path { background: #d7ffb8 !important; border-color: #58cc02 !important; border-bottom-color: #58cc02 !important; color: #58a700 !important; pointer-events: none; }
-      .btn-choice-list.wrong, .btn-tap-fill.wrong { background: #ffdfe0 !important; border-color: #ff4b4b !important; border-bottom-color: #ff4b4b !important; color: #ea1537 !important; animation: shake-soft 0.4s ease-in-out; }
+      
+      .btn-choice-list, .btn-tap-fill, .btn-image-choice, .ws-letter { 
+        background: #ffffff; border: 2px solid #e5e5e5; border-bottom-width: 6px; 
+        border-radius: 16px; color: #4b4b4b; cursor: pointer; user-select: none; 
+        font-weight: 800; text-align: center; transition: all 0.1s ease-in-out; 
+        width: 100%; max-width: 400px; padding: 16px 20px; box-sizing: border-box; 
+      }
+      .btn-choice-list:active, .btn-tap-fill:active, .ws-letter:active { 
+        border-bottom-width: 2px; transform: translateY(4px); margin-top: 4px; background: #f7f7f7; 
+      }
+      
+      /* 3. 圖片選項專屬 (強制正方形、拔除漸層) */
+      .btn-image-choice { padding: 8px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+      .btn-image-choice img { border-radius: 10px; width: 100%; height: 100%; object-fit: cover; }
+      .btn-image-choice:active { border-bottom-width: 2px; transform: translateY(4px); margin-top: 4px; }
+
+      /* 答對答錯的 3D 狀態 */
+      .btn-choice-list.correct, .btn-tap-fill.correct, .btn-image-choice.correct, .ws-letter.correct-path { 
+        background: #d7ffb8 !important; border-color: #58a700 !important; color: #58a700 !important; pointer-events: none; 
+      }
+      .btn-choice-list.wrong, .btn-tap-fill.wrong, .btn-image-choice.wrong { 
+        background: #ffdfe0 !important; border-color: #ea1537 !important; color: #ea1537 !important; animation: shake-soft 0.4s ease-in-out; 
+      }
   
       /* 單元與排版微調 (圖片防爆設定) */
       .warmup-visual-card { background: white; border: 2px solid #e5e5e5; border-radius: 20px; padding: 10px; margin-bottom: 25px; width: 100%; max-width: 320px; box-sizing: border-box; flex-shrink: 0; }
