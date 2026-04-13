@@ -601,10 +601,32 @@
   const MODE = params.get('mode') || "challenge";
 
   let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
-  let warmupPassed = []; // 🧠 記錄這 10 題有哪些已經通過暖身了
-  let azureReports = []; // 🚀 專門用來收集微軟的法醫級音素報告
+  let warmupPassed = []; 
+  let assignedWarmupModes = []; // 🚀 補上題型記憶體
+  let azureReports = []; 
   let audioContext, analyser, dataArray, source, gradingInterval;
   let maxVolume = 0;
+
+  // ⚓ 底部主按鈕全域控制器 (Bottom Docking Logic)
+  window.currentDockAction = null;
+  function handleDockClick() { if (window.currentDockAction) window.currentDockAction(); }
+  function setDockButton(text, isActive, actionFn) {
+      const btn = document.getElementById('global-dock-btn');
+      if (btn) { btn.innerText = text; btn.className = isActive ? 'btn-dock active' : 'btn-dock disabled'; }
+      window.currentDockAction = isActive ? actionFn : null;
+  }
+
+  // 🎭 精靈動作字典 (Mascot Engine)
+  const MASCOT_MAP = { idle: "Star_Click", success: "Star_ClickSmile", fail: "Star_Puzzled", thinking: "Star_Quest", epic: "Star_Dancing" };
+  function playMascot(playerElementId, state) {
+      const player = document.getElementById(playerElementId);
+      if (player) player.load(`avatars/${MASCOT_MAP[state]}.json`);
+  }
+
+  // ✕ 按鈕跳轉機制
+  window.confirmExit = () => {
+      if(confirm("確定要離開挑戰嗎？目前的進度將不會儲存。")) window.location.href = `dashboard.html?id=${STUDENT_ID}`;
+  };
   
   let hasUsedSkill = false; 
   let isUltimateMode = false; 
