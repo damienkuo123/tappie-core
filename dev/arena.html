@@ -582,7 +582,6 @@
 
   const originalOnload = async () => {
     hideLoadingScreen();
-    // 🚀 一啟動就顯示導航欄
     const navBar = document.getElementById('top-nav-bar');
     if (navBar) navBar.style.display = 'flex';
 
@@ -590,32 +589,26 @@
     playMascot('setup-mascot', 'idle');
     if (speechText) {
         speechText.innerText = "嗨～我們來增進英語口說吧！";
-        setTimeout(() => { 
-            speechText.innerText = `今天挑戰：${TARGET_UNIT ? TARGET_UNIT : '今日挑戰'}`; 
-        }, 2000);
+        setTimeout(() => { speechText.innerText = `今天挑戰：${TARGET_UNIT || '今日挑戰'}`; }, 2000);
     }
 
     try {
       globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
     } catch (e) { 
       alert("請開啟麥克風權限才能開始！");
-      if (speechText) speechText.innerText = "請開啟權限後重新整理。";
       return;
     }
 
     setDockButton('開始', true, () => {
         if (speechText) speechText.innerText = "正在為您載入題目...";
         
-        // 🚀 修正 URL 拼接問題
         let fetchUrl = GAS_URL + "?id=" + STUDENT_ID + "&action=get_data";
         if (TARGET_UNIT) fetchUrl += "&unit=" + encodeURIComponent(TARGET_UNIT);
 
         fetch(fetchUrl)
           .then(res => res.json())
           .then(data => {
-            // 🚀 嚴格檢查資料結構
             if (!data || !data.words || data.words.length === 0) { throw new Error("Empty quiz"); }
-            
             quizData = data.words; 
             scores = new Array(quizData.length).fill(null);
             warmupPassed = new Array(quizData.length).fill(false);
@@ -624,14 +617,29 @@
             document.getElementById('setup-zone').style.display = 'none';
             document.getElementById('studio').style.display = 'block';
             
+            // 🚀 重要修復：重新綁定播放與錄音神經系統
+            initRecordingSystem(); 
+            attachButtonListeners(); 
             renderWord();
           })
           .catch(err => {
-            console.error("Quiz Fetch Error:", err);
-            alert("載入失敗！請確認網路連線或單元名稱是否正確。");
+            console.error(err);
+            alert("網路連線不穩，請重新嘗試！");
           });
     });
   };
+
+  // 🚀 手術核心：建立「神經重啟」函式，解決 record-btn 失效問題
+  function initRecordingSystem() {
+      const newRb = document.getElementById('record-btn');
+      if (newRb) {
+          // 清除舊的監聽器並重新綁定
+          newRb.onpointerdown = startPracticeRecord;
+          newRb.onpointerup = stopPracticeRecord;
+          newRb.onpointerleave = stopPracticeRecord;
+          newRb.onpointercancel = stopPracticeRecord;
+      }
+  }
 
   window.onload = async () => { await originalOnload(); };
   
