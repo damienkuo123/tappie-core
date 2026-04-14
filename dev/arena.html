@@ -287,6 +287,29 @@
         /* ⚠️ 絕對不要在這裡加 margin，會造成版面抖動！ */
         background: #1899d6; 
       }
+      
+      /* 🚀 按下去的物理下沉感 (果凍彈性) */
+      #record-btn:active, #record-btn.active { 
+        border-bottom-width: 0px; 
+        transform: translateY(6px); 
+        margin-top: 26px; /* 微調維持位置 */
+        margin-bottom: 14px; 
+        background: #1899d6; 
+        box-shadow: 0 0px 0 rgba(28, 176, 246, 0); 
+      }
+      
+      /* 🛑 評分中/停用狀態 (Duolingo 灰色實體感，不使用透明度) */
+      #record-btn.grading-state {
+        background: #e5e5e5;
+        border-bottom-color: #e5e5e5;
+        border-bottom-width: 0px;
+        transform: translateY(6px); /* 保持被壓扁的狀態 */
+        margin-top: 26px;
+        margin-bottom: 14px;
+        color: #afafaf;
+        pointer-events: none;
+        box-shadow: none;
+      }
   
       /* 2. 選擇題與拼字按鈕 */
       #warmup-options { width: 100%; max-width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 10px; }
@@ -341,51 +364,6 @@
           border-radius: 20px !important; 
       }
 
-      /* ===================================================
-         🚀 新增：7. 戰場兩側計分 UI 防貼邊
-         =================================================== */
-      /* 在大螢幕上，讓左右計分柱往內縮，不要死死貼著螢幕邊緣 */
-      .vertical-score-track { left: 4vw; padding: 30px 18px; }
-      .vertical-round-track { right: 4vw; padding: 30px 12px; }
-      #round-num { font-size: 20px !important; letter-spacing: 6px; }
-      .round-dot { width: 24px; height: 24px; }
-    }
-
-    /* 🚀 橫式播放按鈕 (膠囊型) */
-    .btn-play-pill {
-      background: var(--primary-blue);
-      color: white;
-      border: none;
-      padding: 6px 18px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 10px rgba(0, 102, 204, 0.2);
-      transition: transform 0.2s;
-    }
-    .btn-play-pill:active { transform: scale(0.95); }
-      #zh-display { font-size: 26px; margin-bottom: 30px; }
-      
-      /* 錄音麥克風放大，讓小朋友超好按！ */
-      #record-btn { width: 160px; height: 160px; font-size: 70px; border-width: 10px; margin: 40px auto; }
-      #status { font-size: 20px; }
-      #feedback { font-size: 32px !important; margin-top: 20px; }
-      
-      /* 底部切換按鈕放大 */
-      .btn { font-size: 20px; padding: 18px 35px; border-radius: 16px; }
-      .btn-play { width: 60px; height: 60px; font-size: 30px; margin-left: 20px; }
-      
-      /* 總結畫面放大 */
-      #total-avg { font-size: 100px !important; margin: 20px 0; }
-      td { font-size: 22px; padding: 20px; }
-      .score-badge { font-size: 26px; }
-      .btn-re { font-size: 18px; padding: 10px 20px; }
-      .btn-finish { font-size: 26px; padding: 25px; border-radius: 20px; margin-top: 30px; }
-    }
 
     /* =======================================================
        🔥 瑪麗安 3.0：頂級果凍質感「動態心流」UI 
@@ -669,7 +647,7 @@
                     <lottie-player id="prod-mascot" src="" background="transparent" speed="1" loop autoplay></lottie-player>
                 </div>
                 <div class="speech-bubble left-tail" id="prod-bubble">
-                   <div id="prod-feedback-text" style="display:none; font-size: 15px; color:#4b4b4b; margin-bottom: 8px;"></div>
+                   <div id="prod-feedback-text" style="display:none; font-size: 15px; color:#4b4b4b; margin: 0; line-height: 1.4;"></div>
                    <div id="prod-tts-btn" style="cursor:pointer; display:flex; align-items:center; justify-content: flex-start; gap:5px; color:#1cb0f6;">
                      <span style="font-size:24px;">🔊</span> <span id="prod-tts-text" style="font-weight:bold;">我來唸一次</span>
                    </div>
@@ -1484,8 +1462,8 @@
       if (rb) {
           rb.style.display = 'flex';
           rb.style.pointerEvents = "auto"; 
-          rb.style.opacity = "1";
-          rb.classList.remove('active');
+          rb.style.opacity = "1"; /* 保留這行以防萬一舊設定殘留 */
+          rb.classList.remove('active', 'grading-state'); /* 🚀 移除灰色停用狀態 */
       }
       
       isGrading = false; isRecording = false;
@@ -1551,7 +1529,8 @@
 
         isGrading = true;
         rb.style.pointerEvents = "none"; 
-        rb.style.opacity = "0.5"; 
+        rb.style.opacity = "1"; /* 絕對不透明 */
+        rb.classList.add('grading-state'); /* 🚀 套用 Duolingo 灰色實體積木樣式 */
         document.getElementById('status').innerText = "⚙️ 封裝音檔中...";
         document.getElementById('status').style.color = "#f1c40f";
 
