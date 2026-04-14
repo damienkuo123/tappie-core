@@ -174,54 +174,67 @@
       .btn-dock.wrong-btn { background: #ff4b4b; border-color: #ea1537; color: white; }
       .btn-dock.wrong-btn:active { border-bottom-width: 2px; transform: translateY(4px); margin-top: 4px; }
 
-      /* 🚀 修正排版：內部完美靠左，對話框往右延伸 */
-      .avatar-bubble-row { 
-          display: flex; align-items: flex-start; /* 頂部對齊，確保對話框長高時精靈不動 */
-          justify-content: flex-start; /* 內部元素靠左 */
-          gap: 10px; /* 精靈與對話框的距離 */
-          margin-bottom: 20px; flex-shrink: 0; width: 100%; 
-          padding-left: 20px; /* 🛡️ 與標題一致的左側邊距 */
+      /* 🚀 1. 頂部安全容器：鎖定寬度並置中，內部強制靠左 */
+      .top-section-container {
+          width: 100%;
+          max-width: 400px; /* 模擬手機螢幕寬度 */
+          margin: 0 auto; /* 讓整個區塊在畫面上居中 */
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start; /* 標題與精靈列全部靠左 */
+          padding: 0 25px; /* 留出左側安全邊距 */
           box-sizing: border-box;
-          min-height: 140px; /* 撐開高度，保護下方單字不被對話框往下壓 */
+      }
+
+      /* 🚀 2. 精靈與對話框列：固定最小高度，防止單字被往下推 */
+      .avatar-bubble-row { 
+          display: flex; 
+          align-items: flex-start; 
+          justify-content: flex-start; 
+          gap: 12px; 
+          width: 100%; 
+          min-height: 150px; /* 🛡️ 高度結界：對話框長高也不會壓到下方單字 */
+          margin-bottom: 10px;
       }
       
-      /* 🌟 實體 2D 陰影：容器固定，陰影絕對定位在最底部 */
+      /* 🌟 3. 實體 2D 陰影與精靈定錨 */
       .mascot-container {
           position: relative;
-          width: 120px; height: 120px; /* 固定的物理佔位 */
+          width: 110px; height: 110px; /* 固定的物理佔位 */
           flex-shrink: 0; /* 💯 絕對不允許被壓縮 */
       }
       .mascot-shadow {
           position: absolute;
-          bottom: 0px; /* 釘死在容器最底部 */
+          bottom: 5px; /* 陰影固定在底部 */
           left: 50%;
           transform: translateX(-50%);
-          width: 70px; height: 14px; 
-          background: #e5e5e5; /* 純平實心灰 */
+          width: 65px; height: 14px; 
+          background: #e5e5e5; /* 實心灰 */
           border-radius: 50%;
           z-index: 1;
       }
       #prod-mascot {
           position: absolute;
-          bottom: -5px; /* 🚀 往下沉，讓腳完美踩在陰影上 (依 Lottie 透明邊距微調) */
+          bottom: -15px; /* 🚀 關鍵：強迫 Lottie 動畫往下沉，抵銷透明空白，完美踩在陰影上 */
           left: 50%;
           transform: translateX(-50%);
-          width: 145px !important; height: 145px !important; /* 視覺放大 */
+          width: 140px !important; height: 140px !important;
           z-index: 2;
+          pointer-events: none; /* 避免擋住點擊 */
       }
 
-      /* 💬 動態彈性對話框：往右自由延伸 */
+      /* 💬 4. 動態對話框：只往右與往下長大 */
       .speech-bubble { 
           background: #ffffff; border: 2px solid #e5e5e5; border-radius: 20px; 
           padding: 12px 18px; position: relative; 
-          max-width: calc(100% - 130px); /* 限制最大寬度，防止爆版 */
-          width: fit-content; min-height: 50px; 
+          flex: 1; /* 佔滿右側剩餘空間 */
+          max-width: 220px; /* 限制最大寬度，防爆版 */
+          min-height: 50px; 
           text-align: left; box-shadow: 0 4px 0 #e5e5e5; 
           color: #4b4b4b; font-weight: 800; font-size: 15px; line-height: 1.4; 
           display: flex; flex-direction: column; justify-content: center; 
-          word-break: break-word; margin-top: 10px; /* 微調對齊精靈頭部 */
+          word-break: break-word; margin-top: 10px; 
       }
-      /* 小尾巴固定在距離頂部 25px 的地方 */
       .speech-bubble.left-tail::before { content: ""; position: absolute; left: -14px; top: 25px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 14px solid #e5e5e5; }
       .speech-bubble.left-tail::after { content: ""; position: absolute; left: -10px; top: 25px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 12px solid #ffffff; }
       
@@ -611,15 +624,15 @@
          <div id="warmup-options" style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap; width:100%;"></div>
       </div>
 
-      <div id="production-zone" style="display:none; flex-direction: column; align-items: center; width: 100%; height: 100%;">
+      <div id="production-zone" style="display:none; flex-direction: column; width: 100%; height: 100%;">
          
-         <div style="width: 100%; max-width: 450px; display: flex; flex-direction: column; align-items: flex-start; box-sizing: border-box;">
-             <h3 style="color:#afafaf; font-size:16px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; width: 100%; text-align: left; padding-left: 20px; box-sizing: border-box;">🎙️ 口說錄音</h3>
+         <div class="top-section-container">
+             <h3 style="color:#afafaf; font-size:16px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; text-align: left;">🎙️ 口說錄音</h3>
              
              <div class="avatar-bubble-row">
                 <div class="mascot-container">
-                    <lottie-player id="prod-mascot" src="" background="transparent" speed="1" loop autoplay></lottie-player>
                     <div class="mascot-shadow"></div>
+                    <lottie-player id="prod-mascot" src="" background="transparent" speed="1" loop autoplay></lottie-player>
                 </div>
                 <div class="speech-bubble left-tail" id="prod-bubble">
                    <div id="prod-feedback-text" style="display:none; font-size: 15px; color:#4b4b4b; margin-bottom: 8px;"></div>
