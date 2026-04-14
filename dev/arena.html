@@ -1063,15 +1063,9 @@
     const speechText = document.getElementById('setup-speech-text');
     playMascot('setup-mascot', 'idle');
     
-    // 🚀 三段式引導文案切換 (完美語法版)
     if (speechText) {
-        speechText.innerText = "嗨！我們來練習口說吧";
-        setTimeout(() => { 
-            speechText.innerText = `今天我們來練習，${TARGET_UNIT ? TARGET_UNIT : '新單元'}`; 
-            setTimeout(() => {
-                speechText.innerText = "點擊下方開始";
-            }, 2500);
-        }, 2000);
+        speechText.innerText = "嗨～我們來增進英語口說吧！";
+        setTimeout(() => { speechText.innerText = `今天挑戰：${TARGET_UNIT ? TARGET_UNIT : '今日挑戰'}`; }, 2000);
     }
 
     try {
@@ -1102,7 +1096,7 @@
             
             document.getElementById('total-display').innerText = quizData.length;
             
-            // 🚀 隱藏開始畫面，顯示練習區
+            // 🚀 隱藏開始畫面，顯示練習區 (拔除已不存在的 progress-container)
             document.getElementById('setup-zone').style.display = 'none';
             document.getElementById('studio').style.display = 'block';
             
