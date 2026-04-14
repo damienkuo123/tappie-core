@@ -174,41 +174,46 @@
       .btn-dock.wrong-btn { background: #ff4b4b; border-color: #ea1537; color: white; }
       .btn-dock.wrong-btn:active { border-bottom-width: 2px; transform: translateY(4px); margin-top: 4px; }
 
-      /* 🚀 修正排版：精靈完美靠左，並加上安全內距防貼壁 */
+      /* 🚀 修正排版：精靈完美靠左定錨，建立高度結界防止單字跳動 */
       .avatar-bubble-row { 
           display: flex; align-items: flex-start; 
           justify-content: flex-start; 
-          gap: 15px; margin-bottom: 20px; flex-shrink: 0; width: 100%; 
-          padding-left: 20px; /* 🛡️ 左側防護牆 */
-          box-sizing: border-box;
+          gap: 10px; margin-bottom: 20px; flex-shrink: 0; width: 100%; 
+          min-height: 140px; /* 🛡️ 鎖死最小高度，對話框長大也不會把下方單字擠下去 */
       }
       
-      /* 🌟 實體 2D 陰影：絕對定位鎖死在精靈腳下 */
+      /* 🌟 實體 2D 陰影：容器絕對定位鎖死 */
       .mascot-container {
           position: relative;
-          width: 140px; height: 140px; 
+          width: 110px; height: 110px; /* 固定的物理佔位 */
           flex-shrink: 0;
-          display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
       }
       .mascot-shadow {
-          width: 75px; height: 16px; 
+          position: absolute;
+          bottom: 0px; /* 釘死在底部 */
+          left: 50%;
+          transform: translateX(-50%);
+          width: 70px; height: 14px; 
           background: #e5e5e5; /* 純平實心灰 */
           border-radius: 50%;
-          margin-top: -10px; /* 將陰影往上提貼合腳底 */
           z-index: 1;
       }
       #prod-mascot {
-          width: 140px !important; height: 140px !important;
+          position: absolute;
+          bottom: -8px; /* 🚀 往下沉，讓腳完美踩在陰影上 */
+          left: 50%;
+          transform: translateX(-50%);
+          width: 150px !important; height: 150px !important; /* Lottie內部有透明留白，稍微放大 */
           z-index: 2;
       }
 
       /* 💬 動態彈性對話框 */
       .speech-bubble { 
           background: #ffffff; border: 2px solid #e5e5e5; border-radius: 20px; 
-          padding: 12px 18px; position: relative; 
+          padding: 14px 18px; position: relative; 
           max-width: 65%; width: fit-content; min-height: 50px; 
           text-align: left; box-shadow: 0 4px 0 #e5e5e5; 
-          color: #4b4b4b; font-weight: 800; font-size: 16px; line-height: 1.4; 
+          color: #4b4b4b; font-weight: 800; font-size: 15px; line-height: 1.4; 
           display: flex; flex-direction: column; justify-content: center; 
           word-break: break-word; margin-top: 10px; 
       }
@@ -601,20 +606,23 @@
          <div id="warmup-options" style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap; width:100%;"></div>
       </div>
 
-      <div id="production-zone" style="display:none; flex-direction: column; align-items: flex-start; width: 100%; align-self: stretch; height: 100%;">
-         <h3 style="color:#afafaf; font-size:16px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; width: 100%; text-align: left; padding-left: 20px;">🎙️ 口說錄音</h3>
+      <div id="production-zone" style="display:none; flex-direction: column; align-items: center; width: 100%; height: 100%;">
          
-         <div class="avatar-bubble-row">
-            <div class="mascot-container">
-                <lottie-player id="prod-mascot" src="" background="transparent" speed="1" loop autoplay></lottie-player>
-                <div class="mascot-shadow"></div>
-            </div>
-            <div class="speech-bubble left-tail" id="prod-bubble">
-               <div id="prod-feedback-text" style="display:none; font-size: 15px; color:#4b4b4b; margin-bottom: 8px;"></div>
-               <div id="prod-tts-btn" style="cursor:pointer; display:flex; align-items:center; justify-content: flex-start; gap:5px; color:#1cb0f6;">
-                 <span style="font-size:24px;">🔊</span> <span id="prod-tts-text" style="font-weight:bold;">我來唸一次</span>
-               </div>
-            </div>
+         <div style="width: 100%; max-width: 450px; padding: 0 20px; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-start;">
+             <h3 style="color:#afafaf; font-size:16px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px;">🎙️ 口說錄音</h3>
+             
+             <div class="avatar-bubble-row">
+                <div class="mascot-container">
+                    <lottie-player id="prod-mascot" src="" background="transparent" speed="1" loop autoplay></lottie-player>
+                    <div class="mascot-shadow"></div>
+                </div>
+                <div class="speech-bubble left-tail" id="prod-bubble">
+                   <div id="prod-feedback-text" style="display:none; font-size: 15px; color:#4b4b4b; margin-bottom: 8px;"></div>
+                   <div id="prod-tts-btn" style="cursor:pointer; display:flex; align-items:center; justify-content: flex-start; gap:5px; color:#1cb0f6;">
+                     <span style="font-size:24px;">🔊</span> <span id="prod-tts-text" style="font-weight:bold;">我來唸一次</span>
+                   </div>
+                </div>
+             </div>
          </div>
          
          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
