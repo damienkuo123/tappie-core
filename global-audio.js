@@ -172,8 +172,20 @@ const GlobalAudio = {
     bindClickEvents: function() {
         document.addEventListener('pointerdown', (e) => {
             const target = e.target.closest('button, a, .btn, .btn-dock, .btn-play-pill, .ws-letter, .btn-image-choice');
+            
+            // 🚀 黑名單：這些按鈕按下去會觸發 Popup，所以它們不應該發出 Click 聲音，交給 Popup 負責就好
+            const noClickClasses = ['history-btn', 'btn-close-modal', 'btn-glory']; 
+            // 如果你的網頁裡還有其他按鈕是用來開彈窗的，也可以把它們的 class 加到上面這個陣列裡
+
             if (target && !target.disabled && !target.classList.contains('disabled') && target.id !== 'record-btn' && target.id !== 'battle-record-btn') {
-                if (target.hasAttribute('data-no-click-sound')) return;
+                
+                // 檢查這個按鈕是否帶有黑名單的 class
+                const isNoClickClass = noClickClasses.some(cls => target.classList.contains(cls));
+                
+                if (target.hasAttribute('data-no-click-sound') || isNoClickClass) {
+                    return; // 乖乖閉嘴
+                }
+                
                 this.play('click');
             }
         });
