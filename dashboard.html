@@ -252,6 +252,22 @@
     <div class="spinner"></div>
     <h3 style="color: var(--primary-blue); letter-spacing: 3px; font-weight: 900;">學生資料讀取中...</h3>
   </div>
+  
+  <div id="start-overlay" style="display: none; position: fixed; inset: 0; background: rgba(240, 244, 248, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); z-index: 9998; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s, transform 0.5s;">
+      <h2 style="color: var(--primary-blue); font-size: 28px; font-weight: 900; margin-bottom: 10px; letter-spacing: 2px;">準備就緒</h2>
+      <p style="color: var(--text-sub); font-size: 16px; font-weight: bold; margin-bottom: 40px;">點擊下方按鈕進入數位學習中心</p>
+      <button id="btn-start-experience" style="background: linear-gradient(135deg, var(--marian-green), #27ae60); color: white; border: none; padding: 20px 50px; border-radius: 30px; font-size: 22px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4), inset 0 -4px 0 rgba(0,0,0,0.1); letter-spacing: 3px; transition: transform 0.1s;">
+          🚀 點擊進入
+      </button>
+  </div>
+  
+  <script>
+      // 綁定按壓效果
+      document.getElementById('btn-start-experience').addEventListener('mousedown', function() { this.style.transform = 'scale(0.95)'; });
+      document.getElementById('btn-start-experience').addEventListener('mouseup', function() { this.style.transform = 'scale(1)'; });
+      document.getElementById('btn-start-experience').addEventListener('touchstart', function() { this.style.transform = 'scale(0.95)'; });
+      document.getElementById('btn-start-experience').addEventListener('touchend', function() { this.style.transform = 'scale(1)'; });
+  </script>
 
   <div id="main-view">
     
@@ -419,12 +435,35 @@
         .then(data => {
           renderDashboard(data);
           
-          // 🎬 電影級開場
-          document.getElementById('loading-screen').style.opacity = '0';
+          // 🎬 步驟 1：資料載入完成，隱藏骨架屏，顯示「啟動遮罩」
+          const loadingScreen = document.getElementById('loading-screen');
+          const startOverlay = document.getElementById('start-overlay');
+          const mainView = document.getElementById('main-view');
+          
+          loadingScreen.style.opacity = '0';
           setTimeout(() => {
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('main-view').classList.add('show');
+            loadingScreen.style.display = 'none';
+            startOverlay.style.display = 'flex'; // 顯示啟動遮罩
           }, 600);
+
+          // 🎬 步驟 2：綁定點擊事件，解鎖音樂並進入主畫面
+          document.getElementById('btn-start-experience').addEventListener('click', () => {
+              // 1. 播放按鈕音效 (如果 global-audio 已經載入)
+              if (window.GlobalAudio) GlobalAudio.play('click');
+              
+              // 2. 觸發背景音樂 (瀏覽器現在允許了，因為這是真實的點擊事件！)
+              // 注意：這裡觸發 document click 事件，讓 global-audio.js 的 autoPlayBGM 接手
+              document.dispatchEvent(new Event('pointerdown')); 
+
+              // 3. 動畫轉場
+              startOverlay.style.opacity = '0';
+              startOverlay.style.transform = 'scale(1.05)';
+              setTimeout(() => {
+                  startOverlay.style.display = 'none';
+                  mainView.classList.add('show'); // 顯示主畫面
+              }, 400);
+          });
+
         })
         .catch(err => { alert("連線失敗，請檢查網路狀態！"); console.error(err); });
     };
