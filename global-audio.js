@@ -68,15 +68,34 @@ const GlobalAudio = {
 
         // 設定所有 BGM 預設音量與循環
         for (let key in this.bgm) {
-            this.bgm[key].volume = 0.15; // BGM 音量調小，不干擾人聲
+            this.bgm[key].volume = 0.15; 
             this.bgm[key].loop = true;
         }
 
         this.bindClickEvents();
         this.observeModals();
-        this.bindMicDucking(); // 🚀 啟動麥克風防干擾監聽
-        this.autoPlayBGM();    // 🚀 啟動情境 BGM 判斷
+        this.bindMicDucking(); 
+        this.autoPlayBGM();    
         
+        // 🚀 黑魔法：在使用者第一次點擊畫面時，以 0 音量把所有音效「摸」一遍，騙過瀏覽器！
+        const unlockAllAudio = () => {
+            for (let key in this.sounds) {
+                const s = this.sounds[key];
+                s.volume = 0; // 靜音
+                s.play().then(() => {
+                    s.pause(); // 播了馬上停
+                    s.currentTime = 0;
+                    // 恢復原本該有的音量
+                    if (key === 'click' || key === 'popupClose') s.volume = 0.4;
+                    else if (key === 'popupOpen') s.volume = 0.5;
+                    else s.volume = 1.0; // 其他戰鬥音效預設滿音量
+                }).catch(e => {}); // 忽略錯誤
+            }
+            document.removeEventListener('pointerdown', unlockAllAudio);
+            console.log("🔓 所有音效已解鎖！");
+        };
+        document.addEventListener('pointerdown', unlockAllAudio);
+
         console.log("🎵 Global Audio Engine 3.0 Initialized");
     },
 
