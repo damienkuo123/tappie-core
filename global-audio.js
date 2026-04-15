@@ -17,7 +17,7 @@ const GlobalAudio = {
     // 2. 背景音樂庫 (BGM) - 替換成你的專屬音樂網址
     // ==========================================
     bgm: {
-        dashboard: new Audio('https://damienkuo123.github.io/marian-app/audio/Devil_Disaster.mp3'), 
+        dashboard: new Audio('https://damienkuo123.github.io/marian-app/audio/cyberwave-orchestra-puzzle-game-loop-bright-casual-video-game-music-249201.mp3'), 
         lobby: new Audio('https://assets.mixkit.co/active_storage/sfx/136/136-preview.mp3'),     // 替換為你的 Lobby 音樂
         arenaNormal: new Audio('https://assets.mixkit.co/active_storage/sfx/136/136-preview.mp3'), // 一般練習音樂
         arenaBattle: new Audio('https://damienkuo123.github.io/marian-app/audio/Devil_Disaster.mp3'), // 熱血對戰音樂
