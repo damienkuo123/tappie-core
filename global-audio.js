@@ -6,9 +6,9 @@
 const GlobalAudio = {
     // 1. 音效網址庫 (改為網址對應)
     soundUrls: {
-        click: 'https://damienkuo123.github.io/marian-app/audio/click.m4a',
-        popupOpen: 'https://damienkuo123.github.io/marian-app/audio/popupOpen.m4a',
-        popupClose: 'https://damienkuo123.github.io/marian-app/audio/popupClose.m4a',
+        click: 'https://damienkuo123.github.io/marian-app/audio/click.mp3',
+        popupOpen: 'https://damienkuo123.github.io/marian-app/audio/popupOpen.mp3',
+        popupClose: 'https://damienkuo123.github.io/marian-app/audio/popupClose.mp3',
         countdown: 'https://damienkuo123.github.io/marian-app/audio/countdown.mp3',
         fireNormal: 'https://damienkuo123.github.io/marian-app/audio/fireNormal.mp3',
         fireUlt: 'https://damienkuo123.github.io/marian-app/audio/fireUlt.mp3',
