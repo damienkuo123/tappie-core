@@ -2990,15 +2990,11 @@
                                   document.getElementById('impact-overlay').classList.remove('active');
                                   triggerOverlay.style.display = 'none';
                                   
-                                  // 🚀 呼叫 GlobalAudio 手動切換為抽卡音樂
+                                  // 🚀 呼叫 GlobalAudio 專屬方法，切換抽卡音樂
                                   if (window.GlobalAudio) {
-                                      if (GlobalAudio.currentBGM) GlobalAudio.currentBGM.pause();
-                                      GlobalAudio.bgm.gacha.currentTime = 0;
-                                      GlobalAudio.bgm.gacha.play().catch(e=>{});
-                                      document.body.dataset.gachaBgmPlaying = "true"; 
+                                      GlobalAudio.playGachaBGM();
                                   }
                                   
-                                  // 正式進入抽卡
                                   initGacha(opponentName);
                               };
                           }, 3500); // 👈 這裡控制結算畫面停留多久才跳出按鈕
