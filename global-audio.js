@@ -84,11 +84,32 @@ const GlobalAudio = {
         const source = this.audioCtx.createBufferSource();
         source.buffer = this.audioBuffers[soundName];
 
-        // 獨立控制音量
+        // 獨立控制音量 (Web Audio API GainNode)
         const gainNode = this.audioCtx.createGain();
-        let vol = 1.0;
-        if (soundName === 'click' || soundName === 'popupClose') vol = 0.4;
-        else if (soundName === 'popupOpen') vol = 0.5;
+        
+        // 🎚️ 在這裡定義每個音效的專屬音量 (範圍通常是 0.0 到 1.0，1.0 是原始音量，你甚至可以設到 1.5 放大音量)
+        let vol = 1.0; // 預設值
+        
+        switch (soundName) {
+            case 'click':
+                vol = 0.8;  // 點擊聲保持低調
+                break;
+            case 'popupOpen':
+                vol = 1.2;  // 🚀 彈窗打開調大聲一點！(原本是 0.5)
+                break;
+            case 'popupClose':
+                vol = 1;  // 🚀 彈窗收起也調大一點！(原本是 0.4)
+                break;
+            case 'hit':
+                vol = 1;  // 震動聲可以稍微收一點，以免太吵
+                break;
+            case 'countdown':
+                vol = 1.5;  // 逼逼聲
+                break;
+            // 如果沒有列在上面的 (例如 fireNormal, cutin, victory)，就會自動使用預設的 vol = 1.0
+        }
+        
+        // 將設定好的音量套用到混音器上
         gainNode.gain.setValueAtTime(vol, this.audioCtx.currentTime);
 
         // 連接線路並發射！
