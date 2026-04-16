@@ -2174,10 +2174,10 @@
         if (practiceTimeout) clearTimeout(practiceTimeout);
         practiceTimeout = setTimeout(() => {
             if (isRecording) {
-                console.log("⏱️ 錄音超時 10 秒，強制截斷！");
+                console.log("⏱️ 錄音超時 7 秒，強制截斷！");
                 stopPracticeRecord(e); // 呼叫下方的停止函數
             }
-        }, 10000);
+        }, 7000);
     };
 
     const stopPracticeRecord = (e) => {
@@ -2609,10 +2609,10 @@
         if (battleTimeout) clearTimeout(battleTimeout);
         battleTimeout = setTimeout(() => {
             if (isBattleRecording) {
-                console.log("⏱️ 戰鬥錄音超時 10 秒，強制發射！");
+                console.log("⏱️ 戰鬥錄音超時 7 秒，強制發射！");
                 stopBattleRecord(e); // 呼叫下方的停止函數
             }
-        }, 10000);
+        }, 7000);
     };
 
     const stopBattleRecord = (e) => {
