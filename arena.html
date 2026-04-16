@@ -1434,6 +1434,19 @@
   
   const ROOM_ID = params.get('roomId');
 
+  const MODE = isEventMode ? 'battle' : (params.get('mode') || "challenge");
+  
+  const ROOM_ID = params.get('roomId');
+
+  // 🚀 植入 Arena 專屬時間戳記 (法醫核心)
+  const startTime = performance.now();
+  const arenaLog = (msg) => {
+      const now = window.GlobalAudio ? (performance.now() - window.GlobalAudio.startTime).toFixed(2) : (performance.now() - startTime).toFixed(2);
+      console.log(`[⏱️ ${now}ms] ⚔️ Arena: ${msg}`);
+  };
+
+  let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
+
   let stream, mediaRecorder, chunks = [], quizData = [], scores = [], currentIndex = 0, isReReading = false;
   let azureReports = []; // 🚀 專門用來收集微軟的法醫級音素報告
   let audioContext, analyser, dataArray, source, gradingInterval;
