@@ -1711,24 +1711,38 @@
     rb.innerHTML = "👊";
   }
 
+  // 🚀 植入 Arena 專屬時間戳記 (法醫核心)
+  const arenaLog = (msg) => {
+      const now = window.GlobalAudio ? (performance.now() - window.GlobalAudio.startTime).toFixed(2) : performance.now().toFixed(2);
+      console.log(`[⏱️ ${now}ms] ⚔️ Arena: ${msg}`);
+  };
+
   const originalOnload = async () => {
+    arenaLog("originalOnload 執行中...");
     if(MODE === 'review') document.getElementById('title-text').innerText = "📖 自由練習模式";
     try {
-      // 🚀 啟動並永久保溫麥克風，不再關閉！
+      arenaLog("呼叫 getUserMedia (等待使用者授權麥克風中)...");
+      // 🚀 這是舊版寫法：一進來就要麥克風
       globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
+      arenaLog("✅ getUserMedia 取得成功！麥克風已開啟！");
       
       document.getElementById('info-text').innerText = "麥克風已就緒";
       document.getElementById('start-btn').style.display = 'inline-block';
     } catch (e) { 
+      arenaLog(`❌ getUserMedia 失敗: ${e.message}`);
       alert("請開啟麥克風權限"); 
     }
     hideLoadingScreen();
   };
 
   document.getElementById('start-btn').onclick = () => {
+    arenaLog("👉 點擊了 [開始挑戰] 按鈕");
     document.getElementById('info-text').innerText = "正在載入題目...";
+    document.getElementById('start-btn').style.display = 'none';
+    
     fetch(`${GAS_URL}?id=${STUDENT_ID}&action=get_data&unit=${encodeURIComponent(TARGET_UNIT)}`)
       .then(res => res.json()).then(data => {
+        arenaLog("✅ 題目載入完成，準備渲染");
         if (!data.words || data.words.length === 0) { alert("題目為空"); return; }
         quizData = data.words; 
         scores = new Array(quizData.length).fill(null);
@@ -1738,27 +1752,11 @@
         document.getElementById('progress-container').style.display = 'block';
         document.getElementById('studio').style.display = 'block';
         
-        // 🚀 關鍵：先綁定監聽器，再畫出第一題，按鈕才不會失效！
         attachButtonListeners(); 
         renderWord();
       });
   };
-  
-  function attachButtonListeners() {
-    document.getElementById('play-btn').onclick = () => { 
-        const btn = document.getElementById('play-btn');
-        btn.style.transform = "scale(0.9)";
-        setTimeout(() => btn.style.transform = "scale(1)", 150);
-        
-        // 🚀 呼叫雲端快取發音，放大 1.8 倍！
-        speakWordCloudCached(quizData[currentIndex].en, 1.8, null, null); 
-    };
-    
-    document.getElementById('prev-btn').onclick = () => { if(currentIndex > 0){ currentIndex--; renderWord(); } };
-    document.getElementById('next-btn').onclick = () => { if (currentIndex < quizData.length - 1) { currentIndex++; renderWord(); } else { showSummary(); } };
-    document.getElementById('back-summary-btn').onclick = () => { isReReading = false; showSummary(); };
-  }
-  
+
   window.onload = async () => {
     // 🚀 開發者測試外掛：直接進入高階 AI 抽獎畫面
     if (MODE === 'test_gacha') {
@@ -1824,29 +1822,31 @@
       document.getElementById('main-card').style.display = 'none';
       document.getElementById('impact-overlay').classList.remove('active');
       try {
-        // 🚀 對戰模式一樣啟動並保溫！
+        arenaLog("對戰模式：呼叫 getUserMedia (等待使用者授權麥克風中)...");
+        // 🚀 舊版對戰模式寫法
         globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        arenaLog("✅ 對戰模式：getUserMedia 取得成功！麥克風已開啟！");
         
         fetch(`${GAS_URL}?action=get_lobby_data&id=${STUDENT_ID}`)
           .then(res => res.json())
           .then(data => {
-            window.characterAssets = data.assets || {}; // 存入全域變數
-            
-            // 🚀 關鍵修復：同步給抽獎系統的變數，並啟動獎池引擎！
+            arenaLog("✅ 對手資料與圖鑑載入完成");
+            window.characterAssets = data.assets || {}; 
             characterAssets = window.characterAssets;   
             buildDynamicPrizePool();                    
 
             showPortal();
             hideLoadingScreen();
           }).catch(err => {
-            console.log("圖鑑載入失敗，使用預設", err);
+            arenaLog(`❌ 對手資料載入失敗: ${err.message}`);
             buildDynamicPrizePool();
             showPortal();
-            hideLoadingScreen(); // 失敗時也要解開畫面
+            hideLoadingScreen(); 
           });
       } catch(err) { 
+        arenaLog(`❌ 對戰模式：getUserMedia 失敗: ${err.message}`);
         alert("請開啟麥克風權限才能對戰！"); 
-        hideLoadingScreen(); // 🚀 補上這行，權限被擋時才不會卡在黑畫面
+        hideLoadingScreen(); 
       }
     } else {
       await originalOnload();
