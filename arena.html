@@ -1966,11 +1966,29 @@
 
         // 綁定「點擊進入戰場」的跳轉功能
         window.portalJump = () => {
-          clearInterval(pTimer);
-          portal.style.display = 'none';
-          document.getElementById('battle-arena').style.display = 'flex';
-          setTimeout(() => { document.getElementById('battle-arena').classList.add('battle-ready'); }, 100);
-          fetchBattleDataAndStart(ROOM_ID);
+          enterBtn.innerText = "連線中...";
+          enterBtn.style.pointerEvents = "none";
+          
+          // 1️⃣ 瞬間喚醒 AudioContext 鎖定通道
+          if (window.GlobalAudio) window.GlobalAudio.unlockWebAudio();
+
+          // 2️⃣ 將麥克風請求丟到背景去跑 (不要用 await)
+          navigator.mediaDevices.getUserMedia({ 
+              audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
+          }).then(stream => {
+              globalMicStream = stream;
+              
+              // 3️⃣ 麥克風拿到後，才進入戰場
+              clearInterval(pTimer);
+              portal.style.display = 'none';
+              document.getElementById('battle-arena').style.display = 'flex';
+              setTimeout(() => { document.getElementById('battle-arena').classList.add('battle-ready'); }, 100);
+              fetchBattleDataAndStart(ROOM_ID);
+          }).catch(e => {
+              alert("請允許麥克風權限才能對戰喔！");
+              enterBtn.innerText = "進入戰場";
+              enterBtn.style.pointerEvents = "auto";
+          });
         };
         // 🚀 加上這行：資料載入完畢後，啟動閃卡互動引擎！
         setTimeout(() => { initInteractiveHoloCards(); }, 500);
