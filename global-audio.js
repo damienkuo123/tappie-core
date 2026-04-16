@@ -1,10 +1,17 @@
 /**
  * Happy Marian 3.0 - 全域通用音效與配樂引擎 (Global Audio Engine - Web Audio API Edition)
- * 解決 Safari 靜音限制、避免預載亂叫、達成零延遲完美打擊感！
+ * 【法醫鑑定版】已植入微秒級時間戳記
  */
 
 const GlobalAudio = {
-    // 1. 音效網址庫 (改為網址對應)
+    // 🚀 植入全域時間基準點 (法醫核心)
+    startTime: performance.now(),
+    
+    log: function(msg) {
+        const now = (performance.now() - this.startTime).toFixed(2);
+        console.log(`[⏱️ ${now}ms] 🎵 GlobalAudio: ${msg}`);
+    },
+
     soundUrls: {
         click: 'https://damienkuo123.github.io/marian-app/audio/click.mp3',
         popupOpen: 'https://damienkuo123.github.io/marian-app/audio/popupOpen.mp3',
@@ -18,7 +25,6 @@ const GlobalAudio = {
         shatter: 'https://damienkuo123.github.io/marian-app/audio/shatter.mp3'
     },
 
-    // 2. 背景音樂庫 (BGM 檔案大，仍保留傳統 Audio 標籤串流播放)
     bgm: {
         dashboard: new Audio('https://damienkuo123.github.io/marian-app/audio/cyberwave-orchestra-puzzle-game-loop-bright-casual-video-game-music-249201.mp3'), 
         lobby: new Audio('https://damienkuo123.github.io/marian-app/audio/決戦へ.mp3'),     
@@ -27,15 +33,49 @@ const GlobalAudio = {
         gacha: new Audio('https://damienkuo123.github.io/marian-app/audio/Battle_in_the_Moonlight.mp3')        
     },
 
-    // 🚀 新增：Web Audio API 核心組件
     audioCtx: null,
-    audioBuffers: {}, // 用來存放解碼後的純淨聲音數據
+    audioBuffers: {}, 
 
     currentBGM: null,       
     isDucking: false,       
 
+    // 🚀 強制喚醒武器 (加上監視器)
+    unlockWebAudio: function() {
+        this.log("嘗試解鎖 Web Audio API (unlockWebAudio 被呼叫)");
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            this.preloadAllSounds(); 
+            this.log(`🆕 AudioContext 建立完成 (State: ${this.audioCtx.state})`);
+        } else {
+            this.log(`ℹ️ AudioContext 已存在 (State: ${this.audioCtx.state})`);
+        }
+        
+        if (this.audioCtx.state === 'suspended') {
+            this.log("⚠️ AudioContext 暫停中，發起 resume() 請求...");
+            this.audioCtx.resume().then(() => {
+                this.log(`✅ AudioContext resume 成功！(State: ${this.audioCtx.state})`);
+            }).catch(e => {
+                this.log(`❌ AudioContext resume 失敗: ${e.message}`);
+            });
+        }
+        
+        // 偷播空音訊
+        try {
+            const osc = this.audioCtx.createOscillator();
+            const gain = this.audioCtx.createGain();
+            gain.gain.value = 0;
+            osc.connect(gain);
+            gain.connect(this.audioCtx.destination);
+            osc.start(0);
+            osc.stop(this.audioCtx.currentTime + 0.01);
+            this.log("🔊 過水空音訊已發送至 Destination");
+        } catch(e) {
+            this.log(`❌ 過水空音訊發送失敗: ${e.message}`);
+        }
+    },
+
     init: function() {
-        // 設定 BGM 預設音量與循環
+        this.log("初始化 (init) 開始執行");
         for (let key in this.bgm) {
             this.bgm[key].volume = 0.1; 
             this.bgm[key].loop = true;
@@ -46,79 +86,52 @@ const GlobalAudio = {
         this.bindMicDucking(); 
         this.autoPlayBGM();    
         
-        // 🚀 核心機制：等待使用者第一次點擊，才喚醒 AudioContext 並開始下載音效！
         const initWebAudio = () => {
-            if (!this.audioCtx) {
-                this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                this.preloadAllSounds(); // 開始默默下載短音效
-                console.log("🔓 Web Audio API 喚醒成功！");
-            }
-            if (this.audioCtx.state === 'suspended') {
-                this.audioCtx.resume();
-            }
+            this.log("👉 偵測到全域 pointerdown 事件！準備呼叫 unlockWebAudio");
+            this.unlockWebAudio(); 
             document.removeEventListener('pointerdown', initWebAudio);
         };
         document.addEventListener('pointerdown', initWebAudio);
 
-        console.log("🎵 Global Audio Engine 3.2 Initialized (Web Audio API Mode)");
+        this.log("初始化 (init) 執行完畢，等待使用者全域點擊");
     },
 
-    // 🚀 將所有短音效下載並解碼到記憶體中 (背景執行，絕對不會發出聲音)
     preloadAllSounds: function() {
+        this.log("開始下載短音效 (preloadAllSounds)");
         for (let key in this.soundUrls) {
             fetch(this.soundUrls[key])
                 .then(response => response.arrayBuffer())
                 .then(arrayBuffer => this.audioCtx.decodeAudioData(arrayBuffer))
                 .then(audioBuffer => {
-                    this.audioBuffers[key] = audioBuffer; // 存入記憶體
+                    this.audioBuffers[key] = audioBuffer; 
                 })
-                .catch(e => console.warn(`音效 ${key} 載入失敗:`, e));
+                .catch(e => {}); 
         }
     },
 
-    // 🚀 終極播放函數：從記憶體中提取聲音，零延遲噴發！
     play: function(soundName) {
-        if (!this.audioCtx || !this.audioBuffers[soundName]) return; // 如果還沒載入完就算了
+        if (!this.audioCtx || !this.audioBuffers[soundName]) return; 
         
-        // 每次播放都要產生一個新的 Source (這是 Web Audio API 的規定)
         const source = this.audioCtx.createBufferSource();
         source.buffer = this.audioBuffers[soundName];
 
-        // 獨立控制音量 (Web Audio API GainNode)
         const gainNode = this.audioCtx.createGain();
-        
-        // 🎚️ 在這裡定義每個音效的專屬音量 (範圍通常是 0.0 到 1.0，1.0 是原始音量，你甚至可以設到 1.5 放大音量)
-        let vol = 1.0; // 預設值
+        let vol = 1.0; 
         
         switch (soundName) {
-            case 'click':
-                vol = 0.8;  // 點擊聲保持低調
-                break;
-            case 'popupOpen':
-                vol = 1.8;  // 🚀 彈窗打開調大聲一點！(原本是 0.5)
-                break;
-            case 'popupClose':
-                vol = 1.6;  // 🚀 彈窗收起也調大一點！(原本是 0.4)
-                break;
-            case 'hit':
-                vol = 1;  // 震動聲可以稍微收一點，以免太吵
-                break;
-            case 'countdown':
-                vol = 1.5;  // 逼逼聲
-                break;
-            // 如果沒有列在上面的 (例如 fireNormal, cutin, victory)，就會自動使用預設的 vol = 1.0
+            case 'click': vol = 0.8; break;
+            case 'popupOpen': vol = 1.8; break;
+            case 'popupClose': vol = 1.6; break;
+            case 'hit': vol = 1; break;
+            case 'countdown': vol = 1.5; break;
         }
         
-        // 將設定好的音量套用到混音器上
         gainNode.gain.setValueAtTime(vol, this.audioCtx.currentTime);
 
-        // 連接線路並發射！
         source.connect(gainNode);
         gainNode.connect(this.audioCtx.destination);
         source.start(0);
     },
-
-    // --- 以下為原本的 BGM 切換與監聽邏輯，完全沒變 ---
 
     playGachaBGM: function() {
         if (this.currentBGM) {
@@ -159,7 +172,12 @@ const GlobalAudio = {
         if (targetBGM) {
             this.currentBGM = targetBGM;
             const startBgmInteraction = () => {
-                this.currentBGM.play().catch(e => {});
+                this.log("👉 偵測到全域 pointerdown 事件！嘗試播放 BGM");
+                this.currentBGM.play().then(() => {
+                    this.log("✅ BGM 播放成功");
+                }).catch(e => {
+                    this.log("❌ BGM 播放失敗: " + e.message);
+                });
                 document.removeEventListener('pointerdown', startBgmInteraction);
             };
             document.addEventListener('pointerdown', startBgmInteraction);
@@ -193,20 +211,12 @@ const GlobalAudio = {
     bindClickEvents: function() {
         document.addEventListener('pointerdown', (e) => {
             const target = e.target.closest('button, a, .btn, .btn-dock, .btn-play-pill, .ws-letter, .btn-image-choice');
-            
-            // 🚀 黑名單：這些按鈕按下去會觸發 Popup，所以它們不應該發出 Click 聲音，交給 Popup 負責就好
             const noClickClasses = ['history-btn', 'btn-close-modal', 'btn-glory']; 
-            // 如果你的網頁裡還有其他按鈕是用來開彈窗的，也可以把它們的 class 加到上面這個陣列裡
-
             if (target && !target.disabled && !target.classList.contains('disabled') && target.id !== 'record-btn' && target.id !== 'battle-record-btn') {
-                
-                // 檢查這個按鈕是否帶有黑名單的 class
                 const isNoClickClass = noClickClasses.some(cls => target.classList.contains(cls));
-                
                 if (target.hasAttribute('data-no-click-sound') || isNoClickClass) {
-                    return; // 乖乖閉嘴
+                    return; 
                 }
-                
                 this.play('click');
             }
         });
@@ -219,7 +229,6 @@ const GlobalAudio = {
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 const target = mutation.target;
-
                 if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
                     const isDisplayModal = displayModals.some(selector => target.matches(selector));
                     if (isDisplayModal) {
@@ -234,7 +243,6 @@ const GlobalAudio = {
                         }
                     }
                 }
-
                 if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                     classModals.forEach(config => {
                         if (target.matches(config.selector)) {
@@ -251,7 +259,6 @@ const GlobalAudio = {
                 }
             });
         });
-
         observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['style', 'class'] });
     }
 };
