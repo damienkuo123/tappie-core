@@ -1977,23 +1977,27 @@
 
         // 綁定「點擊進入戰場」的跳轉功能
         window.portalJump = async () => {
+          arenaLog("👉 點擊了 [進入戰場] 按鈕");
           enterBtn.innerText = "連線中...";
           enterBtn.style.pointerEvents = "none";
           
-          // 1️⃣ 發起麥克風請求 (不使用 await)
+          arenaLog("對戰模式：呼叫 getUserMedia (非同步不阻擋)...");
           let streamPromise = navigator.mediaDevices.getUserMedia({ 
               audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
           });
           
-          // 2️⃣ 同一毫秒內奪回媒體通道！
           if (window.GlobalAudio) {
+              arenaLog("對戰模式：呼叫 unlockWebAudio 與 BGM.play()...");
               window.GlobalAudio.unlockWebAudio();
-              if (window.GlobalAudio.currentBGM) window.GlobalAudio.currentBGM.play().catch(e=>{});
+              if (window.GlobalAudio.currentBGM) {
+                  window.GlobalAudio.currentBGM.play().then(() => arenaLog("✅ 對戰 BGM 觸發成功")).catch(e => arenaLog("❌ 對戰 BGM 觸發失敗: " + e));
+              }
           }
           
           try {
-              // 3️⃣ 等待麥克風
+              arenaLog("對戰模式：等待 streamPromise 解析...");
               globalMicStream = await streamPromise;
+              arenaLog("✅ 對戰模式：getUserMedia 取得成功！麥克風已開啟！");
               
               clearInterval(pTimer);
               portal.style.display = 'none';
