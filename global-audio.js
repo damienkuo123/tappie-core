@@ -104,7 +104,7 @@ const GlobalAudio = {
                 vol = 1;  // 震動聲可以稍微收一點，以免太吵
                 break;
             case 'countdown':
-                vol = 1.5;  // 逼逼聲
+                vol = 2;  // 逼逼聲
                 break;
             // 如果沒有列在上面的 (例如 fireNormal, cutin, victory)，就會自動使用預設的 vol = 1.0
         }
