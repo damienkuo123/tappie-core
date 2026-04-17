@@ -49,7 +49,14 @@ const GlobalAudio = {
         // 🚀 先決定好這頁要播什麼 BGM
         this.autoPlayBGM(); 
         
-        // 🚀 終極全螢幕解鎖器 (Global Audio Unlocker)
+        // ==========================================
+        // 🛡️ 終極殺手鐧：全螢幕隱形解鎖盾牌 (專治 iOS 不良反應)
+        // ==========================================
+        const unlockShield = document.createElement('div');
+        // 鋪滿全螢幕、放在最上層 (z-index 爆高)、而且加上 cursor:pointer 逼 Apple 承認它是可點擊的
+        unlockShield.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:99999; cursor:pointer; background:transparent;';
+        document.body.appendChild(unlockShield);
+
         const unlockAudio = () => {
             // 1. 喚醒 Web Audio API 與混音器
             if (!this.audioCtx) {
@@ -57,7 +64,7 @@ const GlobalAudio = {
                 this.preloadAllSounds(); 
                 
                 this.bgmGainNode = this.audioCtx.createGain();
-                this.bgmGainNode.gain.value = 0.05; // BGM 音量在這裡控制！
+                this.bgmGainNode.gain.value = 0.05; // 🎚️ 老闆，BGM 音量在這裡！
                 this.bgmGainNode.connect(this.audioCtx.destination);
 
                 for (let key in this.bgm) {
@@ -78,14 +85,13 @@ const GlobalAudio = {
                 this.currentBGM.play().catch(e => console.warn("BGM 播放被阻擋", e));
             }
 
-            // 3. 成功解鎖後，過河拆橋，把監聽器刪掉以免浪費效能
-            document.removeEventListener('click', unlockAudio);
-            document.removeEventListener('touchstart', unlockAudio);
+            // 3. 💥 任務完成，盾牌自毀！把這層隱形 `div` 從網頁上徹底拔除，把點擊權限還給底下的按鈕
+            unlockShield.remove();
         };
 
-        // 🚀 綁定到 click 和 touchstart，保證學生點螢幕的任何一個角落都能解鎖！
-        document.addEventListener('click', unlockAudio);
-        document.addEventListener('touchstart', unlockAudio, { passive: true });
+        // 🚀 把解鎖事件綁定在這面盾牌上
+        unlockShield.addEventListener('click', unlockAudio);
+        unlockShield.addEventListener('touchstart', unlockAudio, { passive: true });
 
         console.log("🎵 Global Audio Engine 3.2 Initialized (Web Audio API Mode)");
     },
