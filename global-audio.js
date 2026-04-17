@@ -57,7 +57,7 @@ const GlobalAudio = {
                 this.bgmGainNode = this.audioCtx.createGain();
                 
                 // 🎚️ 老闆，以後 BGM 音量在這邊調！(0.01 ~ 1.0 絕對有效)
-                this.bgmGainNode.gain.value = 0.5; 
+                this.bgmGainNode.gain.value = 0; 
                 this.bgmGainNode.connect(this.audioCtx.destination);
 
                 // 將所有傳統 Audio 標籤導流進混音器，強制受控
