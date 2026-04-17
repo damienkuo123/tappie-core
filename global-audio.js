@@ -57,7 +57,7 @@ const GlobalAudio = {
                 this.bgmGainNode = this.audioCtx.createGain();
                 
                 // 🎚️ 老闆，以後 BGM 音量在這邊調！(0.01 ~ 1.0 絕對有效)
-                this.bgmGainNode.gain.value = 0.3; 
+                this.bgmGainNode.gain.value = 0.5; 
                 this.bgmGainNode.connect(this.audioCtx.destination);
 
                 // 將所有傳統 Audio 標籤導流進混音器，強制受控
@@ -112,10 +112,10 @@ const GlobalAudio = {
                 vol = 0.8;  // 點擊聲保持低調
                 break;
             case 'popupOpen':
-                vol = 1.8;  // 🚀 彈窗打開調大聲一點！(原本是 0.5)
+                vol = 2;  // 🚀 彈窗打開調大聲一點！(原本是 0.5)
                 break;
             case 'popupClose':
-                vol = 1.6;  // 🚀 彈窗收起也調大一點！(原本是 0.4)
+                vol = 1.8;  // 🚀 彈窗收起也調大一點！(原本是 0.4)
                 break;
             case 'hit':
                 vol = 1;  // 震動聲可以稍微收一點，以免太吵
@@ -124,7 +124,7 @@ const GlobalAudio = {
                 vol = 2;  // 逼逼聲
                 break;
             case 'cutin':
-                vol = 2;  
+                vol = 2.5;  
                 break;
             // 如果沒有列在上面的 (例如 fireNormal, victory)，就會自動使用預設的 vol = 1.0
         }
