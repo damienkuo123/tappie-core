@@ -92,7 +92,7 @@ const GlobalAudio = {
         
         switch (soundName) {
             case 'click':
-                vol = 0.8;  // 點擊聲保持低調
+                vol = 0.6;  // 點擊聲保持低調
                 break;
             case 'popupOpen':
                 vol = 2.2;  // 🚀 彈窗打開調大聲一點！(原本是 0.5)
