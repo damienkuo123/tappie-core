@@ -100,11 +100,17 @@ const GlobalAudio = {
             case 'popupClose':
                 vol = 2;  // 🚀 彈窗收起也調大一點！(原本是 0.4)
                 break;
+            case 'fireNormal':
+                vol = 0.7;  
+                break;
+            case 'fireUlt':
+                vol = 0.7;  
+                break;
             case 'hit':
-                vol = 1;  // 震動聲可以稍微收一點，以免太吵
+                vol = 0.8;  // 震動聲可以稍微收一點，以免太吵
                 break;
             case 'countdown':
-                vol = 2;  // 逼逼聲
+                vol = 1.6;  // 逼逼聲
                 break;
             case 'cutin':
                 vol = 2;  
