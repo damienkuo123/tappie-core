@@ -596,46 +596,43 @@
     <script>
         // ⚠️ 記得替換為你的 GAS 網址！
         const GAS_URL = "https://script.google.com/macros/s/AKfycbyWm-WnRO5h3dliEPR36Cq1hCf5DgM4GIgJqXVUREclhtYOHjxq9DptApmQPkU5p5Ys/exec";        
-        // 🚀 修復一：真正的「強制登出與覆寫」邏輯
-        // 🚀 SaaS 終極防撞防護牆
         const params = new URLSearchParams(window.location.search);
+        
+        // 🚀 【SaaS 核心狀態管理器】
         const urlSchool = params.get('school') ? params.get('school').toUpperCase() : null;
         const urlSecret = params.get('secret');
+        const savedSchool = localStorage.getItem('tappie_school');
+        const savedAuth = localStorage.getItem('marian_auth');
 
-        // 1. 取得舊記憶
-        let savedSchool = localStorage.getItem('tappie_school');
-        let savedAuth = localStorage.getItem('marian_auth');
-
-        // 2. 核心邏輯：只要「網址提供的校區」跟「記憶中」不一樣，或是「網址提供了新密碼」
-        // 就代表這是一次全新的登入嘗試，必須「清場」
+        // 1. 🚨 強制清場邏輯：只要網址上的校區跟記憶中不同，或是網址帶了新密碼
         if (urlSchool && (urlSchool !== savedSchool || urlSecret)) {
-            console.log("🚨 偵測到身分切換或新校區，執行記憶清場...");
-            
-            // 如果是切換校區，且原本已經有登入身分，才跳通知
-            if (savedSchool && urlSchool !== savedSchool && savedAuth) {
-                alert(`🏫 正在由 ${savedSchool} 切換至 ${urlSchool}，請重新驗證。`);
-            }
+             console.log("🚨 執行身分切換清場作業...");
+             
+             // 如果是換校區，且原本已經登入，跳出警告提醒
+             if (savedSchool && urlSchool !== savedSchool && savedAuth) {
+                  alert(`🏫 偵測到校區切換！正在退出 ${savedSchool}，進入 ${urlSchool}。`);
+             }
 
-            // 【清場動作】
-            localStorage.removeItem('marian_auth');
-            localStorage.removeItem('marian_auth_time');
-            localStorage.setItem('tappie_school', urlSchool);
-            
-            // 如果網址有帶密碼，直接更新記憶
-            if (urlSecret) {
-                localStorage.setItem('marian_auth', urlSecret);
-                localStorage.setItem('marian_auth_time', new Date().getTime());
-            }
+             // 徹底擦除舊記憶
+             localStorage.removeItem('marian_auth');
+             localStorage.removeItem('marian_auth_time');
+             localStorage.setItem('tappie_school', urlSchool);
+             
+             // 如果網址有給新密碼，立刻存入
+             if (urlSecret) {
+                  localStorage.setItem('marian_auth', urlSecret);
+                  localStorage.setItem('marian_auth_time', new Date().getTime());
+                  // 為了安全與美觀，存完後把密碼從網址隱藏
+                  const cleanUrl = window.location.pathname + `?school=${urlSchool}`;
+                  window.history.replaceState(null, null, cleanUrl);
+             }
 
-            // 洗乾淨網址參數，避免重整時重複觸發
-            const newUrl = window.location.pathname + `?school=${urlSchool}`;
-            window.history.replaceState(null, null, newUrl);
-            
-            // 強制刷新頁面，讓下方的驗證流程抓到最新、乾淨的資料
-            window.location.reload();
-            throw new Error("Resetting environment..."); // 中斷執行，等待重整
+             // 核心精髓：強制刷新頁面，讓整個系統在「乾淨的 TP02 記憶」下啟動
+             window.location.reload(); 
+             throw new Error("校區環境重置中，暫停後續腳本執行"); 
         }
 
+        // 2. 🏠 建立目前運行的基礎常數
         const CURRENT_SCHOOL = localStorage.getItem('tappie_school') || "TP01";
         let ADMIN_SECRET = localStorage.getItem('marian_auth');
         const authTime = localStorage.getItem('marian_auth_time');
