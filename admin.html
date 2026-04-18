@@ -643,7 +643,7 @@
         if (!ADMIN_SECRET) {
             document.getElementById('unauth-mask').style.display = 'flex';
         } else {
-            fetch(`${GAS_URL}?action=verify_auth&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN&id=${CURRENT_SCHOOL}-ADMIN`)
+            fetch('${GAS_URL}?action=verify_auth&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN')
                 .then(res => res.json())
                 .then(data => {
                     if (!data.valid) {
