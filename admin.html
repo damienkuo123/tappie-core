@@ -998,8 +998,12 @@
         scanner.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 clearTimeout(scanTimer);
-                const finalID = scanner.value.trim();
-                if (finalID.length >= 6) {
+                const rawInput = scanner.value.trim();
+                // 如果老師已經刷了包含前綴的卡，就不加；如果只有 S001，就自動補上 TP01-
+                const finalID = rawInput.includes('-') ? rawInput : `${CURRENT_SCHOOL}-${rawInput}`;
+                if (finalID.length >= 4) { // 稍微放寬長度限制，因為 S001 只有四個字
+                    fetchStudent(finalID);
+                }
                     fetchStudent(finalID);
                 }
                 scanner.value = "";
@@ -1009,8 +1013,12 @@
         scanner.addEventListener('input', function() {
             clearTimeout(scanTimer);
             scanTimer = setTimeout(() => {
-                const finalID = scanner.value.trim();
-                if (finalID.length >= 6) {
+                const rawInput = scanner.value.trim();
+                // 如果老師已經刷了包含前綴的卡，就不加；如果只有 S001，就自動補上 TP01-
+                const finalID = rawInput.includes('-') ? rawInput : `${CURRENT_SCHOOL}-${rawInput}`;
+                if (finalID.length >= 4) { // 稍微放寬長度限制，因為 S001 只有四個字
+                    fetchStudent(finalID);
+                }
                     fetchStudent(finalID);
                     scanner.value = "";
                 }
