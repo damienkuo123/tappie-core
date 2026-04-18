@@ -999,13 +999,10 @@
             if (e.key === 'Enter') {
                 clearTimeout(scanTimer);
                 const rawInput = scanner.value.trim();
-                // 如果老師已經刷了包含前綴的卡，就不加；如果只有 S001，就自動補上 TP01-
                 const finalID = rawInput.includes('-') ? rawInput : `${CURRENT_SCHOOL}-${rawInput}`;
-                if (finalID.length >= 4) { // 稍微放寬長度限制，因為 S001 只有四個字
+                if (finalID.length >= 4) { 
                     fetchStudent(finalID);
                 }
-                    fetchStudent(finalID); // ❌ 這裡重複了！
-                } // ❌ 這裡多了一個括號！
                 scanner.value = "";
             }
         });
@@ -1014,14 +1011,11 @@
             clearTimeout(scanTimer);
             scanTimer = setTimeout(() => {
                 const rawInput = scanner.value.trim();
-                // 如果老師已經刷了包含前綴的卡，就不加；如果只有 S001，就自動補上 TP01-
                 const finalID = rawInput.includes('-') ? rawInput : `${CURRENT_SCHOOL}-${rawInput}`;
-                if (finalID.length >= 4) { // 稍微放寬長度限制，因為 S001 只有四個字
+                if (finalID.length >= 4) { 
                     fetchStudent(finalID);
                 }
-                    fetchStudent(finalID); // ❌ 這裡也重複了！
-                    scanner.value = "";
-                } // ❌ 這裡也多了一個括號！
+                scanner.value = "";
             }, 200);
         });
 
