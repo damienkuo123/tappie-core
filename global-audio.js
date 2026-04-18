@@ -4,28 +4,29 @@
  */
 
 const GlobalAudio = {
-    // 1. 音效網址庫 (改為網址對應)
+    // 1. 音效網址庫 (🚀 修正為相對路徑，避開跨網域 CORS 阻擋)
     soundUrls: {
-        click: 'https://damienkuo123.github.io/tappie-core/audio/click.mp3',
-        popupOpen: 'https://damienkuo123.github.io/tappie-core/audio/popupOpen.mp3',
-        popupClose: 'https://damienkuo123.github.io/tappie-core/audio/popupClose.mp3',
-        countdown: 'https://damienkuo123.github.io/tappie-core/audio/countdown.mp3',
-        fireNormal: 'https://damienkuo123.github.io/tappie-core/audio/fireNormal.mp3',
-        fireUlt: 'https://damienkuo123.github.io/tappie-core/audio/fireUlt.mp3',
-        hit: 'https://damienkuo123.github.io/tappie-core/audio/hit.mp3',
-        cutin: 'https://damienkuo123.github.io/tappie-core/audio/cutin.mp3',
-        victory: 'https://damienkuo123.github.io/tappie-core/audio/victory.mp3',
-        shatter: 'https://damienkuo123.github.io/tappie-core/audio/shatter.mp3'
+        click: '/audio/click.mp3',
+        popupOpen: '/audio/popupOpen.mp3',
+        popupClose: '/audio/popupClose.mp3',
+        countdown: '/audio/countdown.mp3',
+        fireNormal: '/audio/fireNormal.mp3',
+        fireUlt: '/audio/fireUlt.mp3',
+        hit: '/audio/hit.mp3',
+        cutin: '/audio/cutin.mp3',
+        victory: '/audio/victory.mp3',
+        shatter: '/audio/shatter.mp3'
     },
 
-    // 2. 背景音樂庫 (BGM 檔案大，仍保留傳統 Audio 標籤串流播放)
+    // 2. 背景音樂庫 (🚀 同樣修正為相對路徑)
     bgm: {
-        dashboard: new Audio('https://damienkuo123.github.io/tappie-core/audio/cyberwave-orchestra-puzzle-game-loop-bright-casual-video-game-music-249201_low.mp3'), 
-        lobby: new Audio('https://damienkuo123.github.io/tappie-core/audio/決戦へ_low.mp3'),     
-        arenaNormal: new Audio('https://damienkuo123.github.io/tappie-core/audio/wind_feelings_low.mp3'), 
-        arenaBattle: new Audio('https://damienkuo123.github.io/tappie-core/audio/Devil_Disaster_low.mp3'), 
-        gacha: new Audio('https://damienkuo123.github.io/tappie-core/audio/Battle_in_the_Moonlight_low.mp3')        
+        dashboard: new Audio('/audio/cyberwave-orchestra-puzzle-game-loop-bright-casual-video-game-music-249201_low.mp3'), 
+        lobby: new Audio('/audio/決戦へ_low.mp3'),     
+        arenaNormal: new Audio('/audio/wind_feelings_low.mp3'), 
+        arenaBattle: new Audio('/audio/Devil_Disaster_low.mp3'), 
+        gacha: new Audio('/audio/Battle_in_the_Moonlight_low.mp3')        
     },
+
 
     // 🚀 新增：Web Audio API 核心組件
     audioCtx: null,
@@ -56,9 +57,15 @@ const GlobalAudio = {
             if (this.audioCtx.state === 'suspended') {
                 this.audioCtx.resume();
             }
+            // ...
             document.removeEventListener('pointerdown', initWebAudio);
+            document.removeEventListener('touchstart', initWebAudio);
+            document.removeEventListener('click', initWebAudio);
         };
+        // 🚀 多重綁定：確保在各種奇怪的蘋果裝置上都能成功喚醒！
         document.addEventListener('pointerdown', initWebAudio);
+        document.addEventListener('touchstart', initWebAudio);
+        document.addEventListener('click', initWebAudio);
 
         console.log("🎵 Global Audio Engine 3.2 Initialized (Web Audio API Mode)");
     },
