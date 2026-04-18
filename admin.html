@@ -643,7 +643,8 @@
         if (!ADMIN_SECRET) {
             document.getElementById('unauth-mask').style.display = 'flex';
         } else {
-            fetch('${GAS_URL}?action=verify_auth&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN')
+            // 🚀 修正：這裡換成了「反引號 ( ` )」，這樣變數才會被正確讀取！
+            fetch(`${GAS_URL}?action=verify_auth&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN`)
                 .then(res => res.json())
                 .then(data => {
                     if (!data.valid) {
