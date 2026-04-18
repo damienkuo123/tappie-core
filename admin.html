@@ -597,39 +597,46 @@
         // ⚠️ 記得替換為你的 GAS 網址！
         const GAS_URL = "https://script.google.com/macros/s/AKfycbyWm-WnRO5h3dliEPR36Cq1hCf5DgM4GIgJqXVUREclhtYOHjxq9DptApmQPkU5p5Ys/exec";        
         // 🚀 修復一：真正的「強制登出與覆寫」邏輯
+        // 🚀 SaaS 終極防撞防護牆
         const params = new URLSearchParams(window.location.search);
-        
-        let newSchool = params.get('school') ? params.get('school').toUpperCase() : null;
-        let oldSchool = localStorage.getItem('tappie_school');
+        const urlSchool = params.get('school') ? params.get('school').toUpperCase() : null;
+        const urlSecret = params.get('secret');
 
-        // 如果網址上有新校區，且跟記憶裡的舊校區不同，觸發警報！
-        if (newSchool && oldSchool && newSchool !== oldSchool) {
-             localStorage.removeItem('marian_auth'); // 拔掉舊鑰匙
-             localStorage.setItem('tappie_school', newSchool); // 記住新校區
-             alert(`🏫 偵測到校區切換！安全鎖已啟動，請重新登入 ${newSchool} 校區。`);
-             window.location.href = `admin.html?school=${newSchool}`; // 重新導向乾淨的網址
-             throw new Error("校區切換中，中斷後續執行"); // 停止跑後面的程式
-        } else if (newSchool) {
-             // 第一次登入，正常記憶
-             localStorage.setItem('tappie_school', newSchool);
+        // 1. 取得舊記憶
+        let savedSchool = localStorage.getItem('tappie_school');
+        let savedAuth = localStorage.getItem('marian_auth');
+
+        // 2. 核心邏輯：只要「網址提供的校區」跟「記憶中」不一樣，或是「網址提供了新密碼」
+        // 就代表這是一次全新的登入嘗試，必須「清場」
+        if (urlSchool && (urlSchool !== savedSchool || urlSecret)) {
+            console.log("🚨 偵測到身分切換或新校區，執行記憶清場...");
+            
+            // 如果是切換校區，且原本已經有登入身分，才跳通知
+            if (savedSchool && urlSchool !== savedSchool && savedAuth) {
+                alert(`🏫 正在由 ${savedSchool} 切換至 ${urlSchool}，請重新驗證。`);
+            }
+
+            // 【清場動作】
+            localStorage.removeItem('marian_auth');
+            localStorage.removeItem('marian_auth_time');
+            localStorage.setItem('tappie_school', urlSchool);
+            
+            // 如果網址有帶密碼，直接更新記憶
+            if (urlSecret) {
+                localStorage.setItem('marian_auth', urlSecret);
+                localStorage.setItem('marian_auth_time', new Date().getTime());
+            }
+
+            // 洗乾淨網址參數，避免重整時重複觸發
+            const newUrl = window.location.pathname + `?school=${urlSchool}`;
+            window.history.replaceState(null, null, newUrl);
+            
+            // 強制刷新頁面，讓下方的驗證流程抓到最新、乾淨的資料
+            window.location.reload();
+            throw new Error("Resetting environment..."); // 中斷執行，等待重整
         }
-        
+
         const CURRENT_SCHOOL = localStorage.getItem('tappie_school') || "TP01";
-        
-        // 🚀 關鍵防呆：確保在切換校區時，瀏覽器不會因為有舊的登入憑證而串台
-        if (params.get('school') && params.get('school').toUpperCase() !== localStorage.getItem('tappie_school')) {
-             localStorage.removeItem('marian_auth'); // 強制登出
-             alert("偵測到校區切換，請重新登入！");
-             window.location.reload();
-        }
-        
-        // 🛡️ 權限與角色驗證 (資安升級版：前端無密碼)
-        if (params.get('secret')) {
-            localStorage.setItem('marian_auth', params.get('secret'));
-            localStorage.setItem('marian_auth_time', new Date().getTime());
-            window.history.replaceState(null, null, 'admin.html');
-        }
-
         let ADMIN_SECRET = localStorage.getItem('marian_auth');
         const authTime = localStorage.getItem('marian_auth_time');
 
