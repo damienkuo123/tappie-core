@@ -598,12 +598,25 @@
         const GAS_URL = "https://script.google.com/macros/s/AKfycbyWm-WnRO5h3dliEPR36Cq1hCf5DgM4GIgJqXVUREclhtYOHjxq9DptApmQPkU5p5Ys/exec";
         const params = new URLSearchParams(window.location.search);
         
-        // 🚀 SaaS 升級：抓取並強制記憶「校區代碼」
-        // 如果網址上有 school 參數，強制覆蓋舊記憶！
-        if (params.get('school')) {
-            localStorage.setItem('tappie_school', params.get('school').toUpperCase());
+        // 🚀 修復一：真正的「強制登出與覆寫」邏輯
+        const params = new URLSearchParams(window.location.search);
+        
+        let newSchool = params.get('school') ? params.get('school').toUpperCase() : null;
+        let oldSchool = localStorage.getItem('tappie_school');
+
+        // 如果網址上有新校區，且跟記憶裡的舊校區不同，觸發警報！
+        if (newSchool && oldSchool && newSchool !== oldSchool) {
+             localStorage.removeItem('marian_auth'); // 拔掉舊鑰匙
+             localStorage.setItem('tappie_school', newSchool); // 記住新校區
+             alert(`🏫 偵測到校區切換！安全鎖已啟動，請重新登入 ${newSchool} 校區。`);
+             window.location.href = `admin.html?school=${newSchool}`; // 重新導向乾淨的網址
+             throw new Error("校區切換中，中斷後續執行"); // 停止跑後面的程式
+        } else if (newSchool) {
+             // 第一次登入，正常記憶
+             localStorage.setItem('tappie_school', newSchool);
         }
-        const CURRENT_SCHOOL = localStorage.getItem('tappie_school') || "TP01"; // 預設給個 TP01 防呆
+        
+        const CURRENT_SCHOOL = localStorage.getItem('tappie_school') || "TP01";
         
         // 🚀 關鍵防呆：確保在切換校區時，瀏覽器不會因為有舊的登入憑證而串台
         if (params.get('school') && params.get('school').toUpperCase() !== localStorage.getItem('tappie_school')) {
