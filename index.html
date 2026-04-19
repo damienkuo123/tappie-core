@@ -212,78 +212,82 @@
         const card = document.getElementById('mainCard');
 
         // =======================================================
-        // 🚀 終極無痕掃描系統 (Global Keystroke Catcher)
-        // 解決平板阻擋 focus 問題，不依賴任何輸入框！
+        // 🚀 終極無痕掃描系統 (SaaS 萬能萃取版)
         // =======================================================
         let rawBuffer = "";
         let lastPressTime = Date.now();
 
         document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // 🚀 防止瀏覽器把輸入的網址當真而跳轉
+            }
+
             const now = Date.now();
             
-            // 1. 測速防呆：人類打字很慢，NFC 掃描極快！
-            // 如果兩次按鍵間隔超過 100 毫秒 (0.1秒)，就判定這不是機器掃描，清空緩衝區
-            if (now - lastPressTime > 100) {
+            // 讀卡機輸入極快，超過 100ms 的停頓視為手動干擾，清空重來
+            if (now - lastPressTime > 100 && e.key !== 'Enter') {
                 rawBuffer = "";
             }
             lastPressTime = now;
 
-            // 2. 收集字元：只接收單一字元，過濾掉 Shift, Ctrl 等控制按鍵
             if (e.key.length === 1) {
                 rawBuffer += e.key;
             }
 
-            // 3. 雙重觸發機制：收到 Enter 鍵，或字串長度達到你的卡號標準 (假設為10)
-            if (e.key === 'Enter' || rawBuffer.length >= 10) {
-                const val = rawBuffer.trim();
+            // 🚀 核心修復：拔除長度限制，全權交由 Enter 鍵來結算，確保長網址完整讀取！
+            if (e.key === 'Enter') {
+                let inputStr = rawBuffer.trim();
+                rawBuffer = ""; // 瞬間清空，準備下一發
                 
-                // 只要長度大於 6，就送出驗證！
-                if (val.length >= 6) {
-                    verifyCard(val); // 呼叫你原本的登入驗證函數
+                if (inputStr.length < 4) return;
+
+                // 1. 切換至載入狀態 UI
+                card.className = 'container loading';
+                msg.innerText = "🚀 驗證資料中...";
+                msg.style.color = "#ffcc00";
+
+                // 🚀 萬能萃取器：從網址中精準挖出 uid 或 id
+                let extractedUid = null;
+                if (inputStr.includes("uid=")) {
+                    extractedUid = inputStr.split("uid=")[1].split("&")[0];
+                } else if (inputStr.includes("id=")) {
+                    extractedUid = inputStr.split("id=")[1].split("&")[0];
                 }
-                
-                rawBuffer = ""; // 驗證完畢，立刻清空槍膛準備下一發
+
+                if (extractedUid) {
+                    // 🌟 狀況 A：新版網址卡！已經自帶校區與 ID，直接光速跳轉 Dashboard！
+                    msg.innerText = "✅ 驗證成功，傳送中...";
+                    msg.style.color = "#2ecc71";
+                    setTimeout(() => {
+                        window.location.href = `dashboard.html?id=${extractedUid}`;
+                    }, 300);
+                } else {
+                    // 🌟 狀況 B：舊版純數字卡！需要連線去問 GAS 大腦
+                    fetch(`${GAS_URL}?action=verify_card&cardId=${encodeURIComponent(inputStr)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                msg.innerText = "✅ 驗證成功，傳送中...";
+                                msg.style.color = "#2ecc71";
+                                setTimeout(() => {
+                                    window.location.href = `dashboard.html?id=${data.uid}`;
+                                }, 300);
+                            } else {
+                                card.className = 'container error';
+                                msg.innerText = "❌ 查無此卡，請重試";
+                                msg.style.color = "#e74c3c";
+                                setTimeout(resetUI, 2000);
+                            }
+                        })
+                        .catch(err => {
+                            card.className = 'container error';
+                            msg.innerText = "⚠️ 網路異常，請重試";
+                            msg.style.color = "#e74c3c";
+                            setTimeout(resetUI, 2000);
+                        });
+                }
             }
         });
-
-        // =======================================================
-        // 🚀 背景 API 連線 (無痕跳轉)
-        // =======================================================
-        function verifyCard(cardId) {
-            // 防止重複觸發
-            if (card.classList.contains('loading')) return;
-
-            // 1. 切換至載入狀態 UI
-            card.className = 'container loading';
-            msg.innerText = "🚀 驗證資料中...";
-            msg.style.color = "#ffcc00";
-
-            // 2. 透過背景 API (fetch) 向 GAS 確認身份
-            fetch(`${GAS_URL}?action=verify_card&cardId=${encodeURIComponent(cardId)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        msg.innerText = "✅ 驗證成功，傳送中...";
-                        msg.style.color = "#2ecc71";
-                        // 直接由 GitHub 跳轉至 Dashboard，完美避開 GAS 的 HTML
-                        setTimeout(() => {
-                            window.location.href = `dashboard.html?id=${data.uid}`;
-                        }, 300);
-                    } else {
-                        // 查無此卡
-                        card.className = 'container error';
-                        msg.innerText = "❌ 查無此卡，請重試";
-                        msg.style.color = "#e74c3c";
-                        setTimeout(resetUI, 2000);
-                    }
-                })
-                .catch(err => {
-                    card.className = 'container error';
-                    msg.innerText = "⚠️ 網路異常，請重試";
-                    msg.style.color = "#e74c3c";
-                    setTimeout(resetUI, 2000);
-                });
-        }
 
         function resetUI() {
             card.className = 'container';
