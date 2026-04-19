@@ -1021,8 +1021,17 @@
 
         scanner.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
+                e.preventDefault(); // 🚀 加上這行，防止瀏覽器以為你要跳轉網址！
                 clearTimeout(scanTimer);
-                const rawInput = scanner.value.trim();
+                let rawInput = scanner.value.trim();
+                
+                // 🚀 萬能萃取器：把網址裡的 uid 或 id 挖出來
+                if (rawInput.includes("uid=")) {
+                    rawInput = rawInput.split("uid=")[1].split("&")[0];
+                } else if (rawInput.includes("id=")) {
+                    rawInput = rawInput.split("id=")[1].split("&")[0];
+                }
+
                 const finalID = rawInput.includes('-') ? rawInput : `${CURRENT_SCHOOL}-${rawInput}`;
                 if (finalID.length >= 4) { 
                     fetchStudent(finalID);
@@ -1034,7 +1043,15 @@
         scanner.addEventListener('input', function() {
             clearTimeout(scanTimer);
             scanTimer = setTimeout(() => {
-                const rawInput = scanner.value.trim();
+                let rawInput = scanner.value.trim();
+                
+                // 🚀 萬能萃取器：把網址裡的 uid 或 id 挖出來
+                if (rawInput.includes("uid=")) {
+                    rawInput = rawInput.split("uid=")[1].split("&")[0];
+                } else if (rawInput.includes("id=")) {
+                    rawInput = rawInput.split("id=")[1].split("&")[0];
+                }
+
                 const finalID = rawInput.includes('-') ? rawInput : `${CURRENT_SCHOOL}-${rawInput}`;
                 if (finalID.length >= 4) { 
                     fetchStudent(finalID);
