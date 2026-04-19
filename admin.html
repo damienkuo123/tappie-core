@@ -602,7 +602,7 @@
         const urlSchool = params.get('school') ? params.get('school').toUpperCase() : null;
         const urlSecret = params.get('secret');
         const savedSchool = localStorage.getItem('tappie_school');
-        const savedAuth = localStorage.getItem('marian_auth');
+        const savedAuth = localStorage.getItem('tappie_admin_key');
 
         // 1. 🚨 強制清場邏輯：只要網址上的校區跟記憶中不同，或是網址帶了新密碼
         if (urlSchool && (urlSchool !== savedSchool || urlSecret)) {
@@ -614,14 +614,14 @@
              }
 
              // 徹底擦除舊記憶
-             localStorage.removeItem('marian_auth');
-             localStorage.removeItem('marian_auth_time');
+             localStorage.removeItem('tappie_admin_key');
+             localStorage.removeItem('tappie_admin_key_time');
              localStorage.setItem('tappie_school', urlSchool);
              
              // 如果網址有給新密碼，立刻存入
              if (urlSecret) {
-                  localStorage.setItem('marian_auth', urlSecret);
-                  localStorage.setItem('marian_auth_time', new Date().getTime());
+                  localStorage.setItem('tappie_admin_key', urlSecret);
+                  localStorage.setItem('tappie_admin_key_time', new Date().getTime());
                   // 為了安全與美觀，存完後把密碼從網址隱藏
                   const cleanUrl = window.location.pathname + `?school=${urlSchool}`;
                   window.history.replaceState(null, null, cleanUrl);
@@ -634,15 +634,15 @@
 
         // 2. 🏠 建立目前運行的基礎常數
         const CURRENT_SCHOOL = localStorage.getItem('tappie_school') || "TP01";
-        let ADMIN_SECRET = localStorage.getItem('marian_auth');
-        const authTime = localStorage.getItem('marian_auth_time');
+        let ADMIN_SECRET = localStorage.getItem('tappie_admin_key');
+        const authTime = localStorage.getItem('tappie_admin_key_time');
 
         // ⏳ 檢查是否超過 1 小時 (3600000毫秒)
         if (ADMIN_SECRET && authTime) {
             const now = new Date().getTime();
             if (now - parseInt(authTime) > 3600000) {
-                localStorage.removeItem('marian_auth');
-                localStorage.removeItem('marian_auth_time');
+                localStorage.removeItem('tappie_admin_key');
+                localStorage.removeItem('tappie_admin_key_time');
                 ADMIN_SECRET = null;
                 alert("⚠️ 授權已過期（超過 1 小時），為保護系統安全，請重新感應管理員卡片！");
             }
@@ -654,8 +654,8 @@
                 const currentTime = new Date().getTime();
                 // 如果目前時間減去登入時間 > 1小時 (3600000毫秒)
                 if (currentTime - parseInt(authTime) > 3600000) {
-                    localStorage.removeItem('marian_auth');
-                    localStorage.removeItem('marian_auth_time');
+                    localStorage.removeItem('tappie_admin_key');
+                    localStorage.removeItem('tappie_admin_key_time');
                     alert("⏱️ 閒置時間過長！為保護系統安全，已自動強制登出。請重新感應卡片！");
                     window.location.reload(); // 瞬間重整網頁，立刻彈出黑色封鎖畫面！
                 }
@@ -673,7 +673,7 @@
                     if (!data.valid) {
                         // 密碼錯誤或隨便亂打，直接鎖定並清空假鑰匙
                         document.getElementById('unauth-mask').style.display = 'flex';
-                        localStorage.removeItem('marian_auth');
+                        localStorage.removeItem('tappie_admin_key');
                     } else if (data.role === "super") {
                         // 後端認證是超級管理員，解鎖進階 UI
                         document.getElementById('role-text').innerText = "⭐ 超級管理員權限";
@@ -1226,7 +1226,7 @@
 
         function adminLogout() { 
             if (confirm("確定要登出嗎？")) { 
-                localStorage.removeItem('marian_auth'); 
+                localStorage.removeItem('tappie_admin_key'); 
                 window.location.reload(); 
             } 
         }
