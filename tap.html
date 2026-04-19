@@ -36,7 +36,7 @@
     const uid = urlParams.get('uid'); 
 
     // 🚀 核心大絕招：去系統記憶區檢查，這台手機有沒有登入過管理員？
-    const adminAuth = localStorage.getItem('marian_auth');
+    const adminAuth = localStorage.getItem('tappie_admin_key');
 
     if (uid) {
       if (adminAuth) {
