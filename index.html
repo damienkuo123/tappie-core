@@ -189,6 +189,10 @@
 </head>
 <body>
 
+    <div id="dev-scanner-zone" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 12px; z-index: 99999; border: 1px solid #ffd700;">
+        <p style="margin: 0 0 10px 0; color: #ffd700; font-size: 12px; font-weight: bold;">🛠️ 讀卡機模擬器</p>
+        <input type="text" id="dev-sim-input" placeholder="貼上完整網址後按 Enter" style="width: 250px; padding: 8px; border-radius: 6px; border: none; outline: none; font-family: monospace;">
+    </div>
     <div class="container" id="mainCard">
         <div class="logo-wrapper">
             <div class="pulse-ring" id="ring"></div>
@@ -294,6 +298,65 @@
             msg.innerText = "🟢 請感應學生卡";
             msg.style.color = "white";
         }
+
+        // =======================================================
+        // 🛠️ 開發者專用：讀卡機模擬器 (Simulator)
+        // =======================================================
+        
+        // 1. 召喚咒語：在畫面空白處「連續點擊兩下」，就會呼叫出模擬器
+        document.addEventListener('dblclick', function(e) {
+            // 避免點到卡片內部也觸發
+            if (!e.target.closest('#mainCard')) {
+                const devZone = document.getElementById('dev-scanner-zone');
+                devZone.style.display = devZone.style.display === 'none' ? 'block' : 'none';
+                if (devZone.style.display === 'block') {
+                    document.getElementById('dev-sim-input').focus();
+                }
+            }
+        });
+
+        // 2. 模擬發射：當你在輸入框按下 Enter 時，瞬間把字串「灌」進全域攔截器
+        document.getElementById('dev-sim-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const simulatedString = this.value.trim();
+                if (!simulatedString) return;
+
+                // 為了完美模擬「瞬間輸入完畢然後按下 Enter」的物理特性：
+                // 我們直接把字串塞進 rawBuffer，然後強迫觸發一次長度檢查或 Enter 邏輯
+                
+                // 這裡我們借用原本寫好的擷取邏輯，直接執行！
+                let extractedUid = null;
+                if (simulatedString.includes("uid=")) {
+                    extractedUid = simulatedString.split("uid=")[1].split("&")[0];
+                } else if (simulatedString.includes("id=")) {
+                    extractedUid = simulatedString.split("id=")[1].split("&")[0];
+                } else {
+                    // 如果只是一般字串
+                    extractedUid = simulatedString;
+                }
+
+                // 視覺回饋
+                card.className = 'container loading';
+                msg.innerText = "🛠️ 模擬器攔截中...";
+                msg.style.color = "#ffcc00";
+
+                // 開始跳轉
+                setTimeout(() => {
+                    if (extractedUid && extractedUid.includes('-')) {
+                        msg.innerText = "✅ 模擬萃取成功！";
+                        msg.style.color = "#2ecc71";
+                        setTimeout(() => {
+                            window.location.href = `dashboard.html?id=${extractedUid}`;
+                        }, 500);
+                    } else {
+                        alert("❌ 模擬器：這不是有效的新版網址卡格式！\n請貼上例如: https://www.tappieapp.com/tap.html?uid=TP01-S001");
+                        resetUI();
+                    }
+                }, 500);
+
+                this.value = ""; // 清空輸入框
+            }
+        });
     </script>
 </body>
 </html>
