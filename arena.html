@@ -2045,13 +2045,21 @@
         const finalMyMask = isMeHost ? (data.hostMask || '') : (data.guestMask || '');
         let finalOpMask = isMeHost ? (data.guestMask || '') : (data.hostMask || '');
 
-        // 🚀 核心攔截：如果是突發事件，直接把上面的對手變數強制換成 Boss！
+        // 🚀 核心攔截：萬能 AI 與 Boss 遮罩補完計畫！
         if (isEventMode && EVENT_AVATAR && window.characterAssets && window.characterAssets[EVENT_AVATAR]) {
             const boss = window.characterAssets[EVENT_AVATAR];
             opName = `[活動] ${boss.name}`;
             opImgUrl = boss.img;
             finalOpRarity = boss.rarity || 'SSR';
             finalOpMask = boss.mask || '';
+        } else if (opName.includes('Ai')) {
+            // 如果是常規 Ai (初階Ai, 高階Ai)，自動去圖鑑中搜尋同名角色的遮罩！
+            const aiAvatar = Object.values(window.characterAssets || {}).find(c => c.name === opName);
+            if (aiAvatar) {
+                opImgUrl = aiAvatar.img || opImgUrl;
+                finalOpRarity = aiAvatar.rarity || 'N';
+                finalOpMask = aiAvatar.mask || '';
+            }
         }
 
         console.log("【偵測】我方 Rarity:", finalMyRarity, "對手 Rarity:", finalOpRarity);
@@ -2567,13 +2575,21 @@
 
         let finalOpName = isMeHost ? (data.guestName || "對手") : data.hostName;
 
-        // 🚀 核心攔截：如果是活動模式，強制把上面取得的對手資料覆蓋為「活動 Boss」！
+        // 🚀 核心攔截：萬能 AI 與 Boss 遮罩補完計畫！
         if (isEventMode && EVENT_AVATAR && window.characterAssets && window.characterAssets[EVENT_AVATAR]) {
             const boss = window.characterAssets[EVENT_AVATAR];
             finalOpName = `[活動] ${boss.name}`;
             opImgUrl = boss.img; 
             finalOpRarity = boss.rarity || 'SSR'; 
             finalOpMask = boss.mask || ''; 
+        } else if (finalOpName.includes('Ai')) {
+            // 自動去圖鑑中匹配 Ai 的專屬遮罩
+            const aiAvatar = Object.values(window.characterAssets || {}).find(c => c.name === finalOpName);
+            if (aiAvatar) {
+                opImgUrl = aiAvatar.img || opImgUrl;
+                finalOpRarity = aiAvatar.rarity || 'N';
+                finalOpMask = aiAvatar.mask || '';
+            }
         }
 
         document.getElementById('op-name').innerText = finalOpName;
