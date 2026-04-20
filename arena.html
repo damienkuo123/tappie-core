@@ -1768,18 +1768,16 @@
         console.warn("額度檢查連線異常，先放行", e);
     }
 
-    // 🚀 2. 額度沒滿，正常開啟保溫麥克風
     try {
-      // 啟動並永久保溫麥克風，不再關閉！
-      globalMicStream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
-              echoCancellation: true,      // 消除教室空曠的回音
-              noiseSuppression: true,      // 壓制背景冷氣聲與雜訊
-              autoGainControl: true,       // 自動增益：小朋友聲音太小會自動放大
-              channelCount: 1,             // 強制單聲道 (Azure 只需要單聲道，可減少資料量)
-              sampleRate: 16000            // 直接對齊 Azure 原生的 16kHz 採樣率
-          } 
-      }); 
+        globalMicStream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+                echoCancellation: true,      
+                noiseSuppression: true,      
+                autoGainControl: false,      // 🚀 關閉自動增益！
+                channelCount: 1,             
+                sampleRate: 16000            
+            } 
+        }); 
       
       document.getElementById('info-text').innerText = "麥克風已就緒";
       document.getElementById('start-btn').style.display = 'inline-block';
@@ -1851,11 +1849,11 @@
             // 🚀 關鍵修復：將 stream 存入全域的 globalMicStream
             globalMicStream = await navigator.mediaDevices.getUserMedia({ 
                 audio: {
-                    echoCancellation: true,      // 消除教室空曠的回音
-                    noiseSuppression: true,      // 壓制背景冷氣聲與雜訊
-                    autoGainControl: true,       // 自動增益：小朋友聲音太小會自動放大
-                    channelCount: 1,             // 強制單聲道 (Azure 只需要單聲道，可減少資料量)
-                    sampleRate: 16000            // 直接對齊 Azure 原生的 16kHz 採樣率
+                    echoCancellation: true,      
+                    noiseSuppression: true,      
+                    autoGainControl: false,      // 🚀 關閉自動增益，防止底噪被放大
+                    channelCount: 1,             
+                    sampleRate: 16000            
                 } 
             });
             
@@ -1939,11 +1937,11 @@
       try {
         globalMicStream = await navigator.mediaDevices.getUserMedia({ 
             audio: {
-                echoCancellation: true,      // 消除教室空曠的回音
-                noiseSuppression: true,      // 壓制背景冷氣聲與雜訊
-                autoGainControl: true,       // 自動增益：小朋友聲音太小會自動放大
-                channelCount: 1,             // 強制單聲道 (Azure 只需要單聲道，可減少資料量)
-                sampleRate: 16000            // 直接對齊 Azure 原生的 16kHz 採樣率
+                echoCancellation: true,      
+                noiseSuppression: true,      
+                autoGainControl: false,      // 🚀 關閉自動增益！
+                channelCount: 1,             
+                sampleRate: 16000            
             } 
         });
         
@@ -2180,31 +2178,40 @@
   }
 
   // =======================================================
-  // 🎤 智能音量偵測引擎 (太小聲直接擋截)
+  // 🎤 智能音量偵測引擎 (RMS 真實波形能量版)
   // =======================================================
-  const MIN_VOLUME_THRESHOLD = 50; // 🚀 音量門檻 (0~255)，你可以依據現場平板收音狀況上下調整
+  const MIN_VOLUME_THRESHOLD = 15; // 🚀 音量門檻，建議設在 10 ~ 20 之間
 
   function startVolumeMonitor() {
       maxVolume = 0;
       try {
           if (!analyser && globalMicStream && sysAudioCtx) {
               analyser = sysAudioCtx.createAnalyser();
-              analyser.fftSize = 256;
-              dataArray = new Uint8Array(analyser.frequencyBinCount);
+              analyser.fftSize = 512; // 🚀 擴大取樣視窗
+              dataArray = new Uint8Array(analyser.fftSize);
               source = sysAudioCtx.createMediaStreamSource(globalMicStream);
               source.connect(analyser);
           }
           if (!analyser) return;
 
           if (gradingInterval) clearInterval(gradingInterval);
-          // 每 50 毫秒採樣一次，找出整段錄音中的「最高峰值」
+          
+          // 每 50ms 取樣一次聲波的「振幅能量」
           gradingInterval = setInterval(() => {
-              analyser.getByteFrequencyData(dataArray);
-              let peak = 0;
+              // 🚀 關鍵改變：改用 TimeDomain (波形) 偵測真實能量
+              analyser.getByteTimeDomainData(dataArray);
+              
+              let sumSquares = 0;
               for (let i = 0; i < dataArray.length; i++) {
-                  if (dataArray[i] > peak) peak = dataArray[i];
+                  let normalized = (dataArray[i] - 128) / 128.0;
+                  sumSquares += normalized * normalized;
               }
-              if (peak > maxVolume) maxVolume = peak;
+              let rms = Math.sqrt(sumSquares / dataArray.length);
+              
+              // 將 RMS 乘上 1000 轉換成好讀的數字 (講話時通常會大於 20)
+              let volume = Math.round(rms * 1000);
+
+              if (volume > maxVolume) maxVolume = volume;
           }, 50); 
       } catch(e) { console.log("音量偵測初始化略過"); }
   }
@@ -2214,8 +2221,8 @@
           clearInterval(gradingInterval);
           gradingInterval = null;
       }
-      console.log("🎤 最終採樣最高音量：", maxVolume);
-      return maxVolume; // 回傳這段錄音的最高音量
+      console.log("🎤 最終 RMS 最高音量：", maxVolume);
+      return maxVolume; 
   }
   
   let isGrading = false; 
