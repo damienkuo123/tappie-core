@@ -2282,16 +2282,14 @@
         if(!isRecording) return;
         if(e && e.preventDefault) e.preventDefault(); 
 
-        if(e && e.pointerId) e.target.releasePointerCapture(e.pointerId); // 🚀 釋放手指
+        if(e && e.pointerId) e.target.releasePointerCapture(e.pointerId); 
 
-        // 🚀 關鍵修復：在準備進入寬限期前，立刻把最高音量抓下來鎖定！
-        let finalPeakVol = stopVolumeMonitor(); 
+        // 🚀 關鍵 1：立刻抓取最高音量，並存為區塊區域變數
+        const peakVol = stopVolumeMonitor(); 
 
-        // 🚀 延遲 0.5 秒才切斷
         stopPracticeTimer = setTimeout(() => {
             isRecording = false;
             rb.classList.remove('active'); 
-            
             if (practiceTimeout) clearTimeout(practiceTimeout); 
             
             if (!practiceRecorder || practiceRecorder.state !== "recording") {
@@ -2306,23 +2304,29 @@
             isGrading = true;
             rb.style.pointerEvents = "none"; 
             rb.style.opacity = "0.5"; 
+
+            // 🚀 關鍵 2：在這裡就直接做音量判定！不要等 onstop！
+            if (peakVol < MIN_VOLUME_THRESHOLD) {
+                // 發現太小聲，直接強制停止錄音器，但不綁定 onstop 事件（或是直接忽略）
+                practiceRecorder.onstop = null; // 拔除送去 Azure 的動作
+                practiceRecorder.stop();
+                
+                document.getElementById('status').innerText = "🤫 太小聲嘍！再大聲一點試試～";
+                document.getElementById('status').style.color = "#e74c3c";
+                // 恢復按鈕狀態讓學生可以馬上重按
+                renderWord(); 
+                return; // 直接中斷，後面都不執行了！
+            }
+
+            // 如果音量夠大，才繼續正常的封裝與 Azure 流程
             document.getElementById('status').innerText = "⚙️ 封裝音檔中...";
             document.getElementById('status').style.color = "#f1c40f";
 
             practiceRecorder.onstop = async () => {
                 const rawBlob = new Blob(practiceChunks); 
-                let peakVol = finalPeakVol; // 🚀 使用瞬間抓取的音量
 
                 if (practiceChunks.length === 0 || rawBlob.size < 500) {
                     document.getElementById('status').innerText = "🚨 錄音太短，請長按";
-                    document.getElementById('status').style.color = "#e74c3c";
-                    renderWord(); 
-                    return;
-                }
-
-                // 🚀 擋截點：太小聲了！
-                if (peakVol < MIN_VOLUME_THRESHOLD) {
-                    document.getElementById('status').innerText = "🤫 太小聲嘍！再大聲一點試試～";
                     document.getElementById('status').style.color = "#e74c3c";
                     renderWord(); 
                     return;
@@ -2387,7 +2391,7 @@
                 }
             };
             practiceRecorder.stop();
-        }, 500); // 👈 延遲 500 毫秒才切斷
+        }, 500); 
     };
 
     rb.onpointerdown = startPracticeRecord;
@@ -2745,12 +2749,11 @@
         if (roundSubmitted || !isBattleRecording) return;
         if(e && e.preventDefault) e.preventDefault(); 
 
-        if(e && e.pointerId) e.target.releasePointerCapture(e.pointerId); // 🚀 釋放手指
+        if(e && e.pointerId) e.target.releasePointerCapture(e.pointerId); 
 
-        // 🚀 關鍵修復：在準備進入寬限期前，立刻把最高音量抓下來鎖定！
-        let finalPeakVol = stopVolumeMonitor();
+        // 🚀 關鍵 1：立刻抓取最高音量
+        const peakVol = stopVolumeMonitor();
 
-        // 🚀 延遲 0.5 秒才切斷
         stopBattleTimer = setTimeout(() => {
             isBattleRecording = false;
             if (battleTimeout) clearTimeout(battleTimeout); 
@@ -2760,6 +2763,20 @@
             if(myCard) myCard.classList.remove('charging-mana', 'ultimate-charging');
             
             if (!battleRecorder || battleRecorder.state !== "recording") return;
+
+            // 🚀 關鍵 2：在這裡直接判定音量！
+            if (peakVol < MIN_VOLUME_THRESHOLD) {
+                battleRecorder.onstop = null; // 拔除送去 Azure 的動作
+                battleRecorder.stop();
+                
+                document.getElementById('battle-info').innerText = "🤫 太小聲嘍！請趕快再按一次重唸！";
+                document.getElementById('battle-info').style.color = "#e74c3c";
+                
+                // 恢復按鈕讓玩家補刀
+                roundSubmitted = false;
+                battleBtn.style.pointerEvents = "auto";
+                return; // 直接中斷
+            }
             
             roundSubmitted = true; 
             battleBtn.style.pointerEvents = "none";
@@ -2768,21 +2785,11 @@
 
             battleRecorder.onstop = async () => {
                 const rawBlob = new Blob(battleChunks); 
-                let peakVol = finalPeakVol; // 🚀 使用瞬間抓取的音量
                 
                 if (battleChunks.length === 0 || rawBlob.size < 500) {
                     document.getElementById('battle-info').innerText = "🚨 錄音太短，挑戰失敗";
                     document.getElementById('battle-info').style.color = "#e74c3c";
                     submitBattleScore(ROOM_ID, 0);
-                    return;
-                }
-
-                // 🚀 擋截點：太小聲！(退回戰鬥狀態)
-                if (peakVol < MIN_VOLUME_THRESHOLD) {
-                    document.getElementById('battle-info').innerText = "🤫 太小聲嘍！請趕快再按一次重唸！";
-                    document.getElementById('battle-info').style.color = "#e74c3c";
-                    roundSubmitted = false;
-                    battleBtn.style.pointerEvents = "auto";
                     return;
                 }
 
@@ -2876,7 +2883,7 @@
                 }
             };
             battleRecorder.stop();
-        }, 500); // 👈 延遲 500 毫秒才切斷
+        }, 500); 
     };
 
     battleBtn.onpointerdown = startBattleRecord;
@@ -3777,6 +3784,8 @@
           if (!sysAudioCtx) sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
           if (sysAudioCtx.state === 'suspended') sysAudioCtx.resume();
 
+          startVolumeMonitor(); // 🚀 補上這行，啟動音量監聽
+
           isGachaRecording = true;
           gachaChunks = [];
           btn.classList.add('recording');
@@ -3792,13 +3801,27 @@
       btn.onpointerup = async (e) => {
           if (!isGachaRecording || !gachaRecorder || gachaRecorder.state !== "recording") return;
           if(e && e.preventDefault) e.preventDefault();
-          if(e.pointerId) btn.releasePointerCapture(e.pointerId); // 🚀 釋放手指
+          if(e.pointerId) btn.releasePointerCapture(e.pointerId); 
+
+          // 🚀 關鍵 1：立刻抓取最高音量
+          const peakVol = stopVolumeMonitor();
 
           // 🚀 延遲 500 毫秒才切斷
           stopGachaTimer = setTimeout(() => {
               isGachaRecording = false;
               btn.classList.remove('recording');
-              btn.style.pointerEvents = "none"; // 判定中暫時封印
+              btn.style.pointerEvents = "none"; 
+
+              // 🚀 關鍵 2：在這裡直接判定音量！
+              if (peakVol < MIN_VOLUME_THRESHOLD) {
+                  gachaRecorder.onstop = null; // 拔除送去 Azure 的動作
+                  gachaRecorder.stop();
+                  
+                  status.innerText = "🤫 太小聲嘍！再試一次";
+                  status.style.color = "#e74c3c";
+                  btn.style.pointerEvents = "auto";
+                  return; // 直接中斷
+              }
 
               status.innerText = "⚙️ 封裝音檔中...";
               status.style.color = "#f1c40f";
