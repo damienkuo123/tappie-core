@@ -1771,7 +1771,15 @@
     // 🚀 2. 額度沒滿，正常開啟保溫麥克風
     try {
       // 啟動並永久保溫麥克風，不再關閉！
-      globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
+      globalMicStream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+              echoCancellation: true,      // 消除教室空曠的回音
+              noiseSuppression: true,      // 壓制背景冷氣聲與雜訊
+              autoGainControl: true,       // 自動增益：小朋友聲音太小會自動放大
+              channelCount: 1,             // 強制單聲道 (Azure 只需要單聲道，可減少資料量)
+              sampleRate: 16000            // 直接對齊 Azure 原生的 16kHz 採樣率
+          } 
+      }); 
       
       document.getElementById('info-text').innerText = "麥克風已就緒";
       document.getElementById('start-btn').style.display = 'inline-block';
@@ -1841,7 +1849,15 @@
         try {
             // 1. 開啟麥克風權限
             // 🚀 關鍵修復：將 stream 存入全域的 globalMicStream
-            globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            globalMicStream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,      // 消除教室空曠的回音
+                    noiseSuppression: true,      // 壓制背景冷氣聲與雜訊
+                    autoGainControl: true,       // 自動增益：小朋友聲音太小會自動放大
+                    channelCount: 1,             // 強制單聲道 (Azure 只需要單聲道，可減少資料量)
+                    sampleRate: 16000            // 直接對齊 Azure 原生的 16kHz 採樣率
+                } 
+            });
             
             // 🚀 順便暖機 sysAudioCtx，解決 iOS 點擊後沒反應的問題
             sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1921,7 +1937,15 @@
 
       // 🚀 2. 額度沒滿，正常開啟保溫麥克風與抓取資料
       try {
-        globalMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        globalMicStream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+                echoCancellation: true,      // 消除教室空曠的回音
+                noiseSuppression: true,      // 壓制背景冷氣聲與雜訊
+                autoGainControl: true,       // 自動增益：小朋友聲音太小會自動放大
+                channelCount: 1,             // 強制單聲道 (Azure 只需要單聲道，可減少資料量)
+                sampleRate: 16000            // 直接對齊 Azure 原生的 16kHz 採樣率
+            } 
+        });
         
         fetch(`${GAS_URL}?action=get_lobby_data&id=${STUDENT_ID}`)
           .then(res => res.json())
