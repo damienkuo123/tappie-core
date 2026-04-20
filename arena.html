@@ -2331,6 +2331,7 @@
 
             practiceRecorder.onstop = async () => {
                 const rawBlob = new Blob(practiceChunks); 
+                // 刪除錯誤的宣告，直接使用外層抓好的 peakVol
 
                 if (practiceChunks.length === 0 || rawBlob.size < 500) {
                     document.getElementById('status').innerText = "🚨 錄音太短，請長按";
@@ -2792,7 +2793,8 @@
 
             battleRecorder.onstop = async () => {
                 const rawBlob = new Blob(battleChunks); 
-                
+                // 刪除錯誤的宣告
+
                 if (battleChunks.length === 0 || rawBlob.size < 500) {
                     document.getElementById('battle-info').innerText = "🚨 錄音太短，挑戰失敗";
                     document.getElementById('battle-info').style.color = "#e74c3c";
