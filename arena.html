@@ -2830,6 +2830,11 @@
     fetch(`${GAS_URL}?action=submit_battle_score&id=${STUDENT_ID}&roomId=${roomId}&score=${finalScore}&t=${new Date().getTime()}`)
       .then(() => { 
         if(waitOpTimer) clearInterval(waitOpTimer); 
+        
+        // 🚀 關鍵提速：不等 2 秒了，立刻去查！因為 AI 早就把分數填好了！
+        checkBoth(roomId); 
+        
+        // 萬一對手是真人還沒答題，才繼續每 2 秒輪詢
         waitOpTimer = setInterval(() => checkBoth(roomId), 2000); 
       });
   }
@@ -3723,24 +3728,20 @@
   // 🚀 觸發封印碎裂與翻開動畫
   function triggerReveal(index) {
       const cardEl = document.getElementById(`gacha-card-${index}`);
-      const cardRoot = cardEl.querySelector('.card'); // 抓取 3D 根元素
+      const cardRoot = cardEl.querySelector('.card'); 
       const prizeInfo = gachaCardsData[index].prize;
       
       cardEl.classList.add(prizeInfo.glow);
       
-      // 🚀 翻轉前先隱藏解鎖按鈕，讓畫面變乾淨
       const unlockUi = cardEl.querySelector('.unlock-ui');
       if (unlockUi) unlockUi.style.display = 'none';
       
+      // 🚀 提速 1：把原本的 1000ms 改成 400ms，語音辨識成功後光速翻牌！
       setTimeout(() => {
-          // 🚀 埋點：封印碎裂音效
           if (window.GlobalAudio) GlobalAudio.play('shatter');
           
           gachaCardsData[index].flipped = true;
           cardEl.classList.add('flipped');
-          
-          // 🚀 注意：我把一開始的 cancelFocus() 移除了！
-          // 翻面後，卡片會維持巨大化，讓玩家慢慢欣賞！玩家只要點擊旁邊的暗色背景就會自動收合。
 
           let prizeRarity = 'N';
           if (prizeInfo.class === 'prize-R') prizeRarity = 'R';
@@ -3750,7 +3751,6 @@
           
           let prizeToAdd = { ...prizeInfo }; 
           
-          // 🚀 關鍵修復：如果是角色卡，翻開瞬間替卡片掛上專屬的 Mask 遮罩！
           if (prizeToAdd.type === 'avatar' && characterAssets[prizeToAdd.value] && characterAssets[prizeToAdd.value].mask) {
               cardRoot.classList.add('masked');
               cardRoot.style.setProperty('--mask', `url('${characterAssets[prizeToAdd.value].mask}')`);
@@ -3785,25 +3785,26 @@
               isGachaResolving = true;
               document.getElementById('gacha-subtitle').innerHTML = "<span style='color:#e74c3c'>次數已用盡！</span>";
               
-              // 🚀 延遲顯示結算畫面，讓玩家有時間慢慢看最後一張爆出來的神卡
+              // 🚀 提速 2：展示沒抽中的卡片，從 1000ms 縮短為 500ms
               setTimeout(() => {
                   const allCards = document.querySelectorAll('.gacha-card');
                   gachaCardsData.forEach((c, i) => {
                       if (!c.flipped) allCards[i].classList.add('flipped', 'missed');
                   });
-                  // 欣賞 2.5 秒後，自動收起卡片並叫出結算面板
+                  
+                  // 🚀 提速 3：欣賞時間從 2500ms 縮短為 1000ms，快速進入結算！
                   setTimeout(() => {
                       cancelFocus();
                       showGachaSummary();
-                  }, 2500);
-              }, 1000);
+                  }, 1000);
+              }, 500);
           } else {
-              // 🚀 如果不是最後一抽，翻開欣賞 1.5 秒後自動收合！(這樣就不會卡死了)
+              // 🚀 提速 4：一般抽卡的欣賞時間，從 1500ms 縮小為 800ms
               setTimeout(() => {
                   if (focusedCardIndex === index) cancelFocus();
-              }, 1500);
+              }, 800);
           }
-      }, 1000); 
+      }, 400); 
   }
 
   // 顯示戰利品並發送 GAS
