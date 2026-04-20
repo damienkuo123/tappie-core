@@ -2419,7 +2419,8 @@
   // ⚔️ 對戰室外掛引擎
   // =======================================================
   function fetchBattleDataAndStart(roomId) {
-    fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
+    // 🚀 補上 &id=${STUDENT_ID}
+    fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
         if(data.status === "NotFound") { 
             alert("房間失效"); 
@@ -2470,7 +2471,8 @@
           waitCount--;
           document.getElementById('battle-timer').innerText = waitCount;
           
-          fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
+          // 🚀 補上 &id=${STUDENT_ID}
+          fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`)
             .then(res => res.json()).then(data => {
               if (data.hostScores && data.guestScores && data.hostScores.length > 0 && data.guestScores.length > 0) {
                 clearInterval(syncTimer);
@@ -2485,7 +2487,8 @@
   }
 
   function updateArenaUI(roomId, isInit = false) {
-    fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
+    // 🚀 補上 &id=${STUDENT_ID}
+    fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
         const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
         const myNameEl = document.getElementById('my-name');
@@ -3044,7 +3047,8 @@
   // 2. 檢查雙方分數 (修復括號錯誤與整合抽獎系統)
   function checkBoth(roomId) {
     if(isChecking) return; isChecking = true;
-    fetch(`${GAS_URL}?action=get_battle_status&roomId=${roomId}&t=${new Date().getTime()}`)
+    // 🚀 補上 &id=${STUDENT_ID}
+    fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
         const hS = data.hostScores.filter(s => s !== -1);
         const gS = data.guestScores.filter(s => s !== -1);
