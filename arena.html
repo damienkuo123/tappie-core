@@ -623,7 +623,7 @@
     /* 🚀 統一懸浮按鈕的外觀與寬度 */
     .battle-float-btn {
         width: 100%;
-        max-width: 280px; /* 控制最大寬度，確保在各種螢幕上都不會太長 */
+        max-width: 200px; /* 🚀 修改點 1：將原本的 280px 縮小為 200px，讓按鈕看起來更緊湊精緻 */
         color: white; 
         border-radius: 20px; 
         padding: 12px 20px; 
@@ -633,6 +633,8 @@
         transition: all 0.3s; 
         white-space: nowrap; 
         pointer-events: auto;
+        /* 🚀 修改點 2：把動畫寫在這裡，讓所有掛上這 class 的按鈕都會一起呼吸浮動！ */
+        animation: float-btn 2s infinite ease-in-out; 
     }
     .battle-float-btn:active { transform: scale(0.95); }
 
@@ -642,17 +644,18 @@
         border: 2px solid #5dade2; 
         box-shadow: 0 5px 15px rgba(52, 152, 219, 0.5); 
     }
-    #hint-btn:active { box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3); }
+    #hint-btn:active { box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3); animation: none; }
 
     /* 橘紅色技能重擊按鈕 */
     #skill-btn { 
         background: linear-gradient(135deg, #f39c12, #e74c3c); 
         border: 2px solid #f1c40f; 
         box-shadow: 0 5px 15px rgba(231, 76, 60, 0.5); 
-        animation: float-btn 2s infinite ease-in-out; 
+        /* 這裡不用再寫 animation 了，因為上面共用 class 已經有了 */
     }
-    #skill-btn:active { box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3); }
-    @keyframes float-btn { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(231, 76, 60, 0.8); } }
+    #skill-btn:active { box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3); animation: none; }
+    
+    @keyframes float-btn { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); } }
     
     #battle-record-btn { width: 90px; height: 90px; border-radius: 50%; font-size: 40px; cursor: pointer; background: rgba(30, 39, 46, 0.9); backdrop-filter: blur(10px); border: 4px solid #0fb9b1; color: white; outline: none; box-shadow: 0 10px 25px rgba(0,0,0,0.6), inset 0 2px 5px rgba(255,255,255,0.2); display: flex; justify-content: center; align-items: center; pointer-events: auto; }
     #battle-record-btn.active { transform: scale(0.9); animation: btnManaCharge 0.5s infinite alternate; border-color: #26de81; background: #1e272b; }
