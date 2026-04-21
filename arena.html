@@ -3727,6 +3727,15 @@
 
       let coverImg = BOX_COVERS[card.boxRarity] || BOX_COVERS['N'];
 
+      // 🚀 動態字體大小計算 (跟對戰區一樣的邏輯)
+      let wordLen = card.word.length;
+      let dynFontSize = "40px";
+      if (wordLen > 20) {
+          dynFontSize = "22px";
+      } else if (wordLen > 10) {
+          dynFontSize = "30px";
+      }
+
       cardEl.innerHTML = `
         <div class="card" data-rarity="${card.boxRarity}" id="gacha-3d-card-${index}">
           <div class="card__translater">
@@ -3735,8 +3744,11 @@
                 <div class="card__bg" style="background-color: #2c3e50; background-image: url('${coverImg}'); background-size: cover;"></div>
                 <div class="card__shine"></div><div class="card__glare"></div>
                 <div class="unlock-ui">
-                  <div class="unlock-hint">解鎖密語</div>
-                  <div class="unlock-word">${card.word}</div>
+                  <div class="unlock-hint" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    解鎖密語
+                    <button onclick="speakWordCloudCached('${card.word.replace(/'/g, "\\'")}', 1.8, this, '#00d2d3', '-10%'); event.stopPropagation();" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 12px; padding: 2px 10px; font-size: 12px; cursor: pointer; pointer-events: auto; backdrop-filter: blur(5px); box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🔊 讀音</button>
+                  </div>
+                  <div class="unlock-word" style="font-size: ${dynFontSize}; line-height: 1.2; word-break: break-word; padding: 0 10px;">${card.word}</div>
                   <div class="voice-lock-btn" id="lock-btn-${index}" oncontextmenu="return false;">🎙️</div>
                   <div class="voice-status" id="lock-status-${index}">點擊開始解鎖</div>
                 </div>
