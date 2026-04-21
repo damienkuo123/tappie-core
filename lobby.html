@@ -1276,7 +1276,7 @@
     }
 
     function createBattleRoom() {
-      if (!checkBattleStamina()) return; // 👈 加上這行攔截
+      if (!checkBattleLimits()) return; // 👈 改名
       const classId = document.getElementById('pvp-level').value;
       const createBtn = document.getElementById('create-room-btn');
       
@@ -1316,7 +1316,7 @@
     }
 
     function joinBattle(roomId) {
-      if (!checkBattleStamina()) return; // 👈 加上這行攔截
+      if (!checkBattleLimits()) return; // 👈 改名
       // 🚀 核心防禦：如果自己身上有房間，先無情炸毀！
       if (currentRoomId) {
           fetch(`${GAS_URL}?action=cancel_battle&id=${STUDENT_ID}&roomId=${currentRoomId}`);
@@ -1348,7 +1348,7 @@
     }
 
     function startAiChallenge(level) {
-      if (!checkBattleStamina()) return; // 👈 加上這行攔截
+      if (!checkBattleLimits()) return; // 👈 改名
       if(aiTimerInterval) return;
 
       // 🚀 核心防禦：要去打 Ai 了，炸掉自己開的 1v1 房間！
@@ -1422,7 +1422,6 @@
       btn.innerHTML = "📡 連線檢測中...";
       btn.style.pointerEvents = "none";
 
-      // 每次進大廳前，先去後端同步最新的額度狀態
       fetch(`${GAS_URL}?action=get_user_status&id=${STUDENT_ID}`)
         .then(res => res.json())
         .then(status => {
@@ -1430,16 +1429,10 @@
           btn.style.pointerEvents = "auto";
           globalUserStatus = status;
 
-          // 🛑 第一層攔截：語音呼叫次數是否達標？ (保護 API 成本)
-          if (!status.canPlay) {
-              alert(`⚠️ 今日語音練習已達上限 (${status.count}/${status.limit}次)\n為了保護喉嚨，請明天再來挑戰吧！`);
-              return;
-          }
-
-          // 🔋 繪製體力條與更新按鈕視覺狀態
+          // 🔋 繪製體力條與更新按鈕視覺狀態 (把語音狀態也一併交給 UI 處理)
           renderStaminaUI();
 
-          // 進入戰場
+          // 一律放行進入戰場選單 (能不能點擊由裡面的 UI 決定)
           document.getElementById('battle-view').classList.add('active');
           document.getElementById('armory-view').classList.add('slide-out');
           
@@ -1459,46 +1452,59 @@
         if (!globalUserStatus) return;
         const container = document.getElementById('stamina-slots');
         
+        let hasStamina = false;
+
         if (globalUserStatus.battleLimit === "VIP") {
             container.innerHTML = `<span style="color:#f1c40f; font-weight:900; font-size:14px; text-shadow:0 0 10px rgba(241,196,15,0.6); letter-spacing:1px;">♾️ 無限體力</span>`;
-            updateBattleButtons(true);
-            return;
-        }
-
-        const limit = globalUserStatus.battleLimit;
-        const remain = Math.max(0, limit - globalUserStatus.battleCount);
-        
-        let html = '';
-        for (let i = 0; i < limit; i++) {
-            if (i < remain) {
-                html += `<div class="stamina-slot active"></div>`; // 有電(綠色)
-            } else {
-                html += `<div class="stamina-slot empty"></div>`;  // 沒電(空槽)
+            hasStamina = true;
+        } else {
+            const limit = globalUserStatus.battleLimit;
+            const remain = Math.max(0, limit - globalUserStatus.battleCount);
+            hasStamina = (remain > 0);
+            
+            let html = '';
+            for (let i = 0; i < limit; i++) {
+                if (i < remain) {
+                    html += `<div class="stamina-slot active"></div>`; // 有電
+                } else {
+                    html += `<div class="stamina-slot empty"></div>`;  // 沒電
+                }
             }
+            container.innerHTML = html;
         }
-        container.innerHTML = html;
         
-        // 同步更新介面按鈕狀態 (體力耗盡則灰階顯示)
-        updateBattleButtons(remain > 0);
+        // 🚀 將「體力狀態」和「語音狀態」一起傳給按鈕更新器
+        updateBattleButtons(hasStamina, globalUserStatus.canPlay);
     }
     
-    // 🛡️ 戰鬥前的最終體力檢測器 (每次按下進入戰鬥按鈕時觸發)
-    function checkBattleStamina() {
-        if (globalUserStatus && !globalUserStatus.canPlayBattle) {
+    // 🛡️ 戰鬥前的最終雙重檢測器 (每次按下進入戰鬥按鈕時觸發)
+    function checkBattleLimits() {
+        if (!globalUserStatus) return false;
+
+        // 1. 語音額度優先檢查
+        if (!globalUserStatus.canPlay) {
+            alert(`⚠️ 今日語音練習已達上限 (${globalUserStatus.count}/${globalUserStatus.limit}次)\n請讓喉嚨休息一下，明天再來挑戰吧！`);
+            return false;
+        }
+
+        // 2. 接著檢查體力
+        if (!globalUserStatus.canPlayBattle) {
             alert(`🔋 體力已耗盡！\n今日對戰次數已達上限 (${globalUserStatus.battleLimit} 場)。\n可以先去首頁「自由練習」鍛鍊實力，明天再來挑戰吧！`);
             return false;
         }
+
         return true;
     }
 
-    // 🌑 在沒電時，讓整個大廳的對戰按鈕變成失去光澤的灰階狀態
-    function updateBattleButtons(hasStamina) {
+    // 🌑 根據雙重狀態更新按鈕視覺
+    function updateBattleButtons(hasStamina, hasVoice) {
          const aiBanners = document.querySelectorAll('.ai-banner');
          const eventBanner = document.querySelector('.event-banner');
          const createBtn = document.getElementById('create-room-btn');
          const pvpList = document.getElementById('pvp-room-list');
 
-         if (!hasStamina) {
+         // 只要有其中一個不合格，就把按鈕封印變灰
+         if (!hasStamina || !hasVoice) {
              aiBanners.forEach(b => { b.style.filter = "grayscale(0.8) opacity(0.5)"; });
              if(eventBanner) { eventBanner.style.filter = "grayscale(0.8) opacity(0.5)"; }
              
@@ -1506,10 +1512,17 @@
              createBtn.style.color = "#ecf0f1";
              createBtn.style.boxShadow = "none";
              createBtn.style.borderColor = "transparent";
-             createBtn.innerText = "🔋 體力耗盡";
+             
+             // 根據是誰沒了來顯示不同的專屬文字
+             if (!hasVoice) {
+                 createBtn.innerText = "🎙️ 語音額度耗盡";
+             } else {
+                 createBtn.innerText = "🔋 體力耗盡";
+             }
              
              pvpList.style.opacity = "0.5";
          } else {
+             // 狀態健康，恢復原狀
              aiBanners.forEach(b => { b.style.filter = "none"; });
              if(eventBanner) { eventBanner.style.filter = "none"; }
              
@@ -1683,7 +1696,7 @@
     }
 
     function startEvent(eventClassCode, eventAvatarId) {
-      if (!checkBattleStamina()) return; // 👈 加上這行攔截
+      if (!checkBattleLimits()) return; // 👈 改名
       const eventBanner = document.querySelector('.event-banner');
       if (eventBanner) eventBanner.style.pointerEvents = 'none';
 
