@@ -406,6 +406,17 @@
       visibility: visible;  
     }
     
+    /* ========================================= */
+    /* 🔋 體力值/能量條 UI (Dark Glass) */
+    /* ========================================= */
+    .battle-header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .stamina-container { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .stamina-label { font-size: 11px; font-weight: 900; color: #a4b0be; letter-spacing: 2px; text-transform: uppercase; }
+    .stamina-slots { display: flex; gap: 8px; }
+    .stamina-slot { width: 28px; height: 12px; border-radius: 4px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 2px 4px rgba(0,0,0,0.8); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .stamina-slot.active { background: linear-gradient(135deg, #2ecc71, #27ae60); border-color: #2ecc71; box-shadow: 0 0 12px rgba(46,204,113,0.5), inset 0 2px 4px rgba(255,255,255,0.4); }
+    .stamina-slot.empty { background: transparent; border-color: rgba(231,76,60,0.4); box-shadow: inset 0 0 10px rgba(231,76,60,0.2); }
+    
     .battle-header { padding: max(20px, env(safe-area-inset-top)) 25px 15px; display: flex; align-items: center; gap: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.4); backdrop-filter: blur(20px); z-index: 10; }
     .btn-return-armory { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; transition: 0.3s; }
     .btn-return-armory:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
@@ -663,8 +674,18 @@
 
   <div id="battle-view">
     <div class="battle-header">
-      <div class="btn-return-armory" onclick="goBackToArmory()">🔙</div>
-      <h2 class="battle-title">選擇戰場</h2>
+      <div class="battle-header-top">
+        <div style="display:flex; align-items:center; gap: 15px;">
+          <div class="btn-return-armory" onclick="goBackToArmory()">🔙</div>
+          <h2 class="battle-title">選擇戰場</h2>
+        </div>
+        
+        <div class="stamina-container">
+          <div class="stamina-label">今日體力 (Battery)</div>
+          <div class="stamina-slots" id="stamina-slots">
+            </div>
+        </div>
+      </div>
     </div>
 
     <div id="ai-countdown-overlay" style="display: none; position: absolute; inset: 0; background: rgba(10, 14, 23, 0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);">
@@ -1255,6 +1276,7 @@
     }
 
     function createBattleRoom() {
+      if (!checkBattleStamina()) return; // 👈 加上這行攔截
       const classId = document.getElementById('pvp-level').value;
       const createBtn = document.getElementById('create-room-btn');
       
@@ -1294,6 +1316,7 @@
     }
 
     function joinBattle(roomId) {
+      if (!checkBattleStamina()) return; // 👈 加上這行攔截
       // 🚀 核心防禦：如果自己身上有房間，先無情炸毀！
       if (currentRoomId) {
           fetch(`${GAS_URL}?action=cancel_battle&id=${STUDENT_ID}&roomId=${currentRoomId}`);
@@ -1325,6 +1348,7 @@
     }
 
     function startAiChallenge(level) {
+      if (!checkBattleStamina()) return; // 👈 加上這行攔截
       if(aiTimerInterval) return;
 
       // 🚀 核心防禦：要去打 Ai 了，炸掉自己開的 1v1 房間！
@@ -1388,15 +1412,115 @@
     }
     
     // =======================================================
-    // ⚔️ 視圖切換邏輯 (雙房間與導航)
+    // ⚔️ 視圖切換邏輯 (雙房間與導航) - 🔋 體力與語音防護版
     // =======================================================
+    let globalUserStatus = null; // 全域儲存玩家狀態
+
     function goToBattleRoom() {
-      document.getElementById('battle-view').classList.add('active');
-      document.getElementById('armory-view').classList.add('slide-out');
-      
-      refreshLobby();
-      if(lobbyRefreshTimer) clearInterval(lobbyRefreshTimer);
-      lobbyRefreshTimer = setInterval(refreshLobby, 4000);
+      const btn = document.querySelector('.btn-battle');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = "📡 連線檢測中...";
+      btn.style.pointerEvents = "none";
+
+      // 每次進大廳前，先去後端同步最新的額度狀態
+      fetch(`${GAS_URL}?action=get_user_status&id=${STUDENT_ID}`)
+        .then(res => res.json())
+        .then(status => {
+          btn.innerHTML = originalText;
+          btn.style.pointerEvents = "auto";
+          globalUserStatus = status;
+
+          // 🛑 第一層攔截：語音呼叫次數是否達標？ (保護 API 成本)
+          if (!status.canPlay) {
+              alert(`⚠️ 今日語音練習已達上限 (${status.count}/${status.limit}次)\n為了保護喉嚨，請明天再來挑戰吧！`);
+              return;
+          }
+
+          // 🔋 繪製體力條與更新按鈕視覺狀態
+          renderStaminaUI();
+
+          // 進入戰場
+          document.getElementById('battle-view').classList.add('active');
+          document.getElementById('armory-view').classList.add('slide-out');
+          
+          refreshLobby();
+          if(lobbyRefreshTimer) clearInterval(lobbyRefreshTimer);
+          lobbyRefreshTimer = setInterval(refreshLobby, 4000);
+        })
+        .catch(err => {
+          btn.innerHTML = originalText;
+          btn.style.pointerEvents = "auto";
+          alert("網路連線異常，無法進入戰場！");
+        });
+    }
+
+    // 🎨 渲染綠色電池槽
+    function renderStaminaUI() {
+        if (!globalUserStatus) return;
+        const container = document.getElementById('stamina-slots');
+        
+        if (globalUserStatus.battleLimit === "VIP") {
+            container.innerHTML = `<span style="color:#f1c40f; font-weight:900; font-size:14px; text-shadow:0 0 10px rgba(241,196,15,0.6); letter-spacing:1px;">♾️ 無限體力</span>`;
+            updateBattleButtons(true);
+            return;
+        }
+
+        const limit = globalUserStatus.battleLimit;
+        const remain = Math.max(0, limit - globalUserStatus.battleCount);
+        
+        let html = '';
+        for (let i = 0; i < limit; i++) {
+            if (i < remain) {
+                html += `<div class="stamina-slot active"></div>`; // 有電(綠色)
+            } else {
+                html += `<div class="stamina-slot empty"></div>`;  // 沒電(空槽)
+            }
+        }
+        container.innerHTML = html;
+        
+        // 同步更新介面按鈕狀態 (體力耗盡則灰階顯示)
+        updateBattleButtons(remain > 0);
+    }
+    
+    // 🛡️ 戰鬥前的最終體力檢測器 (每次按下進入戰鬥按鈕時觸發)
+    function checkBattleStamina() {
+        if (globalUserStatus && !globalUserStatus.canPlayBattle) {
+            alert(`🔋 體力已耗盡！\n今日對戰次數已達上限 (${globalUserStatus.battleLimit} 場)。\n可以先去首頁「自由練習」鍛鍊實力，明天再來挑戰吧！`);
+            return false;
+        }
+        return true;
+    }
+
+    // 🌑 在沒電時，讓整個大廳的對戰按鈕變成失去光澤的灰階狀態
+    function updateBattleButtons(hasStamina) {
+         const aiBanners = document.querySelectorAll('.ai-banner');
+         const eventBanner = document.querySelector('.event-banner');
+         const createBtn = document.getElementById('create-room-btn');
+         const pvpList = document.getElementById('pvp-room-list');
+
+         if (!hasStamina) {
+             aiBanners.forEach(b => { b.style.filter = "grayscale(0.8) opacity(0.5)"; });
+             if(eventBanner) { eventBanner.style.filter = "grayscale(0.8) opacity(0.5)"; }
+             
+             createBtn.style.background = "linear-gradient(135deg, #7f8c8d, #95a5a6)";
+             createBtn.style.color = "#ecf0f1";
+             createBtn.style.boxShadow = "none";
+             createBtn.style.borderColor = "transparent";
+             createBtn.innerText = "🔋 體力耗盡";
+             
+             pvpList.style.opacity = "0.5";
+         } else {
+             aiBanners.forEach(b => { b.style.filter = "none"; });
+             if(eventBanner) { eventBanner.style.filter = "none"; }
+             
+             createBtn.style.background = ""; 
+             createBtn.style.color = "";
+             createBtn.style.boxShadow = "";
+             createBtn.style.borderColor = "";
+             createBtn.innerText = "開啟 1v1 戰場";
+             
+             pvpList.style.opacity = "1";
+         }
     }
 
     function goBackToArmory() {
@@ -1559,6 +1683,7 @@
     }
 
     function startEvent(eventClassCode, eventAvatarId) {
+      if (!checkBattleStamina()) return; // 👈 加上這行攔截
       const eventBanner = document.querySelector('.event-banner');
       if (eventBanner) eventBanner.style.pointerEvents = 'none';
 
