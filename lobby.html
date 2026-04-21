@@ -1419,7 +1419,7 @@
     function goToBattleRoom() {
       const btn = document.querySelector('.btn-battle');
       const originalText = btn.innerHTML;
-      btn.innerHTML = "📡 連線檢測中...";
+      btn.innerHTML = "📡 連線中...";
       btn.style.pointerEvents = "none";
 
       fetch(`${GAS_URL}?action=get_user_status&id=${STUDENT_ID}`)
