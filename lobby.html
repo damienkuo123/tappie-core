@@ -1596,7 +1596,8 @@
           aiTimerInterval = null;
           aiMsgEl.innerText = "🚀 傳送中...";
 
-          const eventLevel = "高階Ai"; 
+          // 🚀 讓 Boss 擁有獨立的難度代號，不再跟高階 Ai 共用數值！
+          const eventLevel = "活動Boss"; 
           const url = `${GAS_URL}?action=create_ai_battle&id=${STUDENT_ID}&classId=${eventClassCode}&level=${eventLevel}`;
 
           fetch(url)
