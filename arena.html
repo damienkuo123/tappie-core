@@ -2287,6 +2287,13 @@
         // 🔵 狀態 A：如果目前沒有在錄音 -> 啟動錄音
         if (!isRecording) {
             isRecording = true;
+            
+            // 🚀 新增：錄音開始，全局靜音 (暫停背景音樂與其他音效)
+            if (window.GlobalAudio) {
+                window.GlobalAudio.pauseBGM();
+                window.GlobalAudio.stopAll(); // 確保讀音提示等音效也被切斷
+            }
+            
             rb.classList.add('recording-active'); // 變藍色
             
             if (!sysAudioCtx) sysAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2324,6 +2331,10 @@
         // 🔴 狀態 B：如果目前正在錄音 -> 停止錄音並送出
         else {
             isRecording = false;
+            
+            // 🚀 新增：錄音結束，恢復背景音樂
+            if (window.GlobalAudio) window.GlobalAudio.resumeBGM();
+            
             if (practiceTimeout) clearTimeout(practiceTimeout); // 拆除炸彈 
             
             // 拔除藍色，換上灰色鎖定裝甲
@@ -2735,6 +2746,12 @@
         if (!isBattleRecording) {
             isBattleRecording = true;
             
+            // 🚀 新增：錄音開始，全局靜音 (暫停背景音樂與其他音效)
+            if (window.GlobalAudio) {
+                window.GlobalAudio.pauseBGM();
+                window.GlobalAudio.stopAll();
+            }
+            
             // 強制切斷所有正在播放的讀音
             window.speechSynthesis.cancel();
             if (audioCtx && audioCtx.state === 'running') {
@@ -2789,6 +2806,10 @@
         // 🔴 狀態 B：如果目前正在錄音 -> 停止錄音並送出
         else {
             isBattleRecording = false;
+            
+            // 🚀 新增：錄音結束，恢復背景音樂
+            if (window.GlobalAudio) window.GlobalAudio.resumeBGM();
+            
             if (battleTimeout) clearTimeout(battleTimeout); // 拆除炸彈
             
             // 拔除錄音狀態，換上灰色鎖定裝甲
