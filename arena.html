@@ -3879,26 +3879,47 @@
 
           if (gachaPicksLeft <= 0) {
               isGachaResolving = true;
-              document.getElementById('gacha-subtitle').innerHTML = "<span style='color:#e74c3c'>次數已用盡！</span>";
-              
-              // 🚀 當次數用盡時，多給一點點時間讓玩家看清楚最後抽到的牌
-              setTimeout(() => {
-                  const allCards = document.querySelectorAll('.gacha-card');
-                  gachaCardsData.forEach((c, i) => {
-                      if (!c.flipped) allCards[i].classList.add('flipped', 'missed');
-                  });
-                  
-                  setTimeout(() => {
-                      cancelFocus();
-                      showGachaSummary();
-                  }, 1500); // 留 1.5 秒欣賞所有錯過的牌，再進結算
-              }, 1500); 
+              document.getElementById('gacha-subtitle').innerHTML = "<span style='color:#e74c3c'>次數已用盡！請點擊畫面繼續</span>";
           } else {
-              // 🚀 移除強制等待！
-              // 我們把原本的 setTimeout 自動關閉拿掉了。
-              // 現在卡片翻開後，會一直維持放大狀態，直到學生「手動點擊背景或卡片」才會收合。
-              // 這樣把控制權還給玩家，徹底消滅「被卡死」的錯覺！
+              document.getElementById('gacha-subtitle').innerHTML = "點擊畫面繼續抽獎";
           }
+
+          // 🚀 核心修復：賦予放大後的卡片「點擊收合」的超能力！
+          // 我們利用一個覆蓋全螢幕的隱形透明按鈕來接收點擊，確保不管點哪裡都能順利收合
+          const clickReceiver = document.createElement('div');
+          clickReceiver.style.position = 'fixed';
+          clickReceiver.style.inset = '0';
+          clickReceiver.style.zIndex = '10001'; // 確保蓋在所有東西上面
+          document.body.appendChild(clickReceiver);
+
+          // 為了防止玩家在動畫還沒跑完就狂點，我們加一個小小的 0.5 秒防呆延遲
+          setTimeout(() => {
+              clickReceiver.onclick = () => {
+                  // 移除這個隱形接收器
+                  document.body.removeChild(clickReceiver);
+
+                  if (isGachaResolving) {
+                      // 如果是最後一次抽獎，點擊後先把沒抽中的卡片翻開給玩家看
+                      const allCards = document.querySelectorAll('.gacha-card');
+                      gachaCardsData.forEach((c, i) => {
+                          if (!c.flipped) allCards[i].classList.add('flipped', 'missed');
+                      });
+                      
+                      document.getElementById('gacha-subtitle').innerHTML = "即將進入結算...";
+                      
+                      // 欣賞 1.5 秒遺憾的卡片後，自動進入結算畫面
+                      setTimeout(() => {
+                          cancelFocus();
+                          showGachaSummary();
+                      }, 1500);
+                  } else {
+                      // 如果還有次數，點擊後就只是單純把這張卡片收起來
+                      cancelFocus();
+                      document.getElementById('gacha-subtitle').innerHTML = `剩餘開啟次數：<span id="picks-left">${gachaPicksLeft}</span> 次`;
+                  }
+              };
+          }, 500); // 👈 翻開後 0.5 秒才允許點擊收合，保護動畫完整性
+
       }, 400); 
   }
 
