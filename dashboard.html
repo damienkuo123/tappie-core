@@ -595,7 +595,7 @@
         
         if (unitText === "未排定") {
           // 🛑 狀態 1：未排定 (灰色休眠模式)
-          hwBox.className = "hw-box"; // 移除發光底座
+          hwBox.className = "hw-box"; 
           hwIcon.innerText = '⏳';
           hwIcon.style.color = '#7f8c8d';
           hwIcon.style.background = 'rgba(0,0,0,0.05)';
@@ -604,11 +604,11 @@
           
           oralBtn.className = "btn btn-disabled";
           oralBtn.innerText = "尚未開放";
-          oralBtn.removeAttribute('href'); // 拔掉網址，確保絕對點不進去
+          oralBtn.href = "#";
+          oralBtn.onclick = (e) => e.preventDefault(); 
           
         } else if (data.isCompleted) {
           // ✅ 狀態 2：已完成 (綠色通關模式)
-          oralBtn.href = `arena.html?id=${STUDENT_ID}`; 
           hwBox.className = "hw-box hw-done";
           hwIcon.innerText = '✅';
           hwIcon.style.color = 'var(--marian-green)';
@@ -621,10 +621,15 @@
           
           oralBtn.className = "btn btn-green";
           oralBtn.innerText = "再次練習";
+          oralBtn.href = "#";
+          // 🚀 掛上閘門：檢查額度後再進入
+          oralBtn.onclick = (e) => { 
+              e.preventDefault(); 
+              checkVoiceLimitAndGo(`arena.html?id=${STUDENT_ID}`, oralBtn, "今日練習已達標"); 
+          };
           
         } else {
           // 🎯 狀態 3：未完成 (黃色備戰模式)
-          oralBtn.href = `arena.html?id=${STUDENT_ID}`; 
           hwBox.className = "hw-box hw-active";
           hwIcon.innerText = '🎯';
           hwIcon.style.color = '#e67e22';
@@ -634,6 +639,12 @@
           
           oralBtn.className = "btn btn-yellow";
           oralBtn.innerText = "開啟挑戰";
+          oralBtn.href = "#";
+          // 🚀 掛上閘門：檢查額度後再進入
+          oralBtn.onclick = (e) => { 
+              e.preventDefault(); 
+              checkVoiceLimitAndGo(`arena.html?id=${STUDENT_ID}`, oralBtn, "今日練習已達標"); 
+          };
         }
 
         // 單元任務
@@ -710,10 +721,10 @@
           lbContainer.innerHTML = lbHtml;
         }
 
-        // 自由練習區
+        // 自由練習區 (🚀 同樣掛上語音額度閘門！)
         if (data.reviewUnits && data.reviewUnits.length > 0) {
           document.getElementById('review-grid').innerHTML = data.reviewUnits.map(u => 
-            `<a href="arena.html?id=${STUDENT_ID}&unit=${encodeURIComponent(u)}&mode=review" class="btn-review">📖 ${u}</a>`
+            `<a href="#" onclick="event.preventDefault(); checkVoiceLimitAndGo('arena.html?id=${STUDENT_ID}&unit=${encodeURIComponent(u)}&mode=review', this)" class="btn-review">📖 ${u}</a>`
           ).join('');
         }
       }
@@ -758,6 +769,41 @@
       if (confirm("確定要登出並回到刷卡頁面嗎？")) {
         window.location.href = "index.html"; 
       }
+    }
+
+    // 🚀 新增：語音額度檢測閘門 (Shift-Left Interceptor)
+    function checkVoiceLimitAndGo(targetUrl, btnElement, disabledText) {
+        const originalText = btnElement.innerText;
+        
+        btnElement.innerText = "⏳ 檢測額度中...";
+        btnElement.style.pointerEvents = "none";
+
+        fetch(`${GAS_URL}?action=get_user_status&id=${STUDENT_ID}`)
+            .then(res => res.json())
+            .then(status => {
+                // 恢復原本的文字
+                btnElement.innerText = originalText;
+                btnElement.style.pointerEvents = "auto";
+                
+                if (!status.canPlay) { // 這裡的 canPlay 對應後端的 canPlayVoice
+                    alert(`⚠️ 今日語音練習已達上限 (${status.count}/${status.limit}次)\n為了保護喉嚨，請明天再來練習吧！`);
+                    
+                    // 如果有指定鎖定文字，就把按鈕徹底變灰封印
+                    if (disabledText) {
+                        btnElement.className = "btn btn-disabled";
+                        btnElement.innerText = disabledText;
+                        btnElement.onclick = (e) => e.preventDefault();
+                    }
+                } else {
+                    // 額度充足，放行跳轉！
+                    window.location.href = targetUrl;
+                }
+            })
+            .catch(err => {
+                btnElement.innerText = originalText;
+                btnElement.style.pointerEvents = "auto";
+                alert("網路連線異常，無法進入練習！");
+            });
     }
 
     // 🚀 靜置自動登出
