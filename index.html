@@ -224,6 +224,10 @@
         // 1. 建立隱形吸鐵（專門用來吸讀卡機的輸入）
         const focusHunter = document.createElement('input');
         focusHunter.type = "text";
+        
+        // 🚀 核心防護：明確告訴平板/手機「絕對不要彈出虛擬小鍵盤」！
+        focusHunter.setAttribute('inputmode', 'none'); 
+        
         focusHunter.style.position = "fixed";
         focusHunter.style.top = "-500px"; 
         focusHunter.style.opacity = "0";
