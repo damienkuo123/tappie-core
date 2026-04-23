@@ -110,6 +110,8 @@
     /* =======================================================
        🎨 各板塊內容樣式 (保留您的完美設計，僅微調邊距)
        ======================================================= */
+    /* 🚀 確保學生卡片內部完全置中 */
+    .profile-header { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     .title-badge { background: linear-gradient(135deg, #fff, #fffaf0); color: #d35400; padding: 8px 22px; border-radius: 25px; font-size: 14px; font-weight: 900; display: inline-block; margin-bottom: 10px; border: 1px solid rgba(241, 196, 15, 0.6); box-shadow: 0 8px 20px rgba(241, 196, 15, 0.2); letter-spacing: 2px; }
     .student-name { font-size: 28px; font-weight: 900; color: var(--text-main); margin: 12px 0 0 0; letter-spacing: 3px; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .points-container { display: flex; flex-direction: column; align-items: center; margin: 15px 0; }
@@ -415,6 +417,9 @@
 
     // 🚀 SPA 分頁切換邏輯
     function switchTab(tabId, titleText, navElement) {
+      // 🔊 加入底部分頁切換的清脆音效
+      if (window.GlobalAudio) GlobalAudio.play('click');
+      
       // 1. 更換 Top Title
       document.getElementById('top-title').innerText = titleText;
       
@@ -433,11 +438,15 @@
     // 🚀 跳窗控制
     function toggleSettingsModal(show) {
       const modal = document.getElementById('settingsModal');
-      if (show) { modal.classList.add('show'); } else { modal.classList.remove('show'); }
-    }
-    function toggleLogs(show) { 
-      const modal = document.getElementById('logModal');
-      if (show) { modal.classList.add('show'); } else { modal.classList.remove('show'); }
+      if (show) { 
+        // 🔊 加入開啟音效
+        if (window.GlobalAudio) GlobalAudio.play('popupOpen');
+        modal.classList.add('show'); 
+      } else { 
+        // 🔊 加入關閉音效
+        if (window.GlobalAudio) GlobalAudio.play('popupClose');
+        modal.classList.remove('show'); 
+      }
     }
 
     const storedAuth = localStorage.getItem('tappie_admin_key');
