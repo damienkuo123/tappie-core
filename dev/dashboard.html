@@ -952,16 +952,24 @@
           document.getElementById('diag-mastery-val').innerText = stats.mastery;
           document.getElementById('diag-mastery-bar').style.width = `${stats.mastery}%`;
           
+          // ... 原本的程式碼 ...
           document.getElementById('diag-pr-val').innerText = stats.prValue;
           
           const progEl = document.getElementById('diag-progress-val');
+          
+          // 🚀 修復：把 === 0 的情況也顯示出來，並加上「首次練習」的判斷
           if (stats.progress > 0) {
              progEl.innerText = `+${stats.progress}`;
              progEl.style.color = 'var(--marian-green)';
           } else if (stats.progress < 0) {
              progEl.innerText = stats.progress;
              progEl.style.color = 'var(--marian-red)';
+          } else if (stats.progress === 0 && data.stats.overall > 0) {
+             // 分數一樣，沒進步也沒退步
+             progEl.innerText = "+0";
+             progEl.style.color = 'var(--text-main)';
           } else {
+             // 連一次練習都沒有，或是真的算不出來
              progEl.innerText = "-";
              progEl.style.color = 'var(--text-sub)';
           }
