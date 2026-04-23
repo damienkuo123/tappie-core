@@ -488,6 +488,11 @@
 
       // 4. 滾動回頂部
       document.getElementById('content-viewport').scrollTo({ top: 0, behavior: 'smooth' });
+
+      // 🚀 5. 自動觸發診斷報告載入 (如果尚未載入過的話)
+      if (tabId === 'learning' && !isDiagLoaded) {
+          loadDiagnosticReport();
+      }
     }
 
     // 🚀 跳窗控制
@@ -821,6 +826,86 @@
             });
     }
 
+    // =======================================================
+    // 📊 深度發音診斷中心引擎
+    // =======================================================
+    let isDiagLoaded = false; // 記錄是否已經載入過，避免切換分頁一直重複讀取
+
+    function loadDiagnosticReport() {
+      const filter = document.getElementById('diag-time-filter').value;
+      const loadingZone = document.getElementById('diag-loading');
+      const contentZone = document.getElementById('diag-content');
+
+      // 1. 顯示會呼吸的骨架屏，隱藏舊內容
+      loadingZone.style.display = 'flex';
+      contentZone.style.display = 'none';
+
+      // 2. 呼叫 GAS 後端 API
+      fetch(`${GAS_URL}?action=get_diagnostic_report&id=${STUDENT_ID}&filter=${filter}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success) {
+            loadingZone.innerHTML = `<div style="color:#e74c3c; font-weight:900; text-align:center; font-size:16px;">⚠️ ${data.msg}</div>`;
+            return;
+          }
+
+          // 🌟 處理 1：流暢度大圓環與 AI 短評
+          const fluency = data.stats.fluency || 0;
+          document.getElementById('diag-fluency-score').innerText = fluency;
+          // 利用 CSS 變數動態推動圓環進度條
+          contentZone.style.setProperty('--fluency', fluency);
+
+          let summary = "";
+          if (fluency >= 90) summary = "寶貝充滿自信，開口極其流暢！接下來我們專注在『字尾發音』的細節，就能達到外語水準喔！";
+          else if (fluency >= 70) summary = "開口表現很棒！如果遇到不會的單字可以稍微放慢語速，不用急，字字唸清楚會更好喔。";
+          else summary = "寶貝還在適應開口的節奏，家長可以多用「自由練習」區陪孩子大聲朗讀，建立開口自信！";
+          document.getElementById('diag-summary-text').innerText = summary;
+
+          // 🌟 處理 2：音素 X 光機渲染器
+          const renderPhonemes = (containerId, arr, colorType) => {
+            const container = document.getElementById(containerId);
+            if (arr.length === 0) {
+              container.innerHTML = `<span style="color:#7f8c8d; font-size:13px; font-weight:bold;">持續收集中...</span>`;
+              return;
+            }
+            container.innerHTML = arr.map(item => {
+              const exStr = item.examples.join(', ');
+              const bg = colorType === 'green' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)';
+              const color = colorType === 'green' ? '#27ae60' : '#c0392b';
+              return `<span style="background: ${bg}; color: ${color}; padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">/${item.p}/ <span style="font-size:11px; opacity:0.8; font-weight:bold; margin-left:4px;">${exStr}</span></span>`;
+            }).join('');
+          };
+
+          renderPhonemes('diag-strong-phonemes', data.strongPhonemes, 'green');
+          renderPhonemes('diag-weak-phonemes', data.weakPhonemes, 'red');
+
+          // 🌟 處理 3：單字弱點清單
+          const weakWordsContainer = document.getElementById('diag-weak-words-list');
+          if (data.weakWords.length === 0) {
+            weakWordsContainer.innerHTML = `<div style="text-align:center; color:#2ecc71; font-size:14px; font-weight:900; padding:15px; background:rgba(46,204,113,0.1); border-radius:12px;">太厲害了！本單元沒有明顯弱點單字 🎉</div>`;
+          } else {
+            weakWordsContainer.innerHTML = data.weakWords.map(w => `
+              <div style="background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; padding: 16px; text-align: left; box-shadow: 0 8px 20px rgba(0,0,0,0.04);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                  <span style="font-size:18px; font-weight:900; color:var(--text-main);">${w.word}</span>
+                  <span style="font-size:14px; font-weight:900; color:var(--marian-red); background:rgba(231,76,60,0.1); padding:4px 10px; border-radius:12px; border: 1px solid rgba(231,76,60,0.3);">${w.score} 分</span>
+                </div>
+                <div style="font-size:14px; color:var(--text-sub); line-height:1.6; font-weight:bold;">${w.feedback}</div>
+              </div>
+            `).join('');
+          }
+
+          // 3. 隱藏骨架屏，華麗展現數據！
+          loadingZone.style.display = 'none';
+          contentZone.style.display = 'flex';
+          isDiagLoaded = true; // 標記已載入
+
+        })
+        .catch(err => {
+          loadingZone.innerHTML = `<div style="color:#e74c3c; font-weight:900; text-align:center; font-size:16px;">⚠️ 網路異常，無法載入報告</div>`;
+        });
+    }
+    
     // 🚀 補回這兩行：靜置自動登出
     let idleTimer;
     const resetIdleTimer = () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => { window.location.href = "index.html"; }, 180000); };
