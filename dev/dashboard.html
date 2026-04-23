@@ -158,10 +158,6 @@
 
     /* 排行榜 */
     .leaderboard { padding: 20px 25px; }
-    .btn-glory { width: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.7)); color: var(--primary-blue); border: 1px solid rgba(255,255,255,1); padding: 20px; border-radius: 24px; font-size: 16px; font-weight: 900; cursor: pointer; transition: 0.3s; box-shadow: var(--glass-shadow); display: flex; justify-content: center; align-items: center; gap: 10px; letter-spacing: 2px; box-sizing: border-box; -webkit-appearance: none; appearance: none; }
-    .btn-glory:active { transform: scale(0.97); }
-    .lb-panel { max-height: 0; overflow: hidden; transition: max-height 0.6s, opacity 0.4s; opacity: 0; margin-top: 0; }
-    .lb-panel.open { max-height: 800px; opacity: 1; padding: 20px 0 0 0; }
     .lb-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; font-size: 15px; background: rgba(255, 255, 255, 0.65); border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 8px 20px rgba(0,0,0,0.04), inset 0 1px 1px rgba(255,255,255,1); }
     .lb-rank { font-weight: 900; width: 35px; text-align: center; font-size: 18px; color: var(--text-sub); }
     .lb-name { flex: 1; text-align: left; padding-left: 15px; font-weight: 900; color: var(--text-main); letter-spacing: 1px; }
@@ -218,6 +214,11 @@
 </head>
 
 <body>
+  <div id="dev-scanner-zone" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 12px; z-index: 99999; border: 1px solid #ffd700;">
+      <p style="margin: 0 0 10px 0; color: #ffd700; font-size: 12px; font-weight: bold;">🛠️ 讀卡機模擬器</p>
+      <input type="text" id="dev-sim-input" placeholder="貼上完整網址後按 Enter" style="width: 250px; padding: 8px; border-radius: 6px; border: none; outline: none; font-family: monospace;">
+  </div>
+
   <div class="ambient-orb orb-1"></div>
   <div class="ambient-orb orb-2"></div>
   <div class="ambient-orb orb-3"></div>
@@ -228,7 +229,8 @@
   </div>
 
   <header id="top-bar">
-    <div style="width: 40px;"></div> <h2 id="top-title">首頁</h2>
+    <div style="width: 40px;"></div>
+    <h2 id="top-title">首頁</h2>
     <div class="top-icon-btn" onclick="toggleSettingsModal(true)">⚙️</div>
   </header>
 
@@ -444,6 +446,17 @@
         modal.classList.add('show'); 
       } else { 
         // 🔊 加入關閉音效
+        if (window.GlobalAudio) GlobalAudio.play('popupClose');
+        modal.classList.remove('show'); 
+      }
+    }
+    
+    function toggleLogs(show) { 
+      const modal = document.getElementById('logModal');
+      if (show) { 
+        if (window.GlobalAudio) GlobalAudio.play('popupOpen');
+        modal.classList.add('show'); 
+      } else { 
         if (window.GlobalAudio) GlobalAudio.play('popupClose');
         modal.classList.remove('show'); 
       }
@@ -755,9 +768,12 @@
             });
     }
 
+    // 🚀 補回這兩行：靜置自動登出
     let idleTimer;
     const resetIdleTimer = () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => { window.location.href = "index.html"; }, 180000); };
-    document.addEventListener('touchstart', resetIdleTimer); document.addEventListener('mousedown', resetIdleTimer); resetIdleTimer();
+    document.addEventListener('touchstart', resetIdleTimer); 
+    document.addEventListener('mousedown', resetIdleTimer); 
+    resetIdleTimer();
 
     // =======================================================
     // 🚀 Tappie「無痕換人攔截器」：SaaS 萬能網址萃取版
@@ -833,6 +849,57 @@
         }
       });
     })();
+
+    // 🛠️ 補回：開發者模擬器觸發邏輯
+    document.addEventListener('dblclick', function(e) {
+        const devZone = document.getElementById('dev-scanner-zone');
+        devZone.style.display = devZone.style.display === 'none' ? 'block' : 'none';
+        if (devZone.style.display === 'block') {
+            document.getElementById('dev-sim-input').focus();
+        }
+    });
+
+    document.getElementById('dev-sim-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const inputStr = this.value.trim();
+            if (!inputStr) return;
+
+            let extractedUid = null;
+            if (inputStr.includes("uid=")) {
+                extractedUid = inputStr.split("uid=")[1].split("&")[0];
+            } else if (inputStr.includes("id=")) {
+                extractedUid = inputStr.split("id=")[1].split("&")[0];
+            }
+
+            const adminAuth = localStorage.getItem('tappie_admin_key');
+
+            if (extractedUid) {
+                if (adminAuth) {
+                    window.location.replace(`admin.html?id=${extractedUid}`);
+                } else {
+                    window.location.href = `dashboard.html?id=${extractedUid}`;
+                }
+            } else {
+                fetch(`${GAS_URL}?action=verify_card&cardId=${encodeURIComponent(inputStr)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (adminAuth) {
+                                window.location.replace(`admin.html?id=${data.uid}`);
+                            } else {
+                                window.location.href = `dashboard.html?id=${data.uid}`;
+                            }
+                        } else {
+                            alert("❌ GAS 找不到這張卡！");
+                        }
+                    })
+                    .catch(err => {
+                        alert("⚠️ 連線 GAS 失敗！");
+                    });
+            }
+            this.value = "";
+        }
+    });
     
   </script>
 </body>
