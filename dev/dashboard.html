@@ -346,7 +346,7 @@
           <div style="width: 100%; height: 200px; background: rgba(0,0,0,0.05); border-radius: 16px; animation: pulse 1.5s infinite 0.2s;"></div>
         </div>
 
-        <div id="diag-content" style="display: none; padding: 20px 25px; flex-direction: column; gap: 25px;">
+        <div id="diag-content" style="display: none; padding: 20px 25px; flex-direction: column; gap: 30px;">
           
           <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
             <div style="position: relative; width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(var(--marian-green) calc(var(--fluency, 0) * 1%), rgba(0,0,0,0.05) 0); display: flex; justify-content: center; align-items: center; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);">
@@ -365,21 +365,27 @@
             <div style="font-size: 15px; font-weight: 900; color: var(--text-main); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
               <span>🦷</span> 發音肌肉 X 光機
             </div>
-            <div style="display: flex; gap: 15px;">
-              <div style="flex: 1; background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.3); border-radius: 16px; padding: 15px; text-align: left;">
-                <div style="font-size: 12px; font-weight: 900; color: #27ae60; margin-bottom: 8px;">✨ 完美掌握</div>
-                <div id="diag-strong-phonemes" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+              <div style="background: rgba(46, 204, 113, 0.05); border: 1px solid rgba(46, 204, 113, 0.3); border-radius: 16px; padding: 15px; text-align: left;">
+                <div style="font-size: 13px; font-weight: 900; color: #27ae60; margin-bottom: 10px; display: flex; justify-content: space-between;">
+                  <span>✨ 完美掌握的發音 (Top 3)</span>
+                </div>
+                <div id="diag-strong-phonemes" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
               </div>
-              <div style="flex: 1; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 16px; padding: 15px; text-align: left;">
-                <div style="font-size: 12px; font-weight: 900; color: #c0392b; margin-bottom: 8px;">🔧 需鍛鍊字尾</div>
-                <div id="diag-weak-phonemes" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+              
+              <div style="background: rgba(231, 76, 60, 0.05); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 16px; padding: 15px; text-align: left;">
+                <div style="font-size: 13px; font-weight: 900; color: #c0392b; margin-bottom: 10px;">
+                  <span>🔧 需鍛鍊的發音 (點擊查看教學)</span>
+                </div>
+                <div id="diag-weak-phonemes" style="display: flex; flex-direction: column; gap: 10px;"></div>
               </div>
             </div>
           </div>
 
           <div>
             <div style="font-size: 15px; font-weight: 900; color: var(--text-main); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-              <span>🎯</span> 單字弱點分析
+              <span>🎯</span> 精益求精單字 (Top 3)
             </div>
             <div id="diag-weak-words-list" style="display: flex; flex-direction: column; gap: 10px;">
               </div>
@@ -829,18 +835,46 @@
     // =======================================================
     // 📊 深度發音診斷中心引擎
     // =======================================================
-    let isDiagLoaded = false; // 記錄是否已經載入過，避免切換分頁一直重複讀取
+    let isDiagLoaded = false;
+
+    // 👨‍🏫 內建發音小百科 (Parent Teaching Dictionary)
+    const phonemeTips = {
+      "d": "發音時請讓舌尖輕觸上排牙齦後方，感受氣流瞬間彈開的力道。",
+      "t": "舌尖輕觸上排牙齦後方，然後快速彈開，送出一股短促的氣流。",
+      "th": "請孩子把舌尖微微伸出放在上下門牙之間，輕輕吹氣，像小蛇吐信一樣。",
+      "r": "舌頭往後捲，但不要碰到上顎，嘴唇可以微微嘟起喔！",
+      "l": "請孩子試著把舌尖確實頂住上排門牙的後方來發音。",
+      "s": "上下牙齒輕輕咬合，讓氣流從牙縫間平穩地摩擦出來。",
+      "m": "請孩子把雙唇緊閉，感受鼻子發出嗡嗡的聲音。",
+      "n": "嘴唇微開，舌尖頂住上排牙齦，讓氣流從鼻子出來。",
+      "v": "上排牙齒輕輕咬住下嘴唇，發出震動的聲音，會覺得嘴唇有點癢癢的喔！",
+      "f": "上排牙齒輕碰下嘴唇，輕輕吹氣出聲，像在吹涼熱湯一樣。",
+      "w": "嘴唇要用力噘起像要吹蠟燭一樣，然後快速放開喔！",
+      "k": "舌根頂住上顎後方，憋住氣後瞬間爆發出來。"
+    };
+
+    // 點擊展開發音教學卡片的開關函式
+    window.togglePhonemeTip = function(element) {
+        const tipBox = element.nextElementSibling;
+        const icon = element.querySelector('.toggle-icon');
+        if (tipBox.style.display === 'none') {
+            tipBox.style.display = 'block';
+            icon.style.transform = 'rotate(180deg)';
+            if (window.GlobalAudio) GlobalAudio.play('click');
+        } else {
+            tipBox.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+        }
+    };
 
     function loadDiagnosticReport() {
       const filter = document.getElementById('diag-time-filter').value;
       const loadingZone = document.getElementById('diag-loading');
       const contentZone = document.getElementById('diag-content');
 
-      // 1. 顯示會呼吸的骨架屏，隱藏舊內容
       loadingZone.style.display = 'flex';
       contentZone.style.display = 'none';
 
-      // 2. 呼叫 GAS 後端 API
       fetch(`${GAS_URL}?action=get_diagnostic_report&id=${STUDENT_ID}&filter=${filter}`)
         .then(res => res.json())
         .then(data => {
@@ -849,40 +883,60 @@
             return;
           }
 
-          // 🌟 處理 1：流暢度大圓環與 AI 短評
+          // 🌟 1. 流暢度大圓環與 AI 短評
           const fluency = data.stats.fluency || 0;
           document.getElementById('diag-fluency-score').innerText = fluency;
-          // 利用 CSS 變數動態推動圓環進度條
           contentZone.style.setProperty('--fluency', fluency);
 
           let summary = "";
-          if (fluency >= 90) summary = "寶貝充滿自信，開口極其流暢！接下來我們專注在『字尾發音』的細節，就能達到外語水準喔！";
-          else if (fluency >= 70) summary = "開口表現很棒！如果遇到不會的單字可以稍微放慢語速，不用急，字字唸清楚會更好喔。";
-          else summary = "寶貝還在適應開口的節奏，家長可以多用「自由練習」區陪孩子大聲朗讀，建立開口自信！";
+          if (fluency >= 90) summary = "寶貝充滿自信，開口極其流暢！接下來我們專注在『字尾子音』的細節，就能達到母語水準喔！";
+          else if (fluency >= 70) summary = "開口表現很不錯！如果遇到長句子可以稍微放慢語速，字字唸清楚會更好喔。";
+          else summary = "寶貝還在適應英文的節奏，家長可以多用「自由練習」區陪孩子大聲朗讀，建立開口自信！";
           document.getElementById('diag-summary-text').innerText = summary;
 
-          // 🌟 處理 2：音素 X 光機渲染器
-          const renderPhonemes = (containerId, arr, colorType) => {
-            const container = document.getElementById(containerId);
-            if (arr.length === 0) {
-              container.innerHTML = `<span style="color:#7f8c8d; font-size:13px; font-weight:bold;">持續收集中...</span>`;
-              return;
-            }
-            container.innerHTML = arr.map(item => {
-              const exStr = item.examples.join(', ');
-              const bg = colorType === 'green' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)';
-              const color = colorType === 'green' ? '#27ae60' : '#c0392b';
-              return `<span style="background: ${bg}; color: ${color}; padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">/${item.p}/ <span style="font-size:11px; opacity:0.8; font-weight:bold; margin-left:4px;">${exStr}</span></span>`;
+          // 🌟 2. 音素 X 光機渲染器
+          // 強項：只取前 3 個，顯示標籤即可
+          const strongContainer = document.getElementById('diag-strong-phonemes');
+          const topStrong = data.strongPhonemes.slice(0, 3);
+          if (topStrong.length === 0) {
+            strongContainer.innerHTML = `<span style="color:#7f8c8d; font-size:13px; font-weight:bold;">持續收集中...</span>`;
+          } else {
+            strongContainer.innerHTML = topStrong.map(item => {
+              return `<span style="background: rgba(46, 204, 113, 0.2); color: #27ae60; padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">/${item.p}/ <span style="font-size:11px; opacity:0.8; font-weight:bold; margin-left:4px;">${item.examples.join(', ')}</span></span>`;
             }).join('');
-          };
+          }
 
-          renderPhonemes('diag-strong-phonemes', data.strongPhonemes, 'green');
-          renderPhonemes('diag-weak-phonemes', data.weakPhonemes, 'red');
+          // 弱項：取前 3 個，做成可展開的教學卡片
+          const weakContainer = document.getElementById('diag-weak-phonemes');
+          const topWeak = data.weakPhonemes.slice(0, 3);
+          if (topWeak.length === 0) {
+            weakContainer.innerHTML = `<div style="text-align:center; color:#2ecc71; font-size:13px; font-weight:900; padding:10px;">太棒了！目前沒有明顯弱點 🎉</div>`;
+          } else {
+            weakContainer.innerHTML = topWeak.map(item => {
+              const tip = phonemeTips[item.p.toLowerCase()] || "請提醒孩子放慢語速，聽聽標準發音後再試一次喔！";
+              return `
+                <div style="background: white; border-radius: 12px; border: 1px solid rgba(231,76,60,0.2); overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+                  <div onclick="togglePhonemeTip(this)" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 15px; cursor:pointer;">
+                    <div style="display:flex; align-items:center; gap: 10px;">
+                      <span style="font-size: 18px; font-weight: 900; color: #c0392b;">/${item.p}/</span>
+                      <span style="font-size: 12px; color: var(--text-sub); font-weight: bold;">如: ${item.examples.join(', ')}</span>
+                    </div>
+                    <div class="toggle-icon" style="color: #c0392b; transition: 0.3s; font-size: 12px;">▼</div>
+                  </div>
+                  <div style="display:none; padding: 0 15px 15px 15px; background: rgba(231,76,60,0.02);">
+                    <div style="border-top: 1px dashed rgba(231,76,60,0.2); padding-top: 10px; font-size: 13px; color: #d35400; font-weight: bold; line-height: 1.6;">
+                      💡 <b>家長陪練秘訣：</b><br>${tip}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
 
-          // 🌟 處理 3：單字弱點清單
+          // 🌟 3. 單字擊破清單 (只取最差的 3 個，並改掉標題負面詞彙)
           const weakWordsContainer = document.getElementById('diag-weak-words-list');
           if (data.weakWords.length === 0) {
-            weakWordsContainer.innerHTML = `<div style="text-align:center; color:#2ecc71; font-size:14px; font-weight:900; padding:15px; background:rgba(46,204,113,0.1); border-radius:12px;">太厲害了！本單元沒有明顯弱點單字 🎉</div>`;
+            weakWordsContainer.innerHTML = `<div style="text-align:center; color:#2ecc71; font-size:14px; font-weight:900; padding:15px; background:rgba(46,204,113,0.1); border-radius:12px;">太厲害了！本單元發音都很棒 🎉</div>`;
           } else {
             weakWordsContainer.innerHTML = data.weakWords.map(w => `
               <div style="background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; padding: 16px; text-align: left; box-shadow: 0 8px 20px rgba(0,0,0,0.04);">
@@ -895,10 +949,9 @@
             `).join('');
           }
 
-          // 3. 隱藏骨架屏，華麗展現數據！
           loadingZone.style.display = 'none';
           contentZone.style.display = 'flex';
-          isDiagLoaded = true; // 標記已載入
+          isDiagLoaded = true;
 
         })
         .catch(err => {
