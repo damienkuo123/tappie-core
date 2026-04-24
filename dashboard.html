@@ -1016,18 +1016,29 @@
           } // (這是進步幅度 else 條件的結尾括號)
 
           // ==========================================
-          // 🚀 新增：渲染 Chart.js 動態雷達圖
+          // 🚀 新增：渲染 Chart.js 動態雷達圖 (瑪麗安五大核心)
           // ==========================================
-          // 我們利用現有的數據，推算出雷達圖的五大維度
-          // 發音穩定：弱點音素越少，分數越高 (最高100，最低保底40)
-          const stabilityScore = Math.max(40, 100 - (data.weakPhonemes.length * 8)); 
+          // 🚀 1. 精準計算「發音穩定度」
+          const totalPCount = stats.totalPhonemesCount || 1; // 避免除以 0
+          // 從 data.weakPhonemes 陣列中還原出總弱音素數量 (因為前端只收到 top3，但每個 top3 裡面有 examples 的長度代表出現次數)
+          // 但最精準的做法是直接拿總計，這裡我們用估算或是你在 GAS 如果有傳完整的數量更好。
+          // 這裡我們暫用原本的算法改進：
+          let weakCountEst = 0;
+          data.weakPhonemes.forEach(wp => weakCountEst += wp.examples.length);
+          const stabilityScore = Math.max(0, Math.round(((totalPCount - weakCountEst) / totalPCount) * 100)); 
           
           const ctx = document.getElementById('radarChart').getContext('2d');
           
-          // SPA 架構防呆：如果之前已經畫過圖表，要先銷毀舊的，不然滑鼠摸上去會閃爍
-          if(window.myRadarChart) {
-              window.myRadarChart.destroy();
-          }
+          if(window.myRadarChart) { window.myRadarChart.destroy(); }
+
+          // 🚀 2. 建立白話文辭典
+          const tooltipsDict = {
+            '發音準確': '系統運用聲學技術，精準比對寶貝每個發音與母語人士的相似度。',
+            '語句流暢': '評估寶貝開口時的語速、停頓與自然度，分數越高代表開口越有自信。',
+            '拼音完整': '偵測是否有漏唸單字或跳過發音的情況。滿分代表每個字都有努力唸出來！',
+            '單元精熟': '本單元所有挑戰過的單字中，成功達到 80 分以上高標的單字佔比。',
+            '發音穩定': '分析口腔肌肉的控制力。失誤越少、發音越穩，此項分數就越高。'
+          };
 
           // 繪製華麗雷達圖
           window.myRadarChart = new Chart(ctx, {
@@ -1037,13 +1048,17 @@
               datasets: [{
                 label: '能力指標',
                 data: [stats.overall, stats.fluency, stats.completeness, stats.mastery, stabilityScore],
-                backgroundColor: 'rgba(0, 102, 204, 0.15)', // 瑪麗安藍半透明
+                backgroundColor: 'rgba(0, 102, 204, 0.15)', 
                 borderColor: '#0066cc',
-                pointBackgroundColor: '#f1c40f', // 金色端點
+                pointBackgroundColor: '#f1c40f', 
                 pointBorderColor: '#fff',
                 pointHoverBackgroundColor: '#fff',
                 pointHoverBorderColor: '#f1c40f',
                 borderWidth: 2,
+                // 🚀 觸控升級：視覺上黃點稍微放大，但觸控感應區放大 8 倍！
+                pointRadius: 5,
+                pointHitRadius: 30, 
+                pointHoverRadius: 8
               }]
             },
             options: {
@@ -1057,18 +1072,40 @@
                     font: { size: 12, family: "'PingFang TC', sans-serif", weight: 'bold' },
                     color: '#7f8c8d'
                   },
-                  // 將刻度隱藏，並固定最大 100 最小 0，讓圖形不會變形
-                  ticks: { display: false, min: 0, max: 100, stepSize: 20 }
+                  // 🚀 關鍵修復：強制釘死原點為 0，最高 100，解決 76 分看起來不到一半的問題！
+                  min: 0,
+                  max: 100,
+                  beginAtZero: true,
+                  ticks: { display: false, stepSize: 20 }
                 }
               },
               plugins: {
-                legend: { display: false }, // 隱藏多餘的標籤
-                tooltip: { // 帥氣的黑色數據提示框
-                  backgroundColor: 'rgba(0,0,0,0.8)',
-                  titleFont: { size: 13, family: "'PingFang TC', sans-serif" },
-                  bodyFont: { size: 14, weight: 'bold' },
-                  padding: 10,
-                  displayColors: false
+                legend: { display: false }, 
+                tooltip: { 
+                  backgroundColor: 'rgba(15, 23, 42, 0.95)', // 更深邃的高級黑
+                  titleFont: { size: 16, family: "'PingFang TC', sans-serif", weight: '900' },
+                  titleColor: '#f1c40f', // 標題變金色
+                  bodyFont: { size: 13, weight: 'bold', lineHeight: 1.5 },
+                  bodyColor: '#e2e8f0',
+                  padding: 15,
+                  cornerRadius: 12,
+                  displayColors: false,
+                  // 🚀 攔截預設 Tooltip，替換成我們的白話文
+                  callbacks: {
+                    title: function(context) {
+                       const label = context[0].label;
+                       const score = context[0].raw;
+                       return `${label}：${score} 分`;
+                    },
+                    label: function(context) {
+                       // 將超過一定字數的字串折行，讓 tooltip 不要太長
+                       const text = tooltipsDict[context.label];
+                       if (text.length > 20) {
+                           return [text.substring(0, 18), text.substring(18)];
+                       }
+                       return text;
+                    }
+                  }
                 }
               }
             }
