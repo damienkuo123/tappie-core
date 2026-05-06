@@ -9,6 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Tappie學美語">
   <link rel="apple-touch-icon" href="/assets/app-icon.png">
+  <link rel="manifest" href="/manifest.json">
   
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
@@ -227,6 +228,26 @@
       .log-row { font-size: 18px; padding: 18px 0; }
       #content-viewport { padding-top: max(100px, env(safe-area-inset-top) + 100px); }
     }
+    
+    /* 📱 PWA 安裝按鈕與 iOS 專屬引導視窗 */
+    .btn-install-pwa { 
+      width: 100%; background: linear-gradient(135deg, #0066cc, #0984e3); color: white; border: none; 
+      padding: 16px; border-radius: 20px; font-size: 16px; font-weight: 900; cursor: pointer; transition: 0.3s; 
+      margin-top: 10px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,102,204,0.3); box-sizing: border-box; 
+    }
+    .btn-install-pwa:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(0,102,204,0.2); }
+
+    /* iOS 引導彈窗 (固定在畫面底部) */
+    #ios-pwa-overlay { align-items: flex-end; padding-bottom: max(20px, env(safe-area-inset-bottom)); z-index: 9999; }
+    .ios-pwa-content { 
+      background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px; padding: 25px; text-align: center; width: 92%; max-width: 400px; 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,1); 
+      animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin: 0 auto 20px auto; 
+    }
+    @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .arrow-down { font-size: 40px; color: var(--primary-blue); animation: bounce 1s infinite; margin-bottom: 5px; }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
   </style>
 </head>
 
@@ -501,10 +522,23 @@
       <h3 style="text-align:center; color:var(--text-main); margin-top:0; font-weight:900; letter-spacing:2px;">⚙️ 系統設定</h3>
       <div class="separator"></div>
       
-      <p style="text-align: center; color: var(--text-sub); font-size: 14px; font-weight: bold; margin-bottom: 25px;">更多設定功能開發中...</p>
+      <button onclick="installPWA()" class="btn-install-pwa">📱 將 Tappie 加入主畫面</button>
+      <p style="text-align: center; color: var(--text-sub); font-size: 12px; font-weight: bold; margin: 15px 0 25px 0;">一鍵轉為桌面 App，免輸入網址！</p>
 
       <button onclick="logoutToPortal()" class="btn-logout">🚪 登出系統</button>
       <button class="btn-close-modal" onclick="toggleSettingsModal(false)">關閉</button>
+    </div>
+  </div>
+
+  <div id="ios-pwa-overlay" class="modal-overlay" onclick="this.classList.remove('show')">
+    <div class="ios-pwa-content" onclick="event.stopPropagation()">
+       <h3 style="color: var(--primary-blue); margin: 0 0 15px 0; font-size: 20px; font-weight: 900;">📥 安裝 Tappie</h3>
+       <p style="color: var(--text-main); font-weight: bold; line-height: 1.8; margin: 0; font-size: 15px;">
+         1. 點擊 Safari 工具列的 <b style="font-size: 18px;">📤 分享</b> 圖示<br>
+         2. 向下滑動，選擇 <b style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;">➕ 加入主畫面</b>
+       </p>
+       <div class="arrow-down">↓</div>
+       <button class="btn-close-modal" style="margin-top: 0;" onclick="document.getElementById('ios-pwa-overlay').classList.remove('show')">我知道了</button>
     </div>
   </div>
 
@@ -520,6 +554,68 @@
   <script>
     // ⚠️ 記得替換為你的 GAS 網址！
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwK3b9vyc9g0w_nloyltFNJNc2C8iaSxEKqH6KU3OPUJpgzP9Zz7ZUpWt-xpb5uqT4F/exec";
+    
+    // =======================================================
+    // 📱 智慧型 PWA 安裝導航引擎
+    // =======================================================
+    let deferredPrompt;
+
+    // 攔截 Android/Chrome 的原生存檔事件
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        console.log("🟢 系統偵測：PWA 安裝準備就緒");
+    });
+
+    // 註冊極簡 Service Worker (騙過 Chrome 的安裝門檻)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW 註冊失敗', err));
+        });
+    }
+
+    function installPWA() {
+        toggleSettingsModal(false); // 先關閉設定視窗
+        
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isLineOrFB = /Line|FBAN|FBAV|Instagram/i.test(ua);
+        const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
+        // 🛡️ 狀況 A：社群軟體內建瀏覽器 (最強護城河)
+        if (isLineOrFB) {
+            alert("⚠️ 目前在 LINE/FB 內部瀏覽器中。\n\n請點擊右上角「...」或「⋮」，選擇『以預設瀏覽器開啟』(Safari/Chrome) 後，才能將 Tappie 安裝到桌面喔！");
+            return;
+        }
+
+        // 🍏 狀況 B：iOS 設備
+        if (isIOS) {
+            // 判斷是否已經是全螢幕 PWA 模式
+            if (window.navigator.standalone === true) {
+                alert("✅ Tappie 已經在您的主畫面囉！");
+            } else {
+                // 彈出我們剛剛寫的超美 iOS 引導視窗
+                document.getElementById('ios-pwa-overlay').classList.add('show');
+            }
+            return;
+        }
+
+        // 🤖 狀況 C：Android 設備
+        if (deferredPrompt) {
+            // 觸發原生安裝跳窗
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('家長同意安裝');
+                } else {
+                    console.log('家長拒絕安裝');
+                }
+                deferredPrompt = null; // 只能用一次
+            });
+        } else {
+            // 可能是已經安裝過，或是電腦版不支援
+            alert("✅ 您可能已經安裝過 Tappie，或者瀏覽器不支援自動安裝喔！");
+        }
+    }
     
     const params = new URLSearchParams(window.location.search);
     const STUDENT_ID = params.get('id');
