@@ -248,6 +248,8 @@
     @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .arrow-down { font-size: 40px; color: var(--primary-blue); animation: bounce 1s infinite; margin-bottom: 5px; }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+    /* Chrome 專用：箭頭朝上彈跳 */
+    @keyframes bounce-up { 0%, 100% { transform: translateY(0) rotate(180deg); } 50% { transform: translateY(-10px) rotate(180deg); } }
   </style>
 </head>
 
@@ -580,6 +582,8 @@
         const ua = navigator.userAgent || navigator.vendor || window.opera;
         const isLineOrFB = /Line|FBAN|FBAV|Instagram/i.test(ua);
         const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+        // 🚀 新增：精準抓出 iOS 裡面的 Chrome (CriOS)
+        const isIOSChrome = isIOS && /CriOS/i.test(ua);
 
         // 🛡️ 狀況 A：社群軟體內建瀏覽器 (最強護城河)
         if (isLineOrFB) {
@@ -593,8 +597,28 @@
             if (window.navigator.standalone === true) {
                 alert("✅ Tappie 已經在您的主畫面囉！");
             } else {
-                // 彈出我們剛剛寫的超美 iOS 引導視窗
-                document.getElementById('ios-pwa-overlay').classList.add('show');
+                // 🚀 動態修改引導視窗的內容與箭頭方向
+                const pwaOverlay = document.getElementById('ios-pwa-overlay');
+                const pwaText = pwaOverlay.querySelector('p');
+                const pwaArrow = pwaOverlay.querySelector('.arrow-down');
+
+                if (isIOSChrome) {
+                    // Chrome 的分享按鈕在上方網址列
+                    pwaText.innerHTML = "1. 點擊右上角網址列的 <b style='font-size: 18px;'>📤 分享</b> 圖示<br>2. 向下滑動，選擇 <b style='background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;'>➕ 加入主畫面</b><br><br><span style='font-size: 12px; color: #e74c3c;'>💡 強烈建議複製網址改用 <b>Safari</b> 開啟，App 體驗最順暢喔！</span>";
+                    // 箭頭轉向朝上並改變動畫
+                    if(pwaArrow) pwaArrow.style.animation = "bounce-up 1s infinite";
+                    // 讓整個對話框稍微往上移一點，符合視覺直覺
+                    pwaOverlay.style.alignItems = "center"; 
+                } else {
+                    // Safari 的分享按鈕在下方
+                    pwaText.innerHTML = "1. 點擊 Safari 工具列的 <b style='font-size: 18px;'>📤 分享</b> 圖示<br>2. 向下滑動，選擇 <b style='background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;'>➕ 加入主畫面</b>";
+                    // 箭頭恢復朝下
+                    if(pwaArrow) pwaArrow.style.animation = "bounce 1s infinite";
+                    pwaOverlay.style.alignItems = "flex-end"; 
+                }
+
+                // 顯示視窗
+                pwaOverlay.classList.add('show');
             }
             return;
         }
