@@ -572,14 +572,14 @@
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW 註冊失敗', err));
         });
-    }
-
     function installPWA() {
         toggleSettingsModal(false); // 先關閉設定視窗
         
         const ua = navigator.userAgent || navigator.vendor || window.opera;
         const isLineOrFB = /Line|FBAN|FBAV|Instagram/i.test(ua);
         const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+        // 🚀 核心升級：精準抓出 iOS 上的 Chrome (它叫做 CriOS)
+        const isIOSChrome = isIOS && /CriOS/i.test(ua); 
 
         // 🛡️ 狀況 A：社群軟體內建瀏覽器 (最強護城河)
         if (isLineOrFB) {
@@ -589,31 +589,28 @@
 
         // 🍏 狀況 B：iOS 設備
         if (isIOS) {
-            // 判斷是否已經是全螢幕 PWA 模式
             if (window.navigator.standalone === true) {
                 alert("✅ Tappie 已經在您的主畫面囉！");
+            } else if (isIOSChrome) {
+                // 🍎 攔截 iOS 上的 Chrome
+                alert("🍎 蘋果系統限制：\n\n在 iPhone/iPad 上，必須使用「Safari 瀏覽器」才能安裝 App。\n\n請複製上方網址，貼到 Safari 打開，就能順利安裝囉！");
             } else {
-                // 彈出我們剛剛寫的超美 iOS 引導視窗
+                // 原生的 Safari，顯示箭頭導航
                 document.getElementById('ios-pwa-overlay').classList.add('show');
             }
             return;
         }
 
-        // 🤖 狀況 C：Android 設備
+        // 🤖 狀況 C：Android / 電腦版 Chrome
         if (deferredPrompt) {
             // 觸發原生安裝跳窗
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('家長同意安裝');
-                } else {
-                    console.log('家長拒絕安裝');
-                }
-                deferredPrompt = null; // 只能用一次
+                deferredPrompt = null; 
             });
         } else {
-            // 可能是已經安裝過，或是電腦版不支援
-            alert("✅ 您可能已經安裝過 Tappie，或者瀏覽器不支援自動安裝喔！");
+            // 🚀 攔截 Android/Chrome 自動安裝失敗或已經安裝過的情況
+            alert("💡 安裝小提示：\n\n如果沒有自動跳出安裝畫面，請點擊 Chrome 瀏覽器右上角的「⋮」(三個點)，然後選擇「加到主畫面」或「安裝應用程式」就可以囉！\n\n(若您已安裝過，請直接回桌面查看)");
         }
     }
     
