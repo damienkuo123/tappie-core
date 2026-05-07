@@ -1847,21 +1847,55 @@
   }
 
   const originalOnload = async () => {
-    // 🚀 零容忍防線：檢查他是不是在對戰中按了重新整理！
+    
+    // 🛡️ 戰場防護網啟動
     if (MODE === 'battle' && ROOM_ID) {
+        
+        // 🗡️ 第一道防線：零容忍防 F5 重新整理 (抓現行犯)
         let activeRoom = sessionStorage.getItem('active_battle_room');
         if (activeRoom === ROOM_ID) {
-            // 抓到了！他在對戰中重新整理網頁！
             sessionStorage.removeItem('active_battle_room'); // 清除紀錄
             alert("⚠️ 系統偵測到重新整理或異常離開！\n\n對戰中離開視同放棄比賽，系統已判定您敗北！");
-            
             // 發送投降電報給 GAS，讓對手獲勝
             fetch(`${GAS_URL}?action=surrender_battle&id=${STUDENT_ID}&roomId=${ROOM_ID}`);
-            
             window.location.href = `/lobby.html?id=${STUDENT_ID}`; // 踢回大廳
             return; // 終止後續載入
         }
+
+        // 🗡️ 第二道防線：深度斷線重連 (防手機沒電、重開瀏覽器)
+        // 如果他繞過了第一道防線 (sessionStorage 被清空了)，我們去問 GAS 這個房間還活著嗎？
+        try {
+            let res = await fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${ROOM_ID}&t=${new Date().getTime()}`);
+            let data = await res.json();
+            
+            // 🚀 如果他重整的時候，房間早就結束了 (A 已經拿走超時勝利)
+            if (data.status === "Finished" || data.status === "Canceled") {
+                sessionStorage.removeItem('active_battle_room'); // 確保解除鎖定
+                
+                // 判斷我是贏家還是輸家
+                if (normalizeStr(data.winnerId) === normalizeStr(STUDENT_ID)) {
+                    alert("🎉 您已贏得上一場比賽！");
+                } else {
+                    alert("⚠️ 由於您剛剛網路不穩或離開戰場，對手已取得上一場的勝利囉！");
+                }
+                window.location.href = `/lobby.html?id=${STUDENT_ID}`;
+                return; // 終止後續載入
+            }
+            
+            // 🚀 如果房間還在打 (代表 A 還在等他)
+            // 我們把他的局數強制快進到最新狀態，讓他繼續接著打！
+            const hS = data.hostScores ? data.hostScores.filter(s => s !== -1) : [];
+            const gS = data.guestScores ? data.guestScores.filter(s => s !== -1) : [];
+            const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
+            
+            currentBattleRound = isMeHost ? hS.length : gS.length; // 覆寫全域局數
+            console.log(`🔌 斷線重連成功！將直接進入第 ${currentBattleRound + 1} 局`);
+
+        } catch(e) {
+            console.error("斷線重連檢查失敗", e);
+        }
     }
+
     if(MODE === 'review') document.getElementById('title-text').innerText = "📖 自由練習模式";
     
     // 🚀 既然已經通過 Dashboard 大門的檢查進來，這裡就不囉唆，直接開啟保溫麥克風！
@@ -3008,9 +3042,17 @@
     fetch(`${GAS_URL}?action=submit_battle_score&id=${STUDENT_ID}&roomId=${roomId}&score=${finalScore}&round=${currentBattleRound}&t=${new Date().getTime()}`)
       .then(res => res.json())
       .then((data) => { 
+        // 🚀 B 慢吞吞送出分數時，發現房間早就被 A 關閉了
         if (data.status === "Finished") {
-            alert("這場對戰已經結束囉！");
-            window.location.href = `/lobby.html?id=${STUDENT_ID}`;
+            if (window.GlobalAudio) GlobalAudio.play('popupClose'); // 播放失敗音效
+            alert("⏱️ 糟糕！您送出分數的時間太晚囉！\n對手等候超時，系統已判定對手獲勝！");
+            
+            // 強制呼叫「0 - 5」的戰敗結算畫面給 B 看，讓他心服口服
+            showImpactOverlay(0, 5, true, null, null); 
+            
+            setTimeout(() => {
+                window.location.href = `/lobby.html?id=${STUDENT_ID}`;
+            }, 4500); // 讓他看完敗北動畫再踢回大廳
             return;
         }
 
