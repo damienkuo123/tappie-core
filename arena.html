@@ -1863,33 +1863,42 @@
         }
 
         // 🗡️ 第二道防線：深度斷線重連 (防手機沒電、重開瀏覽器)
-        // 如果他繞過了第一道防線 (sessionStorage 被清空了)，我們去問 GAS 這個房間還活著嗎？
         try {
             let res = await fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${ROOM_ID}&t=${new Date().getTime()}`);
             let data = await res.json();
             
-            // 🚀 如果他重整的時候，房間早就結束了 (A 已經拿走超時勝利)
             if (data.status === "Finished" || data.status === "Canceled") {
-                sessionStorage.removeItem('active_battle_room'); // 確保解除鎖定
-                
-                // 判斷我是贏家還是輸家
+                sessionStorage.removeItem('active_battle_room'); 
                 if (normalizeStr(data.winnerId) === normalizeStr(STUDENT_ID)) {
                     alert("🎉 您已贏得上一場比賽！");
                 } else {
                     alert("⚠️ 由於您剛剛網路不穩或離開戰場，對手已取得上一場的勝利囉！");
                 }
                 window.location.href = `/lobby.html?id=${STUDENT_ID}`;
-                return; // 終止後續載入
+                return; 
             }
             
-            // 🚀 如果房間還在打 (代表 A 還在等他)
-            // 我們把他的局數強制快進到最新狀態，讓他繼續接著打！
+            // 🚀 房間還在打，強制快進！
             const hS = data.hostScores ? data.hostScores.filter(s => s !== -1) : [];
             const gS = data.guestScores ? data.guestScores.filter(s => s !== -1) : [];
             const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
             
-            currentBattleRound = isMeHost ? hS.length : gS.length; // 覆寫全域局數
+            currentBattleRound = isMeHost ? hS.length : gS.length; 
             console.log(`🔌 斷線重連成功！將直接進入第 ${currentBattleRound + 1} 局`);
+
+            // 🚀🚀🚀 【潛在 Bug 修復點】：強制觸發一次 UI 更新與同步！
+            // 隱藏主面板，顯示戰場
+            document.getElementById('main-card').style.display = 'none';
+            document.getElementById('battle-portal-overlay').style.display = 'none';
+            document.getElementById('battle-arena').style.display = 'flex';
+            
+            // 去要題目
+            fetchBattleDataAndStart(ROOM_ID); 
+            // 呼叫這兩行，確保圓點、血量、名字都正確恢復
+            updateArenaUI(ROOM_ID, true); 
+            startRoundCountdown(ROOM_ID);
+
+            return; // 🚀 已經重連成功，就不要再往下執行一般的 onload 邏輯了
 
         } catch(e) {
             console.error("斷線重連檢查失敗", e);
