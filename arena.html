@@ -3030,8 +3030,22 @@
                 // 通知 GAS 我要拿走勝利
                 fetch(`${GAS_URL}?action=claim_timeout_win&id=${STUDENT_ID}&roomId=${roomId}`)
                   .then(() => {
-                      // 強制叫出 5-0 的勝利動畫與抽卡！
                       showImpactOverlay(5, 0, true, null, null); 
+                      
+                      // 🚀 補上這段：3.5 秒後彈出抽盲盒按鈕
+                      setTimeout(() => {
+                          const triggerOverlay = document.getElementById('gacha-trigger-overlay');
+                          const enterBtn = document.getElementById('btn-enter-gacha');
+                          triggerOverlay.style.display = 'flex';
+                          setTimeout(() => { triggerOverlay.style.opacity = '1'; }, 50);
+                          enterBtn.onclick = () => {
+                              const opponentName = document.getElementById('op-name').innerText;
+                              document.getElementById('impact-overlay').classList.remove('active');
+                              triggerOverlay.style.display = 'none';
+                              if (window.GlobalAudio) GlobalAudio.playGachaBGM();
+                              initGacha(opponentName);
+                          };
+                      }, 3500);
                   });
                 return;
             }
@@ -3271,7 +3285,22 @@
         if (data.status === "Finished" && normalizeStr(data.winnerId) === normalizeStr(STUDENT_ID)) {
             clearInterval(waitOpTimer);
             alert("對手已逃跑，您獲得了最終勝利！🏆");
-            showImpactOverlay(5, 0, true, null, null); // 顯示勝利畫面
+            showImpactOverlay(5, 0, true, null, null); 
+            
+            // 🚀 補上這段：3.5 秒後彈出抽盲盒按鈕
+            setTimeout(() => {
+                const triggerOverlay = document.getElementById('gacha-trigger-overlay');
+                const enterBtn = document.getElementById('btn-enter-gacha');
+                triggerOverlay.style.display = 'flex';
+                setTimeout(() => { triggerOverlay.style.opacity = '1'; }, 50);
+                enterBtn.onclick = () => {
+                    const opponentName = document.getElementById('op-name').innerText;
+                    document.getElementById('impact-overlay').classList.remove('active');
+                    triggerOverlay.style.display = 'none';
+                    if (window.GlobalAudio) GlobalAudio.playGachaBGM();
+                    initGacha(opponentName);
+                };
+            }, 3500);
             return;
         }
 
