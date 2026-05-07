@@ -1847,6 +1847,35 @@
   }
 
   const originalOnload = async () => {
+    // 🚀 斷線重連防護網：檢查他是不是在「重新整理」企圖逃跑
+    if (MODE === 'battle' && ROOM_ID) {
+        // 先去後端查一下這個房間的狀態
+        try {
+            let res = await fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${ROOM_ID}&t=${new Date().getTime()}`);
+            let data = await res.json();
+            
+            // 🚀 如果他重整的時候，房間早就結束了，直接踢出去
+            if (data.status === "Finished" || data.status === "Canceled") {
+                alert("對戰已經結束，無法重新連線喔！");
+                window.location.href = `/lobby.html?id=${STUDENT_ID}`;
+                return;
+            }
+
+            // 🚀 如果對戰還在進行，我們要把他的局數「快進」到最新的狀態！
+            const hS = data.hostScores.filter(s => s !== -1);
+            const gS = data.guestScores.filter(s => s !== -1);
+            const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
+            
+            // 找出他目前應該打第幾局
+            let myPlayedRounds = isMeHost ? hS.length : gS.length;
+            currentBattleRound = myPlayedRounds; // 直接覆寫全域變數，讓他跟上進度！
+
+            console.log(`🔌 斷線重連成功！將直接進入第 ${currentBattleRound + 1} 局`);
+            
+        } catch(e) {
+            console.error("斷線重連檢查失敗", e);
+        }
+    }
     if(MODE === 'review') document.getElementById('title-text').innerText = "📖 自由練習模式";
     
     // 🚀 既然已經通過 Dashboard 大門的檢查進來，這裡就不囉唆，直接開啟保溫麥克風！
@@ -2967,7 +2996,6 @@
 
   function submitBattleScore(roomId, score) {
     if (currentLimitTimer) clearInterval(currentLimitTimer);
-    
     document.getElementById('battle-controls').style.visibility = 'hidden';
 
     const myCard = document.getElementById('my-card');
@@ -2978,7 +3006,6 @@
     // 🚀 大招機制判斷
     let finalScore = score;
     let delayTime = 0; 
-
     if (isUltimateMode) {
         finalScore = score + 1000; 
         delayTime = 1500; 
@@ -2989,16 +3016,35 @@
         document.getElementById('battle-info').innerText = "等待對手...";
     }, 0); 
 
-    fetch(`${GAS_URL}?action=submit_battle_score&id=${STUDENT_ID}&roomId=${roomId}&score=${finalScore}&t=${new Date().getTime()}`)
-      .then(() => { 
+    // 🚀 核心升級：把 currentBattleRound 加上去！
+    fetch(`${GAS_URL}?action=submit_battle_score&id=${STUDENT_ID}&roomId=${roomId}&score=${finalScore}&round=${currentBattleRound}&t=${new Date().getTime()}`)
+      .then(res => res.json())
+      .then((data) => { 
+        if (data.status === "Finished") {
+            alert("這場對戰已經結束囉！");
+            window.location.href = `/lobby.html?id=${STUDENT_ID}`;
+            return;
+        }
+
         if(waitOpTimer) clearInterval(waitOpTimer); 
-        
-        // 🚀 關鍵提速與防禦：確保不會有殘留的 isChecking 擋住我們第一次的檢查
         isChecking = false;
-        checkBoth(roomId); 
         
-        // 萬一對手是真人還沒答題，才繼續每 2 秒輪詢
-        waitOpTimer = setInterval(() => checkBoth(roomId), 2000); 
+        // 🚀 新增：前端終極停損點 (等待對手最多 20 秒)
+        let maxWaitChecks = 10; // 輪詢 10 次 (每次 2 秒 = 20 秒)
+        
+        const checkBothWrapper = () => {
+            maxWaitChecks--;
+            if (maxWaitChecks <= 0) {
+                clearInterval(waitOpTimer);
+                alert("對手網路連線不穩或已離開，系統判定結束比賽！");
+                window.location.href = `/lobby.html?id=${STUDENT_ID}`;
+                return;
+            }
+            checkBoth(roomId);
+        };
+
+        checkBothWrapper(); // 第一次檢查
+        waitOpTimer = setInterval(checkBothWrapper, 2000); 
       });
   }
 
