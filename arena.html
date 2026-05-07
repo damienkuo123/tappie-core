@@ -1847,33 +1847,19 @@
   }
 
   const originalOnload = async () => {
-    // 🚀 斷線重連防護網：檢查他是不是在「重新整理」企圖逃跑
+    // 🚀 零容忍防線：檢查他是不是在對戰中按了重新整理！
     if (MODE === 'battle' && ROOM_ID) {
-        // 先去後端查一下這個房間的狀態
-        try {
-            let res = await fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${ROOM_ID}&t=${new Date().getTime()}`);
-            let data = await res.json();
+        let activeRoom = sessionStorage.getItem('active_battle_room');
+        if (activeRoom === ROOM_ID) {
+            // 抓到了！他在對戰中重新整理網頁！
+            sessionStorage.removeItem('active_battle_room'); // 清除紀錄
+            alert("⚠️ 系統偵測到重新整理或異常離開！\n\n對戰中離開視同放棄比賽，系統已判定您敗北！");
             
-            // 🚀 如果他重整的時候，房間早就結束了，直接踢出去
-            if (data.status === "Finished" || data.status === "Canceled") {
-                alert("對戰已經結束，無法重新連線喔！");
-                window.location.href = `/lobby.html?id=${STUDENT_ID}`;
-                return;
-            }
-
-            // 🚀 如果對戰還在進行，我們要把他的局數「快進」到最新的狀態！
-            const hS = data.hostScores.filter(s => s !== -1);
-            const gS = data.guestScores.filter(s => s !== -1);
-            const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
+            // 發送投降電報給 GAS，讓對手獲勝
+            fetch(`${GAS_URL}?action=surrender_battle&id=${STUDENT_ID}&roomId=${ROOM_ID}`);
             
-            // 找出他目前應該打第幾局
-            let myPlayedRounds = isMeHost ? hS.length : gS.length;
-            currentBattleRound = myPlayedRounds; // 直接覆寫全域變數，讓他跟上進度！
-
-            console.log(`🔌 斷線重連成功！將直接進入第 ${currentBattleRound + 1} 局`);
-            
-        } catch(e) {
-            console.error("斷線重連檢查失敗", e);
+            window.location.href = `/lobby.html?id=${STUDENT_ID}`; // 踢回大廳
+            return; // 終止後續載入
         }
     }
     if(MODE === 'review') document.getElementById('title-text').innerText = "📖 自由練習模式";
@@ -2166,6 +2152,7 @@
 
         // 綁定「點擊進入戰場」的跳轉功能
         window.portalJump = () => {
+          sessionStorage.setItem('active_battle_room', ROOM_ID); // 🚀 鎖定：正式進入對戰
           clearInterval(pTimer);
           portal.style.display = 'none';
           document.getElementById('battle-arena').style.display = 'flex';
@@ -2184,6 +2171,7 @@
         enterBtn.classList.add('portal-btn-show');
         
         window.portalJump = () => {
+          sessionStorage.setItem('active_battle_room', ROOM_ID); // 🚀 鎖定：即使連線有誤，進入也要鎖定
           clearInterval(pTimer);
           portal.style.display = 'none';
           document.getElementById('battle-arena').style.display = 'flex';
@@ -3029,22 +3017,29 @@
         if(waitOpTimer) clearInterval(waitOpTimer); 
         isChecking = false;
         
-        // 🚀 新增：前端終極停損點 (等待對手最多 20 秒)
-        let maxWaitChecks = 15; // 輪詢 10 次 (每次 2 秒 = 20 秒)
+        // 🚀 留守者補償機制：最多等對手 24 秒 (12次 x 2秒)
+        let maxWaitChecks = 12; 
         
         const checkBothWrapper = () => {
             maxWaitChecks--;
             if (maxWaitChecks <= 0) {
                 clearInterval(waitOpTimer);
-                alert("對手網路連線不穩或已離開，系統判定結束比賽！");
-                window.location.href = `/lobby.html?id=${STUDENT_ID}`;
+                // 🛑 對手卡太久了，不再踢出 A，直接讓 A 獲勝！
+                alert("對手網路不穩或已逃跑，系統判定您獲勝！🎉");
+                
+                // 通知 GAS 我要拿走勝利
+                fetch(`${GAS_URL}?action=claim_timeout_win&id=${STUDENT_ID}&roomId=${roomId}`)
+                  .then(() => {
+                      // 強制叫出 5-0 的勝利動畫與抽卡！
+                      showImpactOverlay(5, 0, true, null, null); 
+                  });
                 return;
             }
             checkBoth(roomId);
         };
 
-        checkBothWrapper(); // 第一次檢查
-        waitOpTimer = setInterval(checkBothWrapper, 2000); 
+        checkBothWrapper(); 
+        waitOpTimer = setInterval(checkBothWrapper, 2000);
       });
   }
 
@@ -3272,6 +3267,14 @@
     // 🚀 補上 &id=${STUDENT_ID}
     fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
+        // 🚀 新增：如果發現房間突然結束了，且勝利者是我！(對手 F5 逃跑了)
+        if (data.status === "Finished" && normalizeStr(data.winnerId) === normalizeStr(STUDENT_ID)) {
+            clearInterval(waitOpTimer);
+            alert("對手已逃跑，您獲得了最終勝利！🏆");
+            showImpactOverlay(5, 0, true, null, null); // 顯示勝利畫面
+            return;
+        }
+
         const hS = data.hostScores.filter(s => s !== -1);
         const gS = data.guestScores.filter(s => s !== -1);
 
@@ -3410,7 +3413,12 @@
     document.getElementById('impact-op-score').innerText = opNum;
     sub.innerText = isFinal ? "FINAL MATCH RESULT" : "回合結果";
     
-    if (isFinal) o.classList.add('is-final');
+    if (isFinal) {
+        o.classList.add('is-final');
+        // 🚀 解鎖：當顯示最終對戰結果時，移除房間記錄
+        // 這樣學生看完分數後按重整，就不會再被判定為逃跑。
+        sessionStorage.removeItem('active_battle_room'); 
+    }
 
     // 🚀 根據勝負，套用贏家的全息卡片資料！
     if (myNum > opNum) { 
