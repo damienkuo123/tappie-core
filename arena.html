@@ -1787,21 +1787,40 @@
       }).join('');
   }
   
-  // 向 GAS 索取 10 分鐘效期的安全 Token
+  // =======================================================
+  // 🛡️ Azure 臨時鑰匙引擎 (含掛機超時防護機制)
+  // =======================================================
+  let azureTokenFetchCount = 0; // 紀錄拿鑰匙的次數
+  let azureTokenInterval = null; // 計時器本體
+  const MAX_TOKEN_FETCHES = 4; // 最多允許拿 4 次 (約 32 分鐘極限)
+
   function fetchAzureToken() {
+    // 檢查是否超過允許的拿鑰匙次數
+    if (azureTokenFetchCount >= MAX_TOKEN_FETCHES) {
+        clearInterval(azureTokenInterval); // 停止輪詢
+        if (window.GlobalAudio) window.GlobalAudio.play('popupClose'); // 警告音
+        alert("⏱️ 你在練習區停留太久囉！\n請重新挑戰吧！");
+        window.location.href = `/dashboard.html?id=${STUDENT_ID}`; // 踢回大廳
+        return;
+    }
+
     fetch(`${GAS_URL}?action=get_azure_token`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
           azureAuthToken = data.token;
           azureRegionCode = data.region;
-          console.log("🛡️ 已取得 Azure 安全 Token");
+          azureTokenFetchCount++; // 拿成功才 +1
+          console.log(`🛡️ 已取得 Azure 安全 Token (第 ${azureTokenFetchCount}/${MAX_TOKEN_FETCHES} 次)`);
         }
       }).catch(err => console.error("Token 取得失敗", err));
   }
   
-  // 🚀 【補上這行】網頁一載入，立刻啟動函數去後端拿 Token！
-  fetchAzureToken();
+  // 🚀 1. 剛進來先拿第一把鑰匙
+  fetchAzureToken(); 
+
+  // 🚀 2. 每 8 分鐘自動換鑰匙，並交由函式內部判斷何時終止
+  azureTokenInterval = setInterval(fetchAzureToken, 8 * 60 * 1000);
 
   // 🚀 隱藏載入畫面的共用函數
   function hideLoadingScreen() {
