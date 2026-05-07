@@ -1799,7 +1799,7 @@
     if (azureTokenFetchCount >= MAX_TOKEN_FETCHES) {
         clearInterval(azureTokenInterval); // 停止輪詢
         if (window.GlobalAudio) window.GlobalAudio.play('popupClose'); // 警告音
-        alert("⏱️ 喔不！你在練習區停留太久囉！\n系統為了保護連線安全，即將為你關閉本局練習。請重新挑戰吧！");
+        alert("⏱️ 你在練習區停留太久囉！\n請重新挑戰吧！");
         window.location.href = `/dashboard.html?id=${STUDENT_ID}`; // 踢回大廳
         return;
     }
