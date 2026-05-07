@@ -2722,15 +2722,35 @@
 
         document.getElementById('battle-arena').classList.add('battle-ready');
 
-        // 更新圓點分數
-        const hS = data.hostScores.filter(s => s !== -1);
-        const gS = data.guestScores.filter(s => s !== -1);
+        // 更新圓點分數 (🚀 嚴格對齊版)
+        const hS = data.hostScores || [];
+        const gS = data.guestScores || [];
         myTotalWins = 0; opTotalWins = 0;
+        
+        // 我們不先 filter 掉 -1，而是直接用迴圈一局一局比對！
+        // 只有雙方陣列在同一個局數都有值，且都不是 -1 (準備狀態)，才進行勝負判定。
         const commonLen = Math.min(hS.length, gS.length);
-        for(let i=0; i < commonLen; i++) { 
-           if(hS[i] > gS[i]) isMeHost ? myTotalWins++ : opTotalWins++; 
-           else if(gS[i] > hS[i]) isMeHost ? opTotalWins++ : myTotalWins++; 
+        
+        for(let i = 0; i < commonLen; i++) { 
+            let hostScore = hS[i];
+            let guestScore = gS[i];
+            
+            // 🚀 關鍵防護：如果有人這局的分數是 -1，代表他還沒交卷，這局絕對不能結算！
+            if (hostScore === -1 || guestScore === -1) {
+                continue; // 跳過這局，不給任何人亮燈
+            }
+            
+            // 將大招分數還原為基礎分數來比較
+            let realHost = hostScore > 500 ? hostScore - 1000 : hostScore;
+            let realGuest = guestScore > 500 ? guestScore - 1000 : guestScore;
+
+            if (realHost > realGuest) {
+                isMeHost ? myTotalWins++ : opTotalWins++; 
+            } else if (realGuest > realHost) {
+                isMeHost ? opTotalWins++ : myTotalWins++; 
+            }
         }
+        
         document.getElementById('my-rounds').innerHTML = renderDots(myTotalWins, true);
         document.getElementById('op-rounds').innerHTML = renderDots(opTotalWins, false);
 
@@ -3059,22 +3079,27 @@
         if(waitOpTimer) clearInterval(waitOpTimer); 
         isChecking = false;
         
-        // 🚀 留守者補償機制：最多等對手 24 秒 (12次 x 2秒)
-        let maxWaitChecks = 20; 
+        // 🚀 留守者補償機制：最多等真人對手 24 秒 (12次 x 2秒)
+        let maxWaitChecks = 12; 
         
         const checkBothWrapper = () => {
-            maxWaitChecks--;
+            // 🚀 核心防護：如果對手是 AI，我們【絕對不扣減等待次數】，讓他變成無限期等待！
+            // 判定方式：只要對手名稱包含 Ai 或 活動，就視為機器人
+            const opNameElement = document.getElementById('op-name');
+            const isOpponentAI = opNameElement && (opNameElement.innerText.includes("Ai") || opNameElement.innerText.includes("活動"));
+
+            if (!isOpponentAI) {
+                maxWaitChecks--;
+            }
+
             if (maxWaitChecks <= 0) {
                 clearInterval(waitOpTimer);
-                // 🛑 對手卡太久了，不再踢出 A，直接讓 A 獲勝！
                 alert("對手網路不穩或已逃跑，系統判定您獲勝！🎉");
                 
-                // 通知 GAS 我要拿走勝利
                 fetch(`${GAS_URL}?action=claim_timeout_win&id=${STUDENT_ID}&roomId=${roomId}`)
                   .then(() => {
                       showImpactOverlay(5, 0, true, null, null); 
                       
-                      // 🚀 補上這段：3.5 秒後彈出抽盲盒按鈕
                       setTimeout(() => {
                           const triggerOverlay = document.getElementById('gacha-trigger-overlay');
                           const enterBtn = document.getElementById('btn-enter-gacha');
