@@ -574,70 +574,69 @@
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW 註冊失敗', err));
         });
-    }
-
     function installPWA() {
         toggleSettingsModal(false); // 先關閉設定視窗
         
         const ua = navigator.userAgent || navigator.vendor || window.opera;
         const isLineOrFB = /Line|FBAN|FBAV|Instagram/i.test(ua);
         const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-        // 🚀 新增：精準抓出 iOS 裡面的 Chrome (CriOS)
         const isIOSChrome = isIOS && /CriOS/i.test(ua);
 
-        // 🛡️ 狀況 A：社群軟體內建瀏覽器 (最強護城河)
+        // 🛡️ 狀況 A：社群軟體內建瀏覽器
         if (isLineOrFB) {
             alert("⚠️ 目前在 LINE/FB 內部瀏覽器中。\n\n請點擊右上角「...」或「⋮」，選擇『以預設瀏覽器開啟』(Safari/Chrome) 後，才能將 Tappie 安裝到桌面喔！");
             return;
         }
 
+        const pwaOverlay = document.getElementById('ios-pwa-overlay');
+        const pwaText = pwaOverlay.querySelector('p');
+        const pwaArrow = pwaOverlay.querySelector('.arrow-down');
+
         // 🍏 狀況 B：iOS 設備
         if (isIOS) {
-            // 判斷是否已經是全螢幕 PWA 模式
             if (window.navigator.standalone === true) {
                 alert("✅ Tappie 已經在您的主畫面囉！");
             } else {
-                // 🚀 動態修改引導視窗的內容與箭頭方向
-                const pwaOverlay = document.getElementById('ios-pwa-overlay');
-                const pwaText = pwaOverlay.querySelector('p');
-                const pwaArrow = pwaOverlay.querySelector('.arrow-down');
-
                 if (isIOSChrome) {
-                    // Chrome 的分享按鈕在上方網址列
-                    pwaText.innerHTML = "1. 點擊右上角網址列的 <b style='font-size: 18px;'>📤 分享</b> 圖示<br>2. 向下滑動，選擇 <b style='background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;'>➕ 加入主畫面</b><br><br><span style='font-size: 12px; color: #e74c3c;'>💡 強烈建議複製網址改用 <b>Safari</b> 開啟，App 體驗最順暢喔！</span>";
-                    // 箭頭轉向朝上並改變動畫
+                    pwaText.innerHTML = "1. 點擊右上角網址列的 <b style='font-size: 18px;'>📤 分享</b> 圖示<br>2. 向下滑動，選擇 <b style='background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;'>➕ 加入主畫面</b><br><br><span style='font-size: 12px; color: #e74c3c;'>💡 強烈建議複製網址改用 <b>Safari</b> 開啟，體驗最順暢喔！</span>";
                     if(pwaArrow) pwaArrow.style.animation = "bounce-up 1s infinite";
-                    // 讓整個對話框稍微往上移一點，符合視覺直覺
                     pwaOverlay.style.alignItems = "center"; 
                 } else {
-                    // Safari 的分享按鈕在下方
                     pwaText.innerHTML = "1. 點擊 Safari 工具列的 <b style='font-size: 18px;'>📤 分享</b> 圖示<br>2. 向下滑動，選擇 <b style='background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;'>➕ 加入主畫面</b>";
-                    // 箭頭恢復朝下
                     if(pwaArrow) pwaArrow.style.animation = "bounce 1s infinite";
                     pwaOverlay.style.alignItems = "flex-end"; 
                 }
-
-                // 顯示視窗
                 pwaOverlay.classList.add('show');
             }
             return;
         }
 
-        // 🤖 狀況 C：Android 設備
+        // 🤖 狀況 C：Android 設備 (Chrome / Samsung Internet 等)
         if (deferredPrompt) {
-            // 觸發原生安裝跳窗
+            // ✅ API 存活：直接觸發原生的完美安裝跳窗！
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('家長同意安裝');
-                } else {
-                    console.log('家長拒絕安裝');
-                }
                 deferredPrompt = null; // 只能用一次
             });
         } else {
-            // 可能是已經安裝過，或是電腦版不支援
-            alert("✅ 您可能已經安裝過 Tappie，或者瀏覽器不支援自動安裝喔！");
+            // ❌ API 死亡 (被瀏覽器限制、未達標、或已安裝)：
+            // 啟動終極防護網！動態將教學視窗改成 Android Chrome 版本
+            
+            // 判斷是否為全螢幕模式 (Android 判斷已安裝的方法之一)
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                alert("✅ Tappie 已經在您的主畫面囉！");
+                return;
+            }
+
+            // 彈出 Android 手動安裝教學
+            pwaOverlay.querySelector('h3').innerHTML = "🤖 安裝 Tappie (Android)";
+            pwaText.innerHTML = "系統無法自動安裝，請手動加入：<br><br>1. 點擊右上角的 <b style='font-size: 18px;'>⋮ (三個點)</b> 選單<br>2. 選擇 <b style='background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;'>📱 加到主畫面</b> 或 <b style='background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;'>安裝應用程式</b>";
+            
+            // 箭頭朝上彈跳 (指向右上角的選單)
+            if(pwaArrow) pwaArrow.style.animation = "bounce-up 1s infinite";
+            pwaOverlay.style.alignItems = "center"; // 視窗置中
+            
+            pwaOverlay.classList.add('show');
         }
     }
     
