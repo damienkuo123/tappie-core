@@ -114,14 +114,21 @@
     /* =======================================================
        🎨 各板塊內容樣式 (保留您的完美設計，僅微調邊距)
        ======================================================= */
-    /* 🚀 確保學生卡片內部完全置中，並提高層級防止被 top-bar 隱形遮擋 */
-    .profile-header { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; z-index: 10; }
-    .title-badge { background: linear-gradient(135deg, #fff, #fffaf0); color: #d35400; padding: 8px 22px; border-radius: 25px; font-size: 14px; font-weight: 900; display: inline-block; margin-bottom: 10px; border: 1px solid rgba(241, 196, 15, 0.6); box-shadow: 0 8px 20px rgba(241, 196, 15, 0.2); letter-spacing: 2px; }
-    .student-name { font-size: 28px; font-weight: 900; color: var(--text-main); margin: 12px 0 0 0; letter-spacing: 3px; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .points-container { display: flex; flex-direction: column; align-items: center; margin: 15px 0; }
-    .points { font-size: 76px; font-weight: 900; line-height: 1; margin: 0; background: linear-gradient(135deg, #ff4757, #ff6b81, #e74c3c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 10px 15px rgba(231, 76, 60, 0.25)); }
-    .points-label { font-size: 14px; font-weight: 900; color: var(--text-sub); letter-spacing: 3px; text-transform: uppercase; margin-top: 8px; opacity: 0.8; }
-    .history-btn { font-size: 13px; color: var(--primary-blue); font-weight: 900; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 26px; border-radius: 20px; background: rgba(255, 255, 255, 0.6); margin-top: 10px; transition: 0.3s; border: 1px solid rgba(255, 255, 255, 1); box-shadow: 0 4px 15px rgba(0, 102, 204, 0.08); }
+    /* 🚀 確保學生卡片內部完全置中 (加入呼吸感留白) */
+    .profile-header { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; z-index: 10; padding-top: 35px; padding-bottom: 35px; }
+    
+    .title-badge { background: linear-gradient(135deg, #fff, #fffaf0); color: #d35400; padding: 8px 24px; border-radius: 25px; font-size: 14px; font-weight: 900; display: inline-block; margin-bottom: 22px; border: 1px solid rgba(241, 196, 15, 0.6); box-shadow: 0 8px 20px rgba(241, 196, 15, 0.2); letter-spacing: 2px; }
+    
+    /* 新增：將原本寫在 HTML 的 style 移到這裡，更好控管 */
+    .student-avatar-img { width: 105px; height: 105px; border-radius: 50%; object-fit: cover; margin-bottom: 18px; filter: drop-shadow(0 8px 15px rgba(0,0,0,0.1)); border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    
+    .student-name { font-size: 30px; font-weight: 900; color: var(--text-main); margin: 0 0 28px 0; letter-spacing: 3px; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    
+    .points-container { display: flex; flex-direction: column; align-items: center; margin: 0 0 35px 0; }
+    .points { font-size: 82px; font-weight: 900; line-height: 1; margin: 0; background: linear-gradient(135deg, #ff4757, #ff6b81, #e74c3c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 10px 15px rgba(231, 76, 60, 0.25)); }
+    .points-label { font-size: 13px; font-weight: 900; color: var(--text-sub); letter-spacing: 4px; text-transform: uppercase; margin-top: 10px; opacity: 0.8; }
+    
+    .history-btn { font-size: 14px; color: var(--primary-blue); font-weight: 900; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 14px 28px; border-radius: 20px; background: rgba(255, 255, 255, 0.6); margin-top: 0; transition: 0.3s; border: 1px solid rgba(255, 255, 255, 1); box-shadow: 0 4px 15px rgba(0, 102, 204, 0.08); }
     .history-btn:active { transform: scale(0.95); }
 
     /* 挑戰模塊 */
@@ -279,7 +286,7 @@
     <section id="tab-student" class="tab-content active">
       <div class="glass-panel profile-header" style="margin-top: 10px;">
         <div id="honor-title" class="title-badge hidden"></div>
-        <img src="/assets/logo.webp" style="width:95px; margin: 0 auto; display: block; filter: drop-shadow(0 8px 15px rgba(0,0,0,0.1));">
+        <img src="/assets/logo.webp" id="student-avatar" class="student-avatar-img">
         <h1 id="student-name" class="student-name">-</h1>
         <div class="points-container">
           <div id="current-points" class="points">0</div>
