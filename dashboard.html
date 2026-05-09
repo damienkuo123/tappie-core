@@ -818,10 +818,23 @@
           document.getElementById('email-submit-btn').innerText = "訂閱";
       }
       
-      if (data.leaderboard && data.leaderboard.length > 0 && data.leaderboard[0].uid === STUDENT_ID) {
-        const badge = document.getElementById('honor-title');
-        badge.innerText = `🏆 ${data.currentUnit} 口說強者`;
-        badge.classList.remove('hidden');
+      if (data.leaderboard && data.leaderboard.length > 0) {
+        let myRank = -1;
+        for (let i = 0; i < Math.min(3, data.leaderboard.length); i++) {
+            if (data.leaderboard[i].uid === STUDENT_ID) {
+                myRank = i;
+                break;
+            }
+        }
+        
+        if (myRank !== -1) {
+            const badge = document.getElementById('honor-title');
+            if (myRank === 0) badge.innerText = `🏆 ${data.currentUnit} 第一名`;
+            else if (myRank === 1) badge.innerText = `🌟 ${data.currentUnit} 第二名`;
+            else if (myRank === 2) badge.innerText = `🔥 ${data.currentUnit} 第三名`;
+            
+            badge.classList.remove('hidden');
+        }
       }
 
       // 👑 權限判定：拔除鎖頭與顯示專屬功能
