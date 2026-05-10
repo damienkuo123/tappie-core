@@ -812,6 +812,18 @@
     }
     
     function renderDashboard(data) {
+      // 🚀 1. 客製化視覺覆寫引擎
+      if (data.logoUrl) {
+          const logoEl = document.getElementById('student-avatar'); // 👈 確保你的 img 標籤有這個 ID
+          if (logoEl) logoEl.src = data.logoUrl;
+      }
+      if (data.iconUrl) {
+          // 動態替換 iOS 的加入主畫面圖示
+          const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+          if (appleIcon) appleIcon.href = data.iconUrl;
+      }
+
+      // 🚀 2. 原本的資料渲染...
       document.getElementById('student-name').innerText = data.studentName;
       document.getElementById('current-points').innerText = data.currentPoints;
 
