@@ -215,11 +215,21 @@
         const msg = document.getElementById('msg');
         const card = document.getElementById('mainCard');
 
-        // 🚀 校區客製化視覺 - 開機預載引擎
+        // 🚀 校區客製化視覺 - 開機預載引擎 (支援 URL 參數)
         (function loadPortalBranding() {
-            // 優先讀取瀏覽器記憶的校區，如果都沒有，預設抓 TP01
-            const currentSchool = localStorage.getItem('tappie_school') || "TP01"; 
+            // 1. 先抓網址上有沒有帶校區參數 (例: ?school=TP02)
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlSchool = urlParams.get('school') ? urlParams.get('school').toUpperCase() : null;
             
+            // 2. 決定當前校區 (網址 > 瀏覽器記憶 > 預設 TP01)
+            const currentSchool = urlSchool || localStorage.getItem('tappie_school') || "TP01"; 
+            
+            // 3. 如果網址有帶參數，順便幫家長記在手機裡，下次就不會忘了
+            if (urlSchool) {
+                localStorage.setItem('tappie_school', urlSchool);
+            }
+            
+            // 4. 去後端金庫拿這間分校專屬的 Logo
             fetch(`${GAS_URL}?action=get_branding_config&id=${currentSchool}-ADMIN`)
                 .then(res => res.json())
                 .then(config => {
