@@ -3819,13 +3819,18 @@
     const picksConf = window.gamiConfig ? window.gamiConfig.gachaPicks : { "初階Ai": 1, "中階Ai": 2, "高階Ai": 3, "玩家對戰": 3, "活動Boss": 1 };
 
     if (isEventMode) {
-        gachaPicksLeft = picksConf["活動Boss"]; // 讀取活動 Boss 專屬次數
+        // 🚀 防呆：Boss 最多只能抽 1 次！
+        let bossPicks = picksConf["活動Boss"] || 1;
+        gachaPicksLeft = Math.max(1, Math.min(1, bossPicks)); 
     } else {
         // 一般對戰依照難度給予動態次數
         if (opponentName.includes("初階")) gachaPicksLeft = picksConf["初階Ai"];
         else if (opponentName.includes("中階")) gachaPicksLeft = picksConf["中階Ai"];
         else if (opponentName.includes("高階") || opponentName.includes("Ai")) gachaPicksLeft = picksConf["高階Ai"];
         else gachaPicksLeft = picksConf["玩家對戰"]; 
+        
+        // 🚀 終極防爆防呆機制：不管管理員設多少，強制鎖死在 1 ~ 6 次之間！
+        gachaPicksLeft = Math.max(1, Math.min(6, gachaPicksLeft));
     }
 
     picksSpan.innerText = gachaPicksLeft;
