@@ -559,6 +559,7 @@
                     </div>
                     <input type="file" id="input-logo" accept="image/png, image/webp, image/jpeg" style="display:none;" onchange="handleFileSelect(this, 'logo')">
                     <button class="btn-action btn-gray" style="width: 100%; font-size: 16px; padding: 12px;" onclick="document.getElementById('input-logo').click()">選擇檔案</button>
+                    <button class="btn-action" style="flex:1; background:rgba(231,76,60,0.2); border:1px solid #e74c3c; color:#e74c3c; font-size:15px;" onclick="deleteBranding('logo')">🗑️</button>
                 </div>
 
                 <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 18px; border: 1px dashed rgba(255,255,255,0.2); text-align: center;">
@@ -569,6 +570,7 @@
                     </div>
                     <input type="file" id="input-icon" accept="image/png, image/jpeg" style="display:none;" onchange="handleFileSelect(this, 'icon')">
                     <button class="btn-action btn-gray" style="width: 100%; font-size: 16px; padding: 12px;" onclick="document.getElementById('input-icon').click()">選擇檔案</button>
+                    <button class="btn-action" style="flex:1; background:rgba(231,76,60,0.2); border:1px solid #e74c3c; color:#e74c3c; font-size:15px;" onclick="deleteBranding('icon')">🗑️</button>
                 </div>
                 
                 <div id="upload-status" style="margin-top: 20px; font-size: 15px; font-weight: bold; text-align: center; color: #ffd700; min-height: 20px;"></div>
@@ -1355,6 +1357,44 @@
             })
             .catch(err => {
                 statusEl.innerText = "⚠️ 網路連線中斷，請重試。";
+                statusEl.style.color = "#e74c3c";
+            });
+        }
+        function deleteBranding(type) {
+            const label = type === 'logo' ? '系統 Logo' : 'App 圖示';
+            if (!confirm(`確定要刪除已上傳的【${label}】並還原為官方預設嗎？`)) return;
+
+            const statusEl = document.getElementById('upload-status');
+            statusEl.innerText = "⏳ 正在重置設定...";
+            statusEl.style.color = "#ffd700";
+
+            const formData = new URLSearchParams();
+            formData.append('brandingType', type);
+            formData.append('secret', ADMIN_SECRET);
+            formData.append('id', `${CURRENT_SCHOOL}-ADMIN`);
+
+            fetch(`${GAS_URL}?action=delete_custom_branding`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    statusEl.innerText = `✅ ${label} 已成功重置。`;
+                    statusEl.style.color = "#2ecc71";
+                    
+                    // 回復預設圖片預覽
+                    if (type === 'logo') document.getElementById('preview-logo').src = "/assets/logo.webp";
+                    if (type === 'icon') document.getElementById('preview-icon').src = "/assets/app-icon.png";
+                    
+                    alert("設定已重置！學生重新開啟網頁後將看到官方圖示。");
+                } else {
+                    statusEl.innerText = "❌ 刪除失敗：" + data.error;
+                    statusEl.style.color = "#e74c3c";
+                }
+            })
+            .catch(err => {
+                statusEl.innerText = "⚠️ 網路異常，請重試。";
                 statusEl.style.color = "#e74c3c";
             });
         }
