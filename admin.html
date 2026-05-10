@@ -1174,7 +1174,8 @@
         
         setInterval(() => {
             const active = document.activeElement;
-            if (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA') {
+            // 🚀 關鍵修復：把 SELECT 也加入白名單，讀卡機就不會去搶下拉選單的焦點了！
+            if (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA' && active.tagName !== 'SELECT') {
                 scanner.focus();
             }
         }, 1000);
