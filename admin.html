@@ -308,6 +308,7 @@
                 <div class="dropdown-item super-only" onclick="openNewsletterModal()">📝 專欄編輯</div>
                 <div class="dropdown-item super-only" onclick="openTaskManager()">📅 學習任務排定</div>
                 <div class="dropdown-item super-only" onclick="openStudentManager()">🧑‍🎓 編輯學生資料</div>
+                <div class="dropdown-item super-only" onclick="openBrandingModal()">🎨 校區視覺設定</div>
             </div>
         </div>
         <div class="nav-btn" onclick="adminLogout()">🔒 登出</div>
@@ -541,6 +542,39 @@
                 <button id="save-task-btn" class="btn-action" style="background:#2ecc71; font-size:18px; padding:15px;" onclick="saveTaskData()">💾 儲存</button>
                 <button class="btn-action btn-gray" style="font-size:18px; padding:15px;" onclick="closeModal('taskEditorModal')">取消</button>
             </div>
+        </div>
+    </div>
+
+    <div id="brandingModal" class="modal-overlay" onclick="closeModal('brandingModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 class="modal-title" style="color:#00cec9;">🎨 校區視覺設定</h3>
+            <p style="text-align:center; color:#94a3b8; font-size:13px; margin-top:0; margin-bottom: 20px;">(僅限超級管理員修改，儲存後即刻生效)</p>
+            
+            <div class="modal-scroll-area">
+                <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 18px; border: 1px dashed rgba(255,255,255,0.2); margin-bottom: 20px; text-align: center;">
+                    <p style="font-weight: bold; margin-top: 0; color: #f8fafc;">1. 系統主視覺 Logo</p>
+                    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">建議規格：去背 PNG / 橫式比例 / 小於 1MB</p>
+                    <div style="height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                        <img id="preview-logo" src="/assets/logo.webp" style="max-width: 100%; max-height: 80px; object-fit: contain;">
+                    </div>
+                    <input type="file" id="input-logo" accept="image/png, image/webp, image/jpeg" style="display:none;" onchange="handleFileSelect(this, 'logo')">
+                    <button class="btn-action btn-gray" style="width: 100%; font-size: 16px; padding: 12px;" onclick="document.getElementById('input-logo').click()">選擇檔案</button>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 18px; border: 1px dashed rgba(255,255,255,0.2); text-align: center;">
+                    <p style="font-weight: bold; margin-top: 0; color: #f8fafc;">2. 桌面 App 圖示 (Icon)</p>
+                    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">建議規格：1:1 滿版正方形 / JPG 或 PNG</p>
+                    <div style="height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                        <img id="preview-icon" src="/assets/app-icon.png" style="width: 80px; height: 80px; border-radius: 18px; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.1);">
+                    </div>
+                    <input type="file" id="input-icon" accept="image/png, image/jpeg" style="display:none;" onchange="handleFileSelect(this, 'icon')">
+                    <button class="btn-action btn-gray" style="width: 100%; font-size: 16px; padding: 12px;" onclick="document.getElementById('input-icon').click()">選擇檔案</button>
+                </div>
+                
+                <div id="upload-status" style="margin-top: 20px; font-size: 15px; font-weight: bold; text-align: center; color: #ffd700; min-height: 20px;"></div>
+            </div>
+            
+            <button class="btn-action btn-gray" style="font-size:18px; padding:15px; margin-top: 20px;" onclick="closeModal('brandingModal')">關閉</button>
         </div>
     </div>
     
@@ -1229,6 +1263,100 @@
                 localStorage.removeItem('tappie_admin_key'); 
                 window.location.reload(); 
             } 
+        }
+        // =======================================================
+        // 🎨 校區客製化視覺設定系統
+        // =======================================================
+        function openBrandingModal() {
+            document.getElementById('menu-dropdown').classList.remove('show');
+            document.getElementById('brandingModal').style.display = 'flex';
+            document.getElementById('upload-status').innerText = "";
+            loadBrandingConfig();
+        }
+
+        function loadBrandingConfig() {
+            document.getElementById('upload-status').innerText = "⏳ 讀取目前設定中...";
+            document.getElementById('upload-status').style.color = "#94a3b8";
+            
+            fetch(`${GAS_URL}?action=get_branding_config&id=${CURRENT_SCHOOL}-ADMIN&secret=${ADMIN_SECRET}`)
+                .then(res => res.json())
+                .then(config => {
+                    document.getElementById('upload-status').innerText = "";
+                    if (config.logoUrl) document.getElementById('preview-logo').src = config.logoUrl;
+                    if (config.iconUrl) document.getElementById('preview-icon').src = config.iconUrl;
+                })
+                .catch(err => {
+                    document.getElementById('upload-status').innerText = "⚠️ 讀取設定失敗";
+                    document.getElementById('upload-status').style.color = "#e74c3c";
+                });
+        }
+
+        function handleFileSelect(input, type) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // 容量防護 (1MB = 1048576 bytes)
+            if (file.size > 1048576) {
+                alert("⛔ 檔案太大了！為了維持學生載入速度，請上傳小於 1MB 的圖片喔！");
+                input.value = ""; 
+                return;
+            }
+
+            if (type === 'icon') {
+                const img = new Image();
+                img.src = URL.createObjectURL(file);
+                img.onload = () => {
+                    if (Math.abs(img.width - img.height) > 5) { 
+                        alert("💡 溫馨提醒：App 圖示強烈建議使用「正方形圖片」，安裝到手機桌面才不會變形喔！");
+                    }
+                };
+            }
+
+            const reader = new FileReader();
+            const statusEl = document.getElementById('upload-status');
+            statusEl.innerText = "⏳ 處理圖片中...";
+            statusEl.style.color = "#ffd700";
+
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                uploadBranding(base64, file.name, type);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function uploadBranding(base64, filename, type) {
+            const statusEl = document.getElementById('upload-status');
+            statusEl.innerText = "🚀 正在將圖片同步至雲端金庫，請稍候...";
+            statusEl.style.color = "#3498db";
+            
+            const formData = new URLSearchParams();
+            formData.append('image', base64);
+            formData.append('filename', filename);
+            formData.append('brandingType', type);
+            // 🚀 關鍵：把 secret 跟 id 也包進去
+            formData.append('secret', ADMIN_SECRET);
+            formData.append('id', `${CURRENT_SCHOOL}-ADMIN`);
+
+            // 因為有送 image，必須使用 POST
+            fetch(`${GAS_URL}?action=upload_custom_branding`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    statusEl.innerText = "✅ 圖片更新成功！(新學員載入即生效)";
+                    statusEl.style.color = "#2ecc71";
+                    document.getElementById(`preview-${type}`).src = data.url;
+                } else {
+                    statusEl.innerText = "❌ 上傳失敗：" + data.error;
+                    statusEl.style.color = "#e74c3c";
+                }
+            })
+            .catch(err => {
+                statusEl.innerText = "⚠️ 網路連線中斷，請重試。";
+                statusEl.style.color = "#e74c3c";
+            });
         }
 
         // =======================================================
