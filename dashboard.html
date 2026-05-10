@@ -330,7 +330,7 @@
           <div id="node-3" class="mission-node" style="left: 100%;"><span class="node-icon">🔥</span></div>
           <div id="mission-fill" class="mission-bar-fill" style="width: 0%;"></div>
         </div>
-        <div class="reward-bar">
+        <div id="mission-reward-bar" class="reward-bar">
           <div class="reward-unit">⚠️ <span class="reward-val">免扣點</span></div>
           <div class="reward-unit">🚩 <span class="reward-val">+100</span></div>
           <div class="reward-unit">🔥 <span class="reward-val">+200</span></div>
@@ -343,7 +343,7 @@
           <span id="lb-unit-name"></span> 排行榜
         </h2>
         <div id="lb-container"></div>
-        <div style="margin-top: 15px; padding: 12px 15px; background: rgba(255,255,255,0.6); border-radius: 16px; border: 1px solid rgba(255,255,255,0.6); display: flex; justify-content: center; gap: 20px; font-size: 13px; font-weight: 900; color: var(--text-sub); box-shadow: inset 0 1px 2px rgba(255,255,255,0.8);">
+        <div id="lb-reward-hints" style="margin-top: 15px; padding: 12px 15px; background: rgba(255,255,255,0.6); border-radius: 16px; border: 1px solid rgba(255,255,255,0.6); display: flex; justify-content: center; gap: 20px; font-size: 13px; font-weight: 900; color: var(--text-sub); box-shadow: inset 0 1px 2px rgba(255,255,255,0.8);">
           <span>🥇 +100<span style="font-size:10px; margin-left:2px;">PTS</span></span>
           <span>🥈 +50<span style="font-size:10px; margin-left:2px;">PTS</span></span>
           <span>🥉 +30<span style="font-size:10px; margin-left:2px;">PTS</span></span>
@@ -969,7 +969,12 @@
         };
       }
 
-      // 單元任務進度渲染
+      // 🚀 抓取後台傳來的動態遊戲設定
+      const gami = data.gamification;
+
+      // ==========================================
+      // 🏅 單元任務進度與扣點渲染 (動態版)
+      // ==========================================
       const count = data.missionCount || 0;
       document.getElementById('mission-count').innerText = `${count} 次`;
       
@@ -977,17 +982,26 @@
       let estColor = ""; 
       let barColor = "";
 
-      if (count >= 15) { 
-        estText = "+200 點"; estColor = "var(--marian-green)"; barColor = "linear-gradient(90deg, #f1c40f, #2ecc71)"; 
-      } else if (count >= 10) { 
-        estText = "+100 點"; estColor = "var(--marian-green)"; barColor = "linear-gradient(90deg, #f1c40f, #2ecc71)"; 
-      } else if (count >= 5) { 
-        estText = "安全 (不扣點)"; estColor = "var(--text-main)"; barColor = "linear-gradient(90deg, #f1c40f, #2ecc71)"; 
-      } else {
-        const penalty = -250 + (count * 50);
-        estText = `${penalty} 點`;
-        estColor = "var(--marian-red)";
-        barColor = "#e74c3c";
+      if (gami && gami.mission) {
+          if (count >= gami.mission.perfectThreshold) { 
+            estText = `+${gami.mission.perfectReward} 點`; estColor = "var(--marian-green)"; barColor = "linear-gradient(90deg, #f1c40f, #2ecc71)"; 
+          } else if (count >= gami.mission.goodThreshold) { 
+            estText = `+${gami.mission.goodReward} 點`; estColor = "var(--marian-green)"; barColor = "linear-gradient(90deg, #f1c40f, #2ecc71)"; 
+          } else if (count >= gami.mission.failThreshold) { 
+            estText = "安全 (不扣點)"; estColor = "var(--text-main)"; barColor = "linear-gradient(90deg, #f1c40f, #2ecc71)"; 
+          } else {
+            const penalty = gami.mission.failBasePenalty + (count * gami.mission.failPenaltyStep);
+            estText = `${penalty} 點`;
+            estColor = "var(--marian-red)";
+            barColor = "#e74c3c";
+          }
+          
+          // 動態修改底下的圖例文字
+          document.getElementById('mission-reward-bar').innerHTML = `
+            <div class="reward-unit">⚠️ <span class="reward-val">${gami.mission.failThreshold}次免扣</span></div>
+            <div class="reward-unit">🚩 <span class="reward-val">+${gami.mission.goodReward}</span></div>
+            <div class="reward-unit">🔥 <span class="reward-val">+${gami.mission.perfectReward}</span></div>
+          `;
       }
       
       document.getElementById('mission-est').innerText = estText;
@@ -997,25 +1011,43 @@
       setTimeout(() => {
         const fill = document.getElementById('mission-fill');
         fill.style.background = barColor;
-        fill.style.width = `${Math.min(100, (count/15)*100)}%`; 
-        if (count >= 5) document.getElementById('node-1').classList.add('active');
-        if (count >= 10) document.getElementById('node-2').classList.add('active');
-        if (count >= 15) document.getElementById('node-3').classList.add('active');
+        // 依照滿分標準動態計算進度條 % 數
+        const maxScore = gami ? gami.mission.perfectThreshold : 15;
+        fill.style.width = `${Math.min(100, (count / maxScore) * 100)}%`; 
+        
+        if (gami) {
+            if (count >= gami.mission.failThreshold) document.getElementById('node-1').classList.add('active');
+            if (count >= gami.mission.goodThreshold) document.getElementById('node-2').classList.add('active');
+            if (count >= gami.mission.perfectThreshold) document.getElementById('node-3').classList.add('active');
+        }
       }, 800);
 
-      // 榮譽榜渲染
+      // ==========================================
+      // 🏆 榮譽排行榜渲染 (動態獎勵版)
+      // ==========================================
       document.getElementById('lb-unit-name').innerText = data.currentUnit;
       const lbContainer = document.getElementById('lb-container');
+      
+      if (gami && gami.leaderboard) {
+          document.getElementById('lb-reward-hints').innerHTML = `
+            <span>🥇 +${gami.leaderboard[0]}<span style="font-size:10px; margin-left:2px;">PTS</span></span>
+            <span>🥈 +${gami.leaderboard[1]}<span style="font-size:10px; margin-left:2px;">PTS</span></span>
+            <span>🥉 +${gami.leaderboard[2]}<span style="font-size:10px; margin-left:2px;">PTS</span></span>
+          `;
+      }
+
       if (!data.leaderboard || data.leaderboard.length === 0) {
         lbContainer.innerHTML = `<p style="color:var(--text-sub); font-size: 14px; text-align:center; font-weight:bold;">單元挑戰進行中，快來搶佔榜單！</p>`;
       } else {
         let lbHtml = data.leaderboard.map((lb, index) => {
           let isMe = lb.uid === STUDENT_ID;
           let rankCrown = index === 0 ? "🥇" : (index === 1 ? "🥈" : (index === 2 ? "🥉" : `${index+1}`));
+          
+          let bonusPts = (gami && gami.leaderboard) ? gami.leaderboard[index] : [100, 50, 30][index];
           let bonusTag = "";
-          if (index === 0) bonusTag = `<span style="font-size:11px; color:#d35400; background:linear-gradient(135deg, #ffeaa7, #f1c40f); padding:3px 8px; border-radius:8px; margin-left:10px; box-shadow: 0 4px 10px rgba(241,196,15,0.3); border:1px solid rgba(255,255,255,0.8);">+100</span>`;
-          else if (index === 1) bonusTag = `<span style="font-size:11px; color:#576574; background:linear-gradient(135deg, #f5f6fa, #dcdde1); padding:3px 8px; border-radius:8px; margin-left:10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border:1px solid rgba(255,255,255,0.8);">+50</span>`;
-          else if (index === 2) bonusTag = `<span style="font-size:11px; color:#b71540; background:linear-gradient(135deg, #ffda79, #e17055); padding:3px 8px; border-radius:8px; margin-left:10px; box-shadow: 0 4px 10px rgba(225,112,85,0.2); border:1px solid rgba(255,255,255,0.8);">+30</span>`;
+          if (index === 0) bonusTag = `<span style="font-size:11px; color:#d35400; background:linear-gradient(135deg, #ffeaa7, #f1c40f); padding:3px 8px; border-radius:8px; margin-left:10px; box-shadow: 0 4px 10px rgba(241,196,15,0.3); border:1px solid rgba(255,255,255,0.8);">+${bonusPts}</span>`;
+          else if (index === 1) bonusTag = `<span style="font-size:11px; color:#576574; background:linear-gradient(135deg, #f5f6fa, #dcdde1); padding:3px 8px; border-radius:8px; margin-left:10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border:1px solid rgba(255,255,255,0.8);">+${bonusPts}</span>`;
+          else if (index === 2) bonusTag = `<span style="font-size:11px; color:#b71540; background:linear-gradient(135deg, #ffda79, #e17055); padding:3px 8px; border-radius:8px; margin-left:10px; box-shadow: 0 4px 10px rgba(225,112,85,0.2); border:1px solid rgba(255,255,255,0.8);">+${bonusPts}</span>`;
 
           let rowStyle = isMe ? 'background:linear-gradient(135deg, rgba(241,196,15,0.2), rgba(243,156,18,0.1)); border:1px solid rgba(241,196,15,0.6); box-shadow: 0 8px 20px rgba(241,196,15,0.15), inset 0 1px 2px rgba(255,255,255,0.9);' : '';
 
