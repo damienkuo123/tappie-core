@@ -196,7 +196,7 @@
     <div class="container" id="mainCard">
         <div class="logo-wrapper">
             <div class="pulse-ring" id="ring"></div>
-            <img src="/assets/logo.webp" style="width:90px; margin: 0 auto; display: block;">
+            <img id="portal-logo" src="/assets/logo.webp" style="width:90px; margin: 0 auto; display: block;">
         </div>
         <h1>數位系統</h1>
         <p class="subtitle">Tappie</p>
@@ -214,6 +214,27 @@
         
         const msg = document.getElementById('msg');
         const card = document.getElementById('mainCard');
+
+        // 🚀 校區客製化視覺 - 開機預載引擎
+        (function loadPortalBranding() {
+            // 優先讀取瀏覽器記憶的校區，如果都沒有，預設抓 TP01
+            const currentSchool = localStorage.getItem('tappie_school') || "TP01"; 
+            
+            fetch(`${GAS_URL}?action=get_branding_config&id=${currentSchool}-ADMIN`)
+                .then(res => res.json())
+                .then(config => {
+                    if (config.logoUrl) {
+                        const logoEl = document.getElementById('portal-logo');
+                        if (logoEl) logoEl.src = config.logoUrl;
+                    }
+                    if (config.iconUrl) {
+                        // 動態替換 iOS 桌面圖示
+                        const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+                        if (appleIcon) appleIcon.href = config.iconUrl;
+                    }
+                })
+                .catch(err => console.log("使用預設視覺"));
+        })();
 
         // =======================================================
         // 🚀 終極無痕掃描系統 (SaaS 萬能萃取版 + 焦點霸體鎖定)
