@@ -637,13 +637,13 @@
                     <div class="accordion-body">
                         <p style="color:#3498db; font-size:13px; font-weight:bold; margin:0 0 10px 0;">勝場獲得盲盒數量</p>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">初階 AI</div><input type="number" id="gami-pick-easy" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
-                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">中階 AI</div><input type="number" id="gami-pick-med" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
-                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">高階 AI</div><input type="number" id="gami-pick-hard" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
+                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">初階 AI</div><input type="number" min="1" max="6" id="gami-pick-easy" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
+                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">中階 AI</div><input type="number" min="1" max="6" id="gami-pick-med" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
+                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">高階 AI</div><input type="number" min="1" max="6" id="gami-pick-hard" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
                         </div>
                         <div style="display:flex; gap:10px; margin-bottom:15px;">
-                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">玩家對戰</div><input type="number" id="gami-pick-pvp" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
-                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">活動 Boss</div><input type="number" id="gami-pick-boss" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
+                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">玩家對戰</div><input type="number" min="1" max="6" id="gami-pick-pvp" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
+                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">活動 Boss</div><input type="number" min="1" max="1" id="gami-pick-boss" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;" title="活動 Boss 固定為 1 次"></div>
                         </div>
                         <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:10px 0;">
                         <p style="color:#9b59b6; font-size:13px; font-weight:bold; margin:0 0 10px 0;">各稀有度中獎權重 (數值越高越容易中)</p>
@@ -1544,6 +1544,13 @@
                     document.getElementById('gami-w-r').value = config.gachaWeights["R"];
                     document.getElementById('gami-w-sr').value = config.gachaWeights["SR"];
                     document.getElementById('gami-w-ssr').value = config.gachaWeights["SSR"];
+
+                    // 🚀 自動連動引擎：當改動「及格分數」時，自動把最低第三階的門檻設成一樣，避免 55分過關卻 0點 的困惑
+                    const passInput = document.getElementById('gami-pass-score');
+                    const t3MinInput = document.getElementById('gami-t3-min');
+                    passInput.oninput = function() {
+                        t3MinInput.value = this.value;
+                    };
                 })
                 .catch(err => {
                     document.getElementById('gami-status').innerText = "⚠️ 讀取失敗，請重試";
