@@ -1502,7 +1502,8 @@
             document.getElementById('gamiModal').style.display = 'flex';
             document.getElementById('gami-status').innerText = "讀取設定中...";
             
-            fetch(`${GAS_URL}?action=get_gamification_config&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN`)
+            // 🚀 核心修復：補上 { method: 'POST' }，精準對齊後端的 VIP 通道！
+            fetch(`${GAS_URL}?action=get_gamification_config&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN`, { method: 'POST' })
                 .then(res => res.json())
                 .then(config => {
                     document.getElementById('gami-status').innerText = "";
