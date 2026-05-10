@@ -2072,6 +2072,7 @@
             
             // 🚀 關鍵修復：同步給抽獎系統的變數，並啟動獎池引擎！
             characterAssets = window.characterAssets;   
+            window.gamiConfig = data.gamification || null; // 👈 🚀 新增這行：儲存全域遊戲設定
             buildDynamicPrizePool();                    
 
             showPortal();
@@ -3702,21 +3703,24 @@
   let characterAssets = {};
   let PRIZE_POOL = [];
 
-  // 🚀 新增：全自動動態獎池引擎 (自動讀取 Google Sheet 數據)
   function buildDynamicPrizePool() {
-      // 1. 保留原本固定的「點數獎池」
+      // 🚀 讀取動態權重配置，若無則使用預設值
+      const gamiW = window.gamiConfig ? window.gamiConfig.gachaWeights : { 'N': 2, 'R': 0.8, 'SR': 0.2, 'SSR': 0.1 };
+
+      // 1. 保留原本固定的「點數獎池」，並依據管理員的權重來「動態縮放」點數中獎機率！
+      // (例如：N卡的基準是 85，就除以 85 再乘上 N的總權重，讓點數機率跟角色機率完美掛鉤)
       let pool = [
-          { type: 'points', value: 0, label: '0 點', class: 'prize-N', glow: 'crack-white', weight: 40 },
-          { type: 'points', value: 5, label: '5 點', class: 'prize-N', glow: 'crack-white', weight: 30 },
-          { type: 'points', value: 10, label: '10 點', class: 'prize-N', glow: 'crack-white', weight: 15 },
-          { type: 'points', value: 20, label: '20 點', class: 'prize-R', glow: 'crack-white', weight: 4 },
-          { type: 'points', value: 30, label: '30 點', class: 'prize-R', glow: 'crack-white', weight: 3 },
-          { type: 'points', value: 50, label: '50 點', class: 'prize-R', glow: 'crack-white', weight: 2 },
-          { type: 'points', value: 70, label: '70 點', class: 'prize-SR', glow: 'crack-purple', weight: 1 },
-          { type: 'points', value: 90, label: '90 點', class: 'prize-SR', glow: 'crack-purple', weight: 0.5 },
-          { type: 'points', value: 150, label: '150 點', class: 'prize-SR', glow: 'crack-purple', weight: 0.3 },
-          { type: 'points', value: 500, label: '500 點', class: 'prize-SSR', glow: 'crack-gold', weight: 0.1 },
-          { type: 'points', value: 888, label: '888 點', class: 'prize-SSR', glow: 'crack-gold', weight: 0.1 }
+          { type: 'points', value: 0, label: '0 點', class: 'prize-N', glow: 'crack-white', weight: (40/85) * gamiW['N'] },
+          { type: 'points', value: 5, label: '5 點', class: 'prize-N', glow: 'crack-white', weight: (30/85) * gamiW['N'] },
+          { type: 'points', value: 10, label: '10 點', class: 'prize-N', glow: 'crack-white', weight: (15/85) * gamiW['N'] },
+          { type: 'points', value: 20, label: '20 點', class: 'prize-R', glow: 'crack-white', weight: (4/9) * gamiW['R'] },
+          { type: 'points', value: 30, label: '30 點', class: 'prize-R', glow: 'crack-white', weight: (3/9) * gamiW['R'] },
+          { type: 'points', value: 50, label: '50 點', class: 'prize-R', glow: 'crack-white', weight: (2/9) * gamiW['R'] },
+          { type: 'points', value: 70, label: '70 點', class: 'prize-SR', glow: 'crack-purple', weight: (1/1.8) * gamiW['SR'] },
+          { type: 'points', value: 90, label: '90 點', class: 'prize-SR', glow: 'crack-purple', weight: (0.5/1.8) * gamiW['SR'] },
+          { type: 'points', value: 150, label: '150 點', class: 'prize-SR', glow: 'crack-purple', weight: (0.3/1.8) * gamiW['SR'] },
+          { type: 'points', value: 500, label: '500 點', class: 'prize-SSR', glow: 'crack-gold', weight: 0.5 * gamiW['SSR'] },
+          { type: 'points', value: 888, label: '888 點', class: 'prize-SSR', glow: 'crack-gold', weight: 0.5 * gamiW['SSR'] }
       ];
 
       // 2. 從全域圖鑑中，篩選出第 J 欄 (Category) 為「一般」的角色
@@ -3728,16 +3732,12 @@
           if (counts[char.rarity] !== undefined) counts[char.rarity]++;
       });
 
-      // 4. 設定各稀有度的「總機率權重」(你的完美設計)
-      const totalWeights = { 'N': 2, 'R': 0.8, 'SR': 0.2, 'SSR': 0.1 };
-
       // 5. 將「一般」角色動態加入獎池，自動計算平分權重與開卡特效
       normalAvatars.forEach(([id, char]) => {
           let r = char.rarity;
-          // 計算單張卡片的專屬權重 (總權重 ÷ 該稀有度總數量)
-          let weight = (counts[r] > 0) ? (totalWeights[r] / counts[r]) : 0;
+          // 計算單張卡片的專屬權重 (動態總權重 ÷ 該稀有度總數量)
+          let weight = (counts[r] > 0) ? (gamiW[r] / counts[r]) : 0;
           
-          // 自動套用你指定的開卡光芒特效
           let glowClass = 'crack-white';
           if (r === 'SR') glowClass = 'crack-purple';
           if (r === 'SSR') glowClass = 'crack-gold';
@@ -3752,8 +3752,8 @@
           });
       });
 
-      PRIZE_POOL = pool; // 寫入正式獎池
-      console.log("🎲 動態獎池生成完畢！目前獎池總數：", PRIZE_POOL.length);
+      PRIZE_POOL = pool; 
+      console.log("🎲 動態獎池生成完畢！權重已對齊後台設定。", gamiW);
   }
 
   // 🚀 盲盒封面圖庫 (你可以隨時替換成你想要的網址)
@@ -3815,14 +3815,17 @@
     const board = document.getElementById('gacha-board');
     const picksSpan = document.getElementById('picks-left');
     
-    // 🚀 1. 設定抽獎次數
+    // 🚀 1. 讀取動態設定的抽獎次數
+    const picksConf = window.gamiConfig ? window.gamiConfig.gachaPicks : { "初階Ai": 1, "中階Ai": 2, "高階Ai": 3, "玩家對戰": 3, "活動Boss": 1 };
+
     if (isEventMode) {
-        gachaPicksLeft = 1; // 活動模式強制只有 1 次機會！
+        gachaPicksLeft = picksConf["活動Boss"]; // 讀取活動 Boss 專屬次數
     } else {
-        // 一般對戰依照難度給予次數
-        if (opponentName.includes("初階")) gachaPicksLeft = 1;
-        else if (opponentName.includes("中階")) gachaPicksLeft = 2;
-        else gachaPicksLeft = 3; 
+        // 一般對戰依照難度給予動態次數
+        if (opponentName.includes("初階")) gachaPicksLeft = picksConf["初階Ai"];
+        else if (opponentName.includes("中階")) gachaPicksLeft = picksConf["中階Ai"];
+        else if (opponentName.includes("高階") || opponentName.includes("Ai")) gachaPicksLeft = picksConf["高階Ai"];
+        else gachaPicksLeft = picksConf["玩家對戰"]; 
     }
 
     picksSpan.innerText = gachaPicksLeft;
