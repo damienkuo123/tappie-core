@@ -9,7 +9,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Tappie學美語">
   <link rel="apple-touch-icon" href="/assets/app-icon.png">
-  <link rel="manifest" href="/manifest.json">
   
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
@@ -812,16 +811,56 @@
     }
     
     function renderDashboard(data) {
-      // 🚀 1. 客製化視覺覆寫引擎
+      // 🚀 1. 客製化視覺與動態 App 打包引擎
       if (data.logoUrl) {
-          const logoEl = document.getElementById('student-avatar'); // 👈 確保你的 img 標籤有這個 ID
+          const logoEl = document.getElementById('student-avatar');
           if (logoEl) logoEl.src = data.logoUrl;
       }
-      if (data.iconUrl) {
-          // 動態替換 iOS 的加入主畫面圖示
-          const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
-          if (appleIcon) appleIcon.href = data.iconUrl;
+      
+      // 決定 App 的 Icon (有客製化就用客製化，沒有就用預設)
+      const finalIconUrl = data.iconUrl ? data.iconUrl : "/assets/app-icon.png";
+      
+      // 動態替換 iOS 的加入主畫面圖示
+      let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+      if (!appleIcon) {
+          appleIcon = document.createElement('link');
+          appleIcon.rel = "apple-touch-icon";
+          document.head.appendChild(appleIcon);
       }
+      appleIcon.href = finalIconUrl;
+
+      // 🌟 魔法核心：動態生成 Android PWA 安裝檔 (Manifest)
+      // 把 App 名稱改成學生的專屬名字！
+      const manifestJSON = {
+          "name": `Tappie - ${data.studentName}`,
+          "short_name": data.studentName,
+          "start_url": window.location.href, // 🚀 殺手級功能：點開直接免刷卡登入！
+          "display": "standalone",
+          "background_color": "#eaeff2",
+          "theme_color": "#0066cc",
+          "icons": [
+              {
+                  "src": finalIconUrl,
+                  "sizes": "192x192 512x512",
+                  "type": "image/png",
+                  "purpose": "any maskable"
+              }
+          ]
+      };
+
+      // 將 JSON 轉為虛擬檔案 (Blob)
+      const blob = new Blob([JSON.stringify(manifestJSON)], { type: 'application/json' });
+      const manifestUrl = URL.createObjectURL(blob);
+
+      // 替換或建立 HTML 裡的 <link rel="manifest">
+      let manifestLink = document.querySelector('link[rel="manifest"]');
+      if (!manifestLink) {
+          manifestLink = document.createElement('link');
+          manifestLink.rel = "manifest";
+          document.head.appendChild(manifestLink);
+      }
+      manifestLink.href = manifestUrl;
+
 
       // 🚀 2. 原本的資料渲染...
       document.getElementById('student-name').innerText = data.studentName;
