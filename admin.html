@@ -1604,6 +1604,14 @@
         
         let currentShopAvatars = []; // 暫存商店裡的角色供卡池比對使用
 
+        // 🚀 新增：SaaS 系統出廠預設值 (當新校區剛建立，或舊校區尚未儲存新設定時使用)
+        const DEFAULT_GACHA_POOLS = [
+            { rarity: 'N', prob: 70, items: [{ type: 'points', value: 0, prob: 30 }, { type: 'points', value: 5, prob: 40 }, { type: 'points', value: 10, prob: 30 }] },
+            { rarity: 'R', prob: 20, items: [{ type: 'points', value: 20, prob: 50 }, { type: 'points', value: 30, prob: 30 }, { type: 'points', value: 50, prob: 20 }] },
+            { rarity: 'SR', prob: 8, items: [{ type: 'points', value: 70, prob: 60 }, { type: 'points', value: 90, prob: 30 }, { type: 'points', value: 150, prob: 10 }] },
+            { rarity: 'SSR', prob: 2, items: [{ type: 'points', value: 500, prob: 70 }, { type: 'points', value: 888, prob: 30 }] }
+        ];
+
         function openGamiModal() {
             document.getElementById('menu-dropdown').classList.remove('show');
             document.getElementById('gamiModal').style.display = 'flex';
@@ -1646,13 +1654,16 @@
                 document.getElementById('gami-pick-med').value = config.gachaPicks["中階Ai"];
                 document.getElementById('gami-pick-hard').value = config.gachaPicks["高階Ai"];
                 document.getElementById('gami-pick-pvp').value = config.gachaPicks["玩家對戰"];
+                
+                // 這裡原本讀取 gachaWeights 的地方已經刪除，因為現在是用 gachaPools 取代了！
 
                 const passInput = document.getElementById('gami-pass-score');
                 const t3MinInput = document.getElementById('gami-t3-min');
                 passInput.oninput = function() { t3MinInput.value = this.value; };
 
-                // 🚀 核心渲染：構建四層獨立卡池矩陣
-                renderGachaTiersUI(config.gachaPools || []);
+                // 🚀 核心渲染：如果 config 裡面沒有 gachaPools (舊版設定)，就自動套用 DEFAULT_GACHA_POOLS
+                const poolsToRender = (config.gachaPools && config.gachaPools.length > 0) ? config.gachaPools : DEFAULT_GACHA_POOLS;
+                renderGachaTiersUI(poolsToRender);
             })
             .catch(err => {
                 document.getElementById('gami-status').innerText = "⚠️ 讀取失敗，請重試";
