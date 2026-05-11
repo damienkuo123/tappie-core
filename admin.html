@@ -597,15 +597,27 @@
                 <div class="accordion-group">
                     <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🎯 今日挑戰給點規則 ▾</div>
                     <div class="accordion-body">
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-                            <span style="color:#cbd5e1; font-size:14px; font-weight:bold; flex:1;">最低及格門檻 (分)</span>
-                            <input type="number" id="gami-pass-score" class="word-input" style="flex:1; padding:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <span style="color:#cbd5e1; font-size:14px; font-weight:bold;">最低及格門檻 (分)</span>
+                            <input type="number" id="gami-pass-score" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;">
                         </div>
                         <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:10px 0;">
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center; color:#f1c40f; font-size:12px; font-weight:bold; margin-bottom:5px;"><span>分數達標 (≥)</span><span>獲得點數</span></div>
-                        <div style="display:flex; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t1-min" class="word-input" style="padding:8px;"><input type="number" id="gami-t1-pts" class="word-input" style="padding:8px;"></div>
-                        <div style="display:flex; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t2-min" class="word-input" style="padding:8px;"><input type="number" id="gami-t2-pts" class="word-input" style="padding:8px;"></div>
-                        <div style="display:flex; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t3-min" class="word-input" style="padding:8px;"><input type="number" id="gami-t3-pts" class="word-input" style="padding:8px;"></div>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center; color:#f1c40f; font-size:12px; font-weight:bold; margin-bottom:5px;">
+                            <span>分數達標 (≥)</span><span>獲得點數</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;">
+                            <input type="number" id="gami-t1-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
+                            <input type="number" id="gami-t1-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;">
+                            <input type="number" id="gami-t2-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
+                            <input type="number" id="gami-t2-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;">
+                            <input type="number" id="gami-t3-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
+                            <input type="number" id="gami-t3-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
+                        </div>
                     </div>
                 </div>
 
@@ -613,22 +625,56 @@
                     <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🏅 單元任務與扣點規則 ▾</div>
                     <div class="accordion-body">
                         <p style="color:#e74c3c; font-size:13px; font-weight:bold; margin:0 0 10px 0;">▼ 未達標懲罰</p>
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold; flex:1.5;">安全門檻 (低於幾次扣點)</span><input type="number" id="gami-fail-th" class="word-input" style="flex:1; padding:8px;"></div>
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold; flex:1.5;">0次基礎扣點 (輸入負數)</span><input type="number" id="gami-fail-base" class="word-input" style="flex:1; padding:8px; color:#e74c3c;"></div>
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold; flex:1.5;">每多練 1 次挽回多少點</span><input type="number" id="gami-fail-step" class="word-input" style="flex:1; padding:8px;"></div>
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span style="color:#cbd5e1; font-size:13px; font-weight:bold;">安全門檻 (低於幾次扣點)</span>
+                            <input type="number" id="gami-fail-th" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;">
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span style="color:#cbd5e1; font-size:13px; font-weight:bold;">0次基礎扣點 (輸入負數)</span>
+                            <input type="number" id="gami-fail-base" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; color:#e74c3c; flex:none;">
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <span style="color:#cbd5e1; font-size:13px; font-weight:bold;">每多練 1 次挽回多少點</span>
+                            <input type="number" id="gami-fail-step" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;">
+                        </div>
+                        
                         <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:10px 0;">
                         <p style="color:#2ecc71; font-size:13px; font-weight:bold; margin:0 0 10px 0;">▲ 達標獎勵</p>
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold; flex:1.5;">達標門檻 (次) / 獎勵點數</span><input type="number" id="gami-good-th" class="word-input" style="flex:1; padding:8px;"><input type="number" id="gami-good-pts" class="word-input" style="flex:1; padding:8px; color:#2ecc71;"></div>
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold; flex:1.5;">卓越門檻 (次) / 獎勵點數</span><input type="number" id="gami-perf-th" class="word-input" style="flex:1; padding:8px;"><input type="number" id="gami-perf-pts" class="word-input" style="flex:1; padding:8px; color:#2ecc71;"></div>
+                        
+                        <div style="margin-bottom:15px;">
+                            <div style="color:#cbd5e1; font-size:13px; font-weight:bold; margin-bottom:8px;">達標門檻 (次) / 獎勵點數</div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                                <input type="number" id="gami-good-th" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;" placeholder="次數">
+                                <input type="number" id="gami-good-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; color:#2ecc71;" placeholder="點數">
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom:10px;">
+                            <div style="color:#cbd5e1; font-size:13px; font-weight:bold; margin-bottom:8px;">卓越門檻 (次) / 獎勵點數</div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                                <input type="number" id="gami-perf-th" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;" placeholder="次數">
+                                <input type="number" id="gami-perf-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; color:#2ecc71;" placeholder="點數">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="accordion-group">
                     <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🏆 排行榜給點規則 ▾</div>
                     <div class="accordion-body">
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold; flex:1;">🥇 第一名獎勵</span><input type="number" id="gami-lb-1" class="word-input" style="flex:1; padding:8px;"></div>
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold; flex:1;">🥈 第二名獎勵</span><input type="number" id="gami-lb-2" class="word-input" style="flex:1; padding:8px;"></div>
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold; flex:1;">🥉 第三名獎勵</span><input type="number" id="gami-lb-3" class="word-input" style="flex:1; padding:8px;"></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥇 第一名獎勵</span>
+                            <input type="number" id="gami-lb-1" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;">
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥈 第二名獎勵</span>
+                            <input type="number" id="gami-lb-2" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;">
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥉 第三名獎勵</span>
+                            <input type="number" id="gami-lb-3" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;">
+                        </div>
                     </div>
                 </div>
 
