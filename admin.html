@@ -1663,7 +1663,7 @@
                     container.innerHTML += `
                         <div style="color:${rarityColors[currentRarityHeader]}; font-size:14px; font-weight:900; margin: 10px 0 0 5px; border-bottom: 2px solid ${rarityColors[currentRarityHeader]}40; padding-bottom: 6px; display:flex; justify-content:space-between;">
                             <span>■ ${currentRarityHeader} 區段</span>
-                            <span>區段總和: ${sectionTotal.toFixed(2)}%</span>
+                            <span>區段總和: <span id="section-sum-${currentRarityHeader}">${sectionTotal.toFixed(2)}</span>%</span>
                         </div>`;
                 }
 
@@ -1747,20 +1747,54 @@
             });
         }
 
+        // 計算右上角的總和，以及各區段的即時總和顯示
         function updateLiveSum() {
-            const probInputs = document.querySelectorAll('.flat-prob-inp');
-            let sum = 0;
-            probInputs.forEach(inp => sum += (parseFloat(inp.value) || 0));
+            const rows = document.querySelectorAll('.flat-item-row');
+            let totalSum = 0;
+            let sectionSums = { 'N': 0, 'R': 0, 'SR': 0, 'SSR': 0 };
+
+            rows.forEach(row => {
+                // 取得這行的機率數值
+                const probVal = parseFloat(row.querySelector('.flat-prob-inp').value) || 0;
+                totalSum += probVal;
+
+                // 判斷這行屬於哪個區段
+                let rarity = 'N';
+                if (row.getAttribute('data-type') === 'avatar') {
+                    // 角色不可改區段，直接從記憶體抓
+                    const idx = row.getAttribute('data-index');
+                    if (flatGachaItems[idx]) rarity = flatGachaItems[idx].rarity;
+                } else {
+                    // 點數可以改區段，從下拉選單即時抓取
+                    rarity = row.querySelector('.flat-rarity-sel').value;
+                }
+
+                // 累加到該區段的總和中
+                if (sectionSums[rarity] !== undefined) {
+                    sectionSums[rarity] += probVal;
+                }
+            });
             
+            // 1. 更新右上角全域總和
             const liveSumEl = document.getElementById('live-prob-sum');
-            liveSumEl.innerText = sum.toFixed(2) + "%";
-            
-            if (Math.abs(sum - 100) > 0.01) {
-                liveSumEl.style.color = "#e74c3c"; // 錯誤時變紅
-            } else {
-                liveSumEl.style.color = "#2ecc71"; // 100% 時變綠
+            if (liveSumEl) {
+                liveSumEl.innerText = totalSum.toFixed(2) + "%";
+                if (Math.abs(totalSum - 100) > 0.01) {
+                    liveSumEl.style.color = "#e74c3c"; // 錯誤時變紅
+                } else {
+                    liveSumEl.style.color = "#2ecc71"; // 100% 時變綠
+                }
             }
-            return sum;
+
+            // 2. 🚀 即時更新各區段的總和數字
+            ['N', 'R', 'SR', 'SSR'].forEach(r => {
+                const secEl = document.getElementById(`section-sum-${r}`);
+                if (secEl) {
+                    secEl.innerText = sectionSums[r].toFixed(2);
+                }
+            });
+
+            return totalSum;
         }
 
         // 🚀 儲存核心：攔截總和驗證
