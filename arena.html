@@ -3707,20 +3707,20 @@
       // 🚀 讀取動態權重配置，若無則使用預設值
       const gamiW = window.gamiConfig ? window.gamiConfig.gachaWeights : { 'N': 2, 'R': 0.8, 'SR': 0.2, 'SSR': 0.1 };
 
-      // 1. 保留原本固定的「點數獎池」，並依據管理員的權重來「動態縮放」點數中獎機率！
-      // (例如：N卡的基準是 85，就除以 85 再乘上 N的總權重，讓點數機率跟角色機率完美掛鉤)
+      // 🚀 1. 核心修復：恢復點數獎池的「絕對權重」！不再跟角色權重相乘！
+      // 這樣點數總權重約為 96，角色總權重約為 3.1，角色綜合中獎率就會回歸正常的 ~3% 盲盒經濟學！
       let pool = [
-          { type: 'points', value: 0, label: '0 點', class: 'prize-N', glow: 'crack-white', weight: (40/85) * gamiW['N'] },
-          { type: 'points', value: 5, label: '5 點', class: 'prize-N', glow: 'crack-white', weight: (30/85) * gamiW['N'] },
-          { type: 'points', value: 10, label: '10 點', class: 'prize-N', glow: 'crack-white', weight: (15/85) * gamiW['N'] },
-          { type: 'points', value: 20, label: '20 點', class: 'prize-R', glow: 'crack-white', weight: (4/9) * gamiW['R'] },
-          { type: 'points', value: 30, label: '30 點', class: 'prize-R', glow: 'crack-white', weight: (3/9) * gamiW['R'] },
-          { type: 'points', value: 50, label: '50 點', class: 'prize-R', glow: 'crack-white', weight: (2/9) * gamiW['R'] },
-          { type: 'points', value: 70, label: '70 點', class: 'prize-SR', glow: 'crack-purple', weight: (1/1.8) * gamiW['SR'] },
-          { type: 'points', value: 90, label: '90 點', class: 'prize-SR', glow: 'crack-purple', weight: (0.5/1.8) * gamiW['SR'] },
-          { type: 'points', value: 150, label: '150 點', class: 'prize-SR', glow: 'crack-purple', weight: (0.3/1.8) * gamiW['SR'] },
-          { type: 'points', value: 500, label: '500 點', class: 'prize-SSR', glow: 'crack-gold', weight: 0.5 * gamiW['SSR'] },
-          { type: 'points', value: 888, label: '888 點', class: 'prize-SSR', glow: 'crack-gold', weight: 0.5 * gamiW['SSR'] }
+          { type: 'points', value: 0, label: '0 點', class: 'prize-N', glow: 'crack-white', weight: 40 },
+          { type: 'points', value: 5, label: '5 點', class: 'prize-N', glow: 'crack-white', weight: 30 },
+          { type: 'points', value: 10, label: '10 點', class: 'prize-N', glow: 'crack-white', weight: 15 },
+          { type: 'points', value: 20, label: '20 點', class: 'prize-R', glow: 'crack-white', weight: 4 },
+          { type: 'points', value: 30, label: '30 點', class: 'prize-R', glow: 'crack-white', weight: 3 },
+          { type: 'points', value: 50, label: '50 點', class: 'prize-R', glow: 'crack-white', weight: 2 },
+          { type: 'points', value: 70, label: '70 點', class: 'prize-SR', glow: 'crack-purple', weight: 1 },
+          { type: 'points', value: 90, label: '90 點', class: 'prize-SR', glow: 'crack-purple', weight: 0.5 },
+          { type: 'points', value: 150, label: '150 點', class: 'prize-SR', glow: 'crack-purple', weight: 0.3 },
+          { type: 'points', value: 500, label: '500 點', class: 'prize-SSR', glow: 'crack-gold', weight: 0.1 },
+          { type: 'points', value: 888, label: '888 點', class: 'prize-SSR', glow: 'crack-gold', weight: 0.1 }
       ];
 
       // 2. 從全域圖鑑中，篩選出第 J 欄 (Category) 為「一般」的角色
@@ -3732,7 +3732,7 @@
           if (counts[char.rarity] !== undefined) counts[char.rarity]++;
       });
 
-      // 5. 將「一般」角色動態加入獎池，自動計算平分權重與開卡特效
+      // 4. 將「一般」角色動態加入獎池，自動計算平分權重與開卡特效
       normalAvatars.forEach(([id, char]) => {
           let r = char.rarity;
           // 計算單張卡片的專屬權重 (動態總權重 ÷ 該稀有度總數量)
