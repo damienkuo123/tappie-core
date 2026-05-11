@@ -602,22 +602,12 @@
                             <input type="number" id="gami-pass-score" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;">
                         </div>
                         <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:10px 0;">
-                        
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center; color:#f1c40f; font-size:12px; font-weight:bold; margin-bottom:5px;">
                             <span>分數達標 (≥)</span><span>獲得點數</span>
                         </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;">
-                            <input type="number" id="gami-t1-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
-                            <input type="number" id="gami-t1-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
-                        </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;">
-                            <input type="number" id="gami-t2-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
-                            <input type="number" id="gami-t2-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
-                        </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;">
-                            <input type="number" id="gami-t3-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
-                            <input type="number" id="gami-t3-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
-                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t1-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-t1-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t2-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-t2-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t3-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-t3-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
                     </div>
                 </div>
 
@@ -625,56 +615,22 @@
                     <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🏅 單元任務與扣點規則 ▾</div>
                     <div class="accordion-body">
                         <p style="color:#e74c3c; font-size:13px; font-weight:bold; margin:0 0 10px 0;">▼ 未達標懲罰</p>
-                        
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <span style="color:#cbd5e1; font-size:13px; font-weight:bold;">安全門檻 (低於幾次扣點)</span>
-                            <input type="number" id="gami-fail-th" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;">
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <span style="color:#cbd5e1; font-size:13px; font-weight:bold;">0次基礎扣點 (輸入負數)</span>
-                            <input type="number" id="gami-fail-base" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; color:#e74c3c; flex:none;">
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                            <span style="color:#cbd5e1; font-size:13px; font-weight:bold;">每多練 1 次挽回多少點</span>
-                            <input type="number" id="gami-fail-step" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;">
-                        </div>
-                        
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold;">安全門檻 (低於幾次扣點)</span><input type="number" id="gami-fail-th" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;"></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold;">0次基礎扣點 (負數)</span><input type="number" id="gami-fail-base" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; color:#e74c3c; flex:none;"></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold;">每多練1次挽回多少點</span><input type="number" id="gami-fail-step" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;"></div>
                         <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:10px 0;">
                         <p style="color:#2ecc71; font-size:13px; font-weight:bold; margin:0 0 10px 0;">▲ 達標獎勵</p>
-                        
-                        <div style="margin-bottom:15px;">
-                            <div style="color:#cbd5e1; font-size:13px; font-weight:bold; margin-bottom:8px;">達標門檻 (次) / 獎勵點數</div>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                                <input type="number" id="gami-good-th" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;" placeholder="次數">
-                                <input type="number" id="gami-good-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; color:#2ecc71;" placeholder="點數">
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom:10px;">
-                            <div style="color:#cbd5e1; font-size:13px; font-weight:bold; margin-bottom:8px;">卓越門檻 (次) / 獎勵點數</div>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                                <input type="number" id="gami-perf-th" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;" placeholder="次數">
-                                <input type="number" id="gami-perf-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; color:#2ecc71;" placeholder="點數">
-                            </div>
-                        </div>
+                        <div style="margin-bottom:15px;"><div style="color:#cbd5e1; font-size:13px; font-weight:bold; margin-bottom:8px;">達標門檻 (次) / 獎勵點數</div><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="gami-good-th" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-good-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; color:#2ecc71;"></div></div>
+                        <div style="margin-bottom:10px;"><div style="color:#cbd5e1; font-size:13px; font-weight:bold; margin-bottom:8px;">卓越門檻 (次) / 獎勵點數</div><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="gami-perf-th" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-perf-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; color:#2ecc71;"></div></div>
                     </div>
                 </div>
 
                 <div class="accordion-group">
                     <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🏆 排行榜給點規則 ▾</div>
                     <div class="accordion-body">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥇 第一名獎勵</span>
-                            <input type="number" id="gami-lb-1" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;">
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥈 第二名獎勵</span>
-                            <input type="number" id="gami-lb-2" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;">
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥉 第三名獎勵</span>
-                            <input type="number" id="gami-lb-3" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;">
-                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥇 第一名獎勵</span><input type="number" id="gami-lb-1" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;"></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥈 第二名獎勵</span><input type="number" id="gami-lb-2" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;"></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥉 第三名獎勵</span><input type="number" id="gami-lb-3" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;"></div>
                     </div>
                 </div>
 
@@ -683,49 +639,27 @@
                     <div class="accordion-body">
                         <p style="color:#3498db; font-size:13px; font-weight:bold; margin:0 0 10px 0;">勝場獲得盲盒數量</p>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <div style="flex:1;">
-                                <div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">初階 AI</div>
-                                <select id="gami-pick-easy" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
-                                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                                </select>
-                            </div>
-                            <div style="flex:1;">
-                                <div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">中階 AI</div>
-                                <select id="gami-pick-med" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
-                                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                                </select>
-                            </div>
-                            <div style="flex:1;">
-                                <div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">高階 AI</div>
-                                <select id="gami-pick-hard" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
-                                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                                </select>
-                            </div>
+                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">初階 AI</div><select id="gami-pick-easy" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">中階 AI</div><select id="gami-pick-med" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">高階 AI</div><select id="gami-pick-hard" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
                         </div>
                         <div style="display:flex; gap:10px; margin-bottom:15px;">
-                            <div style="flex:1;">
-                                <div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">玩家對戰</div>
-                                <select id="gami-pick-pvp" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;">
-                                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                                </select>
-                            </div>
-                            <div style="flex:1;">
-                                <div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">活動 Boss</div>
-                                <select id="gami-pick-boss" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; background-color: rgba(0,0,0,0.8); cursor: not-allowed;" disabled title="活動 Boss 固定為 1 次">
-                                    <option value="1">1</option>
-                                </select>
-                            </div>
+                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">玩家對戰</div><select id="gami-pick-pvp" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">活動 Boss</div><select id="gami-pick-boss" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; background-color: rgba(0,0,0,0.8); cursor: not-allowed;" disabled title="活動 Boss 固定為 1 次"><option value="1">1</option></select></div>
                         </div>
                         
                         <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:15px 0;">
-                        <p style="color:#f1c40f; font-size:14px; font-weight:900; margin:0 0 5px 0; text-align:center;">🌟 獎池機率分配矩陣 🌟</p>
-                        <p style="color:#94a3b8; font-size:11px; font-weight:bold; margin:0 0 15px 0; text-align:center;">(修改單一數值，系統會自動按比例分配剩餘機率，總和永遠 100%)</p>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <p style="color:#f1c40f; font-size:15px; font-weight:900; margin:0;">🌟 絕對機率分配清單</p>
+                            <div style="background:rgba(0,0,0,0.4); padding:4px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); font-size:12px; font-weight:bold;">
+                                總和：<span id="live-prob-sum" style="color:#2ecc71; font-size:14px;">0%</span>
+                            </div>
+                        </div>
+                        <p style="color:#94a3b8; font-size:11px; font-weight:bold; margin:0 0 15px 0;">設定真實中獎率。點數可切換區段，角色區段由商店決定。各區段會自動排序。</p>
                         
-                        <div id="gacha-tiers-container"></div>
+                        <div id="gacha-flat-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px; max-height:350px; overflow-y:auto; padding-right:5px;"></div>
+                        
+                        <button class="btn-action" style="background:rgba(46,204,113,0.15); color:#2ecc71; font-size:14px; padding:12px; width:100%; border:1px dashed #2ecc71;" onclick="addFlatPointRow(10, 'N', 1)">➕ 新增一組點數獎項</button>
                     </div>
                 </div>
 
@@ -744,6 +678,27 @@
             <div style="display:flex; gap:10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
                 <button id="save-gami-btn" class="btn-action" style="background:#f39c12; color:#0f172a; font-size:16px; padding:15px; flex:1;" onclick="saveGamification()">🚀 儲存全域數值</button>
                 <button class="btn-action btn-gray" style="font-size:16px; padding:15px; flex:0.4;" onclick="closeModal('gamiModal')">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="probCheckModal" class="modal-overlay" style="z-index: 10500;">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 320px; text-align: center;">
+            <h3 style="color:#e74c3c; margin-top:0; font-size:22px; font-weight:900;">⚖️ 機率總和異常</h3>
+            <p style="color:#cbd5e1; font-size:14px; margin-bottom:15px; line-height: 1.5;">所有獎項的真實機率加總必須剛好等於 100%。</p>
+            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.1);">
+                <div style="font-size:13px; color:#94a3b8; margin-bottom:5px;">目前總和</div>
+                <div id="prob-current-sum" style="font-size:36px; font-weight:900; color:#f1c40f;">95%</div>
+                <div id="prob-diff-text" style="font-size:14px; font-weight:bold; color:#e74c3c; margin-top:5px;">(少了 5%)</div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn-action btn-gray" style="font-size:15px; padding:12px;" onclick="document.getElementById('probCheckModal').style.display='none'">
+                    🔙 取消儲存，我手動調整
+                </button>
+                <button class="btn-action" style="background:linear-gradient(135deg, #00b894, #00cec9); font-size:15px; padding:12px; box-shadow:0 5px 15px rgba(0,184,148,0.3);" onclick="autoNormalizeProbabilities()">
+                    ✨ 系統自動調整成 100%
+                </button>
             </div>
         </div>
     </div>
@@ -1599,17 +1554,22 @@
         }
 
         // =======================================================
-        // 🕹️ 遊戲化數值中控台與商店定價引擎 (100% 動態機率版)
+        // 🕹️ 遊戲化數值中控台與商店定價引擎 (老闆指定：絕對機率直列版)
         // =======================================================
         
-        let currentShopAvatars = []; // 暫存商店裡的角色供卡池比對使用
+        let currentShopAvatars = []; // 暫存商店角色
+        let flatGachaItems = []; // 展平後的卡池資料
 
-        // 🚀 新增：SaaS 系統出廠預設值 (當新校區剛建立，或舊校區尚未儲存新設定時使用)
-        const DEFAULT_GACHA_POOLS = [
-            { rarity: 'N', prob: 70, items: [{ type: 'points', value: 0, prob: 30 }, { type: 'points', value: 5, prob: 40 }, { type: 'points', value: 10, prob: 30 }] },
-            { rarity: 'R', prob: 20, items: [{ type: 'points', value: 20, prob: 50 }, { type: 'points', value: 30, prob: 30 }, { type: 'points', value: 50, prob: 20 }] },
-            { rarity: 'SR', prob: 8, items: [{ type: 'points', value: 70, prob: 60 }, { type: 'points', value: 90, prob: 30 }, { type: 'points', value: 150, prob: 10 }] },
-            { rarity: 'SSR', prob: 2, items: [{ type: 'points', value: 500, prob: 70 }, { type: 'points', value: 888, prob: 30 }] }
+        const DEFAULT_GACHA_ITEMS = [
+            { type: 'points', value: 0, rarity: 'N', prob: 25 },
+            { type: 'points', value: 5, rarity: 'N', prob: 20 },
+            { type: 'points', value: 10, rarity: 'N', prob: 15 },
+            { type: 'points', value: 20, rarity: 'R', prob: 15 },
+            { type: 'points', value: 30, rarity: 'R', prob: 10 },
+            { type: 'points', value: 50, rarity: 'R', prob: 8 },
+            { type: 'points', value: 70, rarity: 'SR', prob: 4 },
+            { type: 'points', value: 90, rarity: 'SR', prob: 2 },
+            { type: 'points', value: 500, rarity: 'SSR', prob: 1 }
         ];
 
         function openGamiModal() {
@@ -1617,7 +1577,6 @@
             document.getElementById('gamiModal').style.display = 'flex';
             document.getElementById('gami-status').innerText = "讀取設定中...";
             
-            // 🚀 同時請求「遊戲設定」與「商店角色清單」
             Promise.all([
                 fetch(`${GAS_URL}?action=get_gamification_config&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN`, { method: 'POST' }).then(r => r.json()),
                 fetch(`${GAS_URL}?action=get_shop_items_admin&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN`, { method: 'POST' }).then(r => r.json())
@@ -1626,10 +1585,8 @@
                 document.getElementById('gami-status').innerText = "";
                 if (!config || !config.dailyChallenge) return;
 
-                // 過濾掉隱藏的 AI 角色，只留下學生抽得到的
                 currentShopAvatars = (shopData || []).filter(item => !item.id.startsWith("AI_"));
 
-                // 填入挑戰、任務、排行榜設定
                 document.getElementById('gami-pass-score').value = config.dailyChallenge.passScore;
                 document.getElementById('gami-t1-min').value = config.dailyChallenge.tiers[0].min;
                 document.getElementById('gami-t1-pts').value = config.dailyChallenge.tiers[0].pts;
@@ -1654,16 +1611,25 @@
                 document.getElementById('gami-pick-med').value = config.gachaPicks["中階Ai"];
                 document.getElementById('gami-pick-hard').value = config.gachaPicks["高階Ai"];
                 document.getElementById('gami-pick-pvp').value = config.gachaPicks["玩家對戰"];
-                
-                // 這裡原本讀取 gachaWeights 的地方已經刪除，因為現在是用 gachaPools 取代了！
 
                 const passInput = document.getElementById('gami-pass-score');
                 const t3MinInput = document.getElementById('gami-t3-min');
                 passInput.oninput = function() { t3MinInput.value = this.value; };
 
-                // 🚀 核心渲染：如果 config 裡面沒有 gachaPools (舊版設定)，就自動套用 DEFAULT_GACHA_POOLS
-                const poolsToRender = (config.gachaPools && config.gachaPools.length > 0) ? config.gachaPools : DEFAULT_GACHA_POOLS;
-                renderGachaTiersUI(poolsToRender);
+                // 🚀 核心轉換：載入 flatGachaItems
+                flatGachaItems = (config.gachaItems && config.gachaItems.length > 0) ? config.gachaItems : DEFAULT_GACHA_ITEMS;
+                
+                // 將商店裡的新角色，自動以 0% 補進列表
+                currentShopAvatars.forEach(av => {
+                    let existing = flatGachaItems.find(i => i.type === 'avatar' && String(i.value) === String(av.id));
+                    if (existing) {
+                        existing.rarity = av.rarity; // 確保稀有度跟商店一致
+                    } else {
+                        flatGachaItems.push({ type: 'avatar', value: av.id, rarity: av.rarity, prob: 0 });
+                    }
+                });
+
+                renderFlatGachaUI();
             })
             .catch(err => {
                 document.getElementById('gami-status').innerText = "⚠️ 讀取失敗，請重試";
@@ -1671,206 +1637,188 @@
             });
         }
 
-        // 🎨 渲染動態卡池 UI
-        function renderGachaTiersUI(savedPools) {
-            const container = document.getElementById('gacha-tiers-container');
+        // 🎨 渲染一直排的 UI (按 Rarity 群組與機率高低排序)
+        function renderFlatGachaUI() {
+            const container = document.getElementById('gacha-flat-container');
             container.innerHTML = "";
 
-            // 定義四大稀有度 (確保順序與顏色)
-            const rarities = [
-                { r: 'N', color: '#ecf0f1', border: 'rgba(255,255,255,0.2)' },
-                { r: 'R', color: '#3498db', border: 'rgba(52,152,219,0.4)' },
-                { r: 'SR', color: '#9b59b6', border: 'rgba(155,89,182,0.4)' },
-                { r: 'SSR', color: '#f1c40f', border: 'rgba(241,196,15,0.4)' }
-            ];
+            // 依照 SSR -> SR -> R -> N 的順序，且同區段內依據機率由高到低排列
+            const rarityOrder = { 'SSR': 1, 'SR': 2, 'R': 3, 'N': 4 };
+            const rarityColors = { 'N': '#bdc3c7', 'R': '#3498db', 'SR': '#9b59b6', 'SSR': '#f1c40f' };
 
-            // 頂層機率容器 (用於 100% 連動)
-            let topProbHtml = `<div class="tier-prob-group" style="display:flex; gap:8px; margin-bottom:15px;">`;
+            flatGachaItems.sort((a, b) => {
+                if (rarityOrder[a.rarity] !== rarityOrder[b.rarity]) {
+                    return rarityOrder[a.rarity] - rarityOrder[b.rarity];
+                }
+                return b.prob - a.prob; // 同區段機率高的在前面
+            });
 
-            rarities.forEach((tierDef, tIndex) => {
-                // 找出該稀有度在資料庫中的設定，如果沒有就預設
-                let poolData = savedPools.find(p => p.rarity === tierDef.r) || { prob: (tIndex===0?100:0), items: [] };
-                
-                // 1. 建立頂層的機率輸入框
-                topProbHtml += `
-                    <div style="flex:1; background:rgba(0,0,0,0.4); border:1px solid ${tierDef.border}; border-radius:12px; padding:10px 5px; text-align:center;">
-                        <div style="color:${tierDef.color}; font-weight:900; font-size:14px; margin-bottom:5px;">${tierDef.r} 卡</div>
-                        <div style="display:flex; align-items:center; justify-content:center;">
-                            <input type="number" step="0.1" class="word-input top-prob-inp" data-rarity="${tierDef.r}" value="${poolData.prob}" style="width:100%; padding:4px; font-size:13px; text-align:center;">
-                            <span style="font-size:12px; margin-left:2px; color:#cbd5e1;">%</span>
-                        </div>
-                    </div>`;
+            let currentRarityHeader = "";
 
-                // 2. 建立各稀有度內部的物品清單 (包含角色與點數)
-                // 找出屬於這個稀有度的角色
-                const tierAvatars = currentShopAvatars.filter(av => av.rarity === tierDef.r);
-                
-                // 整理該層的所有項目
-                let innerItemsHtml = '';
-                
-                // A. 先印出角色 (不可刪除)
-                tierAvatars.forEach(av => {
-                    // 從存檔中找這個角色的機率，若無則給 0
-                    let savedItem = poolData.items.find(i => i.type === 'avatar' && i.value === av.id);
-                    let iProb = savedItem ? savedItem.prob : 0;
-                    
-                    innerItemsHtml += `
-                        <div class="inner-prob-row" data-type="avatar" data-val="${av.id}" style="display:flex; align-items:center; gap:10px; margin-bottom:8px; background:rgba(255,255,255,0.05); padding:8px; border-radius:8px;">
-                            <span style="font-size:18px;">🎭</span>
-                            <span style="flex:1; font-size:14px; font-weight:bold; color:white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${av.name}</span>
-                            <input type="number" step="0.1" class="word-input inner-prob-inp" value="${iProb}" style="width:60px; padding:6px; font-size:13px; flex:none;">
-                            <span style="font-size:12px; color:#cbd5e1; width:15px;">%</span>
+            flatGachaItems.forEach((item, index) => {
+                // 畫出區段分隔線與該區段的加總機率
+                if (item.rarity !== currentRarityHeader) {
+                    currentRarityHeader = item.rarity;
+                    let sectionTotal = flatGachaItems.filter(i => i.rarity === currentRarityHeader).reduce((sum, i) => sum + Number(i.prob), 0);
+                    container.innerHTML += `
+                        <div style="color:${rarityColors[currentRarityHeader]}; font-size:14px; font-weight:900; margin: 10px 0 0 5px; border-bottom: 2px solid ${rarityColors[currentRarityHeader]}40; padding-bottom: 6px; display:flex; justify-content:space-between;">
+                            <span>■ ${currentRarityHeader} 區段</span>
+                            <span>區段總和: ${sectionTotal.toFixed(2)}%</span>
                         </div>`;
-                });
+                }
 
-                // B. 印出點數 (可以修改面額、可以刪除)
-                let pointItems = poolData.items.filter(i => i.type === 'points');
-                pointItems.forEach(pt => {
-                    innerItemsHtml += createPointRowHtml(pt.value, pt.prob);
-                });
+                let isAvatar = item.type === 'avatar';
+                let displayName = "";
+                if (isAvatar) {
+                    let shopItem = currentShopAvatars.find(av => av.id === item.value);
+                    displayName = shopItem ? shopItem.name : "未知角色";
+                }
 
-                // 組合該稀有度的區塊
-                container.innerHTML += `
-                    <div class="tier-pool-section" id="pool-section-${tierDef.r}" style="background:rgba(0,0,0,0.2); border:1px solid ${tierDef.border}; border-radius:15px; padding:15px; margin-bottom:15px;">
-                        <h4 style="margin:0 0 10px 0; color:${tierDef.color}; font-size:15px; display:flex; justify-content:space-between; align-items:center;">
-                            <span>📦 ${tierDef.r} 內容物機率分配</span>
-                            <span style="font-size:12px; color:#cbd5e1; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:10px;">總計需為 100%</span>
-                        </h4>
-                        
-                        <div class="inner-items-container" id="inner-container-${tierDef.r}">
-                            ${innerItemsHtml}
-                        </div>
-                        
-                        <button class="btn-action" style="background:transparent; color:${tierDef.color}; border:1px dashed ${tierDef.color}; font-size:13px; padding:8px; width:100%; margin-top:5px;" onclick="addPointToTier('${tierDef.r}')">
-                            ➕ 新增點數獎項
-                        </button>
-                    </div>
-                `;
+                let rowHtml = `
+                <div class="flat-item-row" data-index="${index}" data-type="${item.type}" data-val="${item.value}" style="display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.4); padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                    <span style="font-size:16px; flex:none;">${isAvatar ? '🎭' : '💰'}</span>`;
+                
+                if (isAvatar) {
+                    // 角色不可改區段、不可刪除
+                    rowHtml += `
+                    <span style="flex:1; font-size:13px; font-weight:bold; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${displayName}">${displayName}</span>
+                    <span style="width:45px; font-size:11px; color:#cbd5e1; text-align:center;">(鎖定)</span>`;
+                } else {
+                    // 點數可以改面額、改區段
+                    rowHtml += `
+                    <input type="number" class="word-input flat-pts-val" value="${item.value}" style="flex:1; padding:6px; font-size:13px; text-align:center; min-width:0;">
+                    <select class="word-input flat-rarity-sel" style="width:55px; padding:6px; font-size:12px; flex:none; text-align:center; appearance:none;" onchange="updateFlatDataAndRender()">
+                        <option value="N" ${item.rarity==='N'?'selected':''}>N</option>
+                        <option value="R" ${item.rarity==='R'?'selected':''}>R</option>
+                        <option value="SR" ${item.rarity==='SR'?'selected':''}>SR</option>
+                        <option value="SSR" ${item.rarity==='SSR'?'selected':''}>SSR</option>
+                    </select>`;
+                }
+
+                rowHtml += `
+                    <input type="number" step="0.01" min="0" class="word-input flat-prob-inp" value="${item.prob}" style="width:60px; padding:6px; font-size:13px; text-align:center; flex:none;" oninput="updateLiveSum()">
+                    <span style="font-size:12px; color:#cbd5e1; width:12px;">%</span>`;
+                
+                if (!isAvatar) {
+                    rowHtml += `<button onclick="deleteFlatItem(${index})" style="background:rgba(231,76,60,0.2); border:1px solid #e74c3c; color:#e74c3c; border-radius:6px; width:26px; height:26px; font-size:12px; cursor:pointer; flex:none;">✖</button>`;
+                } else {
+                    rowHtml += `<div style="width:26px; flex:none;"></div>`; // 角色不能刪除，佔位符
+                }
+
+                rowHtml += `</div>`;
+                container.innerHTML += rowHtml;
             });
 
-            topProbHtml += `</div>`;
-            container.insertAdjacentHTML('afterbegin', topProbHtml); // 把頂層機率插在最前面
-
-            // 🚀 啟動自適應 100% 引擎！
-            attachAutoBalance('.tier-prob-group', '.top-prob-inp');
-            rarities.forEach(t => attachAutoBalance(`#pool-section-${t.r}`, '.inner-prob-inp'));
+            updateLiveSum();
         }
 
-        // 幫指定層新增一行點數
-        window.addPointToTier = function(rarity) {
-            const container = document.getElementById(`inner-container-${rarity}`);
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = createPointRowHtml(10, 0); // 預設 10 點，0%
-            container.appendChild(tempDiv.firstElementChild);
-            // 重新綁定該層的連動引擎
-            attachAutoBalance(`#pool-section-${rarity}`, '.inner-prob-inp');
-        };
-
-        // 刪除點數獎項 (綁在按鈕上的 onclick)
-        window.removePointRow = function(btnEl) {
-            const container = btnEl.closest('.tier-pool-section');
-            btnEl.closest('.inner-prob-row').remove();
-            // 重新綁定連動引擎
-            attachAutoBalance(`#${container.id}`, '.inner-prob-inp');
-        };
-
-        // 產生點數 HTML 字串
-        function createPointRowHtml(val, prob) {
-            return `
-                <div class="inner-prob-row" data-type="points" style="display:flex; align-items:center; gap:10px; margin-bottom:8px; background:rgba(0,0,0,0.4); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                    <span style="font-size:18px;">💰</span>
-                    <input type="number" class="word-input point-val-inp" value="${val}" style="flex:1; padding:6px; font-size:14px; text-align:center;">
-                    <span style="font-size:13px; font-weight:bold; color:#f1c40f;">點</span>
-                    <input type="number" step="0.1" class="word-input inner-prob-inp" value="${prob}" style="width:60px; padding:6px; font-size:13px; flex:none;">
-                    <span style="font-size:12px; color:#cbd5e1; width:15px;">%</span>
-                    <button onclick="removePointRow(this)" style="background:rgba(231,76,60,0.2); border:1px solid #e74c3c; color:#e74c3c; border-radius:6px; width:28px; height:28px; display:flex; justify-content:center; align-items:center; cursor:pointer;">✖</button>
-                </div>`;
+        function addFlatPointRow(val, rarity, prob) {
+            syncInputToFlatData(); 
+            flatGachaItems.push({ type: 'points', value: val, rarity: rarity, prob: prob });
+            renderFlatGachaUI(); // 重新排序渲染
         }
 
-        // 🚀 核心黑魔法：100% 比例自動連動平衡器
-        function attachAutoBalance(containerSelector, inputSelector) {
-            const container = document.querySelector(containerSelector);
-            if (!container) return;
-            const inputs = Array.from(container.querySelectorAll(inputSelector));
+        function deleteFlatItem(index) {
+            syncInputToFlatData();
+            flatGachaItems.splice(index, 1);
+            renderFlatGachaUI();
+        }
+
+        function updateFlatDataAndRender() {
+            syncInputToFlatData();
+            renderFlatGachaUI(); // 只要改了下拉選單區段，立刻重新排序！
+        }
+
+        // 把畫面上輸入的最新數字，同步回 flatGachaItems 陣列
+        function syncInputToFlatData() {
+            const rows = document.querySelectorAll('.flat-item-row');
+            rows.forEach(row => {
+                const idx = row.getAttribute('data-index');
+                const isAvatar = row.getAttribute('data-type') === 'avatar';
+                
+                let probVal = parseFloat(row.querySelector('.flat-prob-inp').value) || 0;
+                if(probVal < 0) probVal = 0; // 防呆
+                flatGachaItems[idx].prob = probVal;
+
+                if (!isAvatar) {
+                    flatGachaItems[idx].value = parseInt(row.querySelector('.flat-pts-val').value) || 0;
+                    flatGachaItems[idx].rarity = row.querySelector('.flat-rarity-sel').value;
+                }
+            });
+        }
+
+        function updateLiveSum() {
+            const probInputs = document.querySelectorAll('.flat-prob-inp');
+            let sum = 0;
+            probInputs.forEach(inp => sum += (parseFloat(inp.value) || 0));
             
-            // 初始化 dataset.prev
-            inputs.forEach(inp => inp.dataset.prev = inp.value || 0);
-
-            inputs.forEach(inp => {
-                // 移除舊的監聽器以免重複綁定
-                inp.onchange = null;
-                inp.onchange = function(e) {
-                    let changedVal = parseFloat(e.target.value) || 0;
-                    if(changedVal < 0) changedVal = 0; 
-                    if(changedVal > 100) changedVal = 100;
-                    e.target.value = changedVal.toFixed(1);
-
-                    let remaining = 100 - changedVal;
-                    let sumOthers = 0;
-                    
-                    // 算出除了自己以外，其他人原本加起來是多少
-                    inputs.forEach(other => {
-                        if(other !== e.target) sumOthers += parseFloat(other.dataset.prev) || 0;
-                    });
-
-                    // 將剩下的空間，按照原本的比例分配給其他人
-                    inputs.forEach(other => {
-                        if(other !== e.target) {
-                            if (inputs.length === 1) {
-                                // 只有一個輸入框，強制 100
-                                other.value = "100.0";
-                            } else if(sumOthers === 0) {
-                                // 如果其他人原本都是 0，那就平分剩下的
-                                other.value = (remaining / (inputs.length - 1)).toFixed(1);
-                            } else {
-                                // 按比例縮放
-                                let oldVal = parseFloat(other.dataset.prev) || 0;
-                                other.value = ((oldVal / sumOthers) * remaining).toFixed(1);
-                            }
-                            other.dataset.prev = other.value; // 同步紀錄
-                        }
-                    });
-                    e.target.dataset.prev = e.target.value; // 同步紀錄
-                };
-            });
+            const liveSumEl = document.getElementById('live-prob-sum');
+            liveSumEl.innerText = sum.toFixed(2) + "%";
+            
+            if (Math.abs(sum - 100) > 0.01) {
+                liveSumEl.style.color = "#e74c3c"; // 錯誤時變紅
+            } else {
+                liveSumEl.style.color = "#2ecc71"; // 100% 時變綠
+            }
+            return sum;
         }
 
+        // 🚀 儲存核心：攔截總和驗證
         function saveGamification() {
+            syncInputToFlatData(); // 確保抓到最新數據
+            const sum = updateLiveSum();
+
+            if (Math.abs(sum - 100) > 0.01) {
+                // 不滿 100%，觸發跳窗！
+                const diff = (100 - sum).toFixed(2);
+                document.getElementById('prob-current-sum').innerText = sum.toFixed(2) + "%";
+                document.getElementById('prob-diff-text').innerText = sum > 100 ? `(多了 ${Math.abs(diff)}%)` : `(少了 ${diff}%)`;
+                document.getElementById('prob-diff-text').style.color = sum > 100 ? "#e67e22" : "#e74c3c";
+                document.getElementById('probCheckModal').style.display = 'flex';
+                return;
+            }
+            
+            executeSaveToBackend();
+        }
+
+        // ✨ 自動比例校正器 (Auto-Normalize)
+        function autoNormalizeProbabilities() {
+            document.getElementById('probCheckModal').style.display = 'none';
+            syncInputToFlatData();
+            
+            let sum = 0;
+            flatGachaItems.forEach(i => sum += i.prob);
+            
+            if (sum === 0) {
+                alert("目前機率全部是 0！系統無法分配，請手動填寫。");
+                return;
+            }
+
+            // 依據原始比例放大縮小
+            let newSum = 0;
+            flatGachaItems.forEach(i => {
+                i.prob = parseFloat(((i.prob / sum) * 100).toFixed(2));
+                newSum += i.prob;
+            });
+
+            // 處理小數點四捨五入的微小誤差 (例如加起來變 99.99)，補給最高機率的那個
+            if (Math.abs(newSum - 100) > 0.001) {
+                flatGachaItems.sort((a, b) => b.prob - a.prob);
+                let diff = 100 - newSum;
+                flatGachaItems[0].prob = parseFloat((flatGachaItems[0].prob + diff).toFixed(2));
+            }
+
+            renderFlatGachaUI(); // 畫面更新
+            alert("✨ 系統已將機率完美調整為 100%，請確認無誤後再次點擊儲存！");
+        }
+
+        // 真正的後端儲存函式
+        function executeSaveToBackend() {
             const btn = document.getElementById('save-gami-btn');
             const statusEl = document.getElementById('gami-status');
             btn.innerText = "⏳ 儲存中...";
             btn.style.pointerEvents = "none";
             statusEl.innerText = "";
-
-            // 🚀 搜集並打包全新的 gachaPools 資料
-            let newGachaPools = [];
-            const rarities = ['N', 'R', 'SR', 'SSR'];
-            
-            // 抓取頂層機率
-            const topProbs = Array.from(document.querySelectorAll('.top-prob-inp'));
-            
-            rarities.forEach(r => {
-                let rProbInp = topProbs.find(inp => inp.getAttribute('data-rarity') === r);
-                let rProb = rProbInp ? Number(rProbInp.value) : 0;
-
-                let itemsArr = [];
-                const section = document.getElementById(`pool-section-${r}`);
-                if (section) {
-                    const rows = section.querySelectorAll('.inner-prob-row');
-                    rows.forEach(row => {
-                        let iType = row.getAttribute('data-type'); // avatar or points
-                        let iProb = Number(row.querySelector('.inner-prob-inp').value);
-                        
-                        if (iType === 'avatar') {
-                            itemsArr.push({ type: 'avatar', value: row.getAttribute('data-val'), prob: iProb });
-                        } else if (iType === 'points') {
-                            itemsArr.push({ type: 'points', value: Number(row.querySelector('.point-val-inp').value), prob: iProb });
-                        }
-                    });
-                }
-                
-                newGachaPools.push({ rarity: r, prob: rProb, items: itemsArr });
-            });
 
             const newConfig = {
                 dailyChallenge: {
@@ -1902,7 +1850,7 @@
                     "玩家對戰": Number(document.getElementById('gami-pick-pvp').value),
                     "活動Boss": Number(document.getElementById('gami-pick-boss').value)
                 },
-                gachaPools: newGachaPools // 🚀 把大禮包塞進去！
+                gachaItems: flatGachaItems // 🚀 直接存入絕對機率清單！
             };
 
             const formData = new URLSearchParams();
