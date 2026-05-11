@@ -108,11 +108,27 @@
             .container { max-width: 550px; padding: 50px 40px; }
             .modal-content { max-width: 600px; padding: 40px; }
             
-            /* 🚀 新增：大螢幕專屬寬視窗與雙排網格引擎 */
             .modal-content.wide-modal { max-width: 900px; }
             .desktop-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
-            /* 網格內部的元件不需要下邊距，由 gap 統一控管 */
             .desktop-grid-2 > .accordion-group, .desktop-grid-2 > .brand-box { margin-bottom: 0 !important; }
+
+            /* ==============================================
+               🚀 任務與學生清單：大螢幕自適應瀑布流網格 
+               ============================================== */
+            .tm-list-zone {
+                display: grid;
+                /* 魔法核心：自動塞入欄位，每欄最少 320px，填滿剩餘空間 */
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: 20px;
+                align-content: start; /* 防止數量少時卡片被垂直拉長 */
+            }
+            
+            .tm-list-zone > p {
+                /* 讓「找不到學生」或「沒有任務」的提示文字，可以橫跨所有欄位置中 */
+                grid-column: 1 / -1; 
+                margin-top: 60px;
+                font-size: 20px;
+            }
         }
         
         /* 🚀 拖曳排序專屬物理特效 */
@@ -174,10 +190,20 @@
         
         .tm-list-zone { 
             flex: 1.2; overflow-y: auto; padding: 15px 20px 90px 20px; 
-            position: relative; z-index: 10; /* 🚀 防護裝甲三：把任務清單圖層拉高 */
+            position: relative; z-index: 10; 
+            /* 🚀 加入 Flex 排版與間距，交由 gap 統一控管距離 */
+            display: flex; flex-direction: column; gap: 15px; 
         }
         .tm-list-zone::-webkit-scrollbar { display: none; }
-        .task-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 18px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        
+        .task-card { 
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); 
+            border-radius: 20px; padding: 18px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
+            /* 🚀 移除 margin-bottom，加入寬度 100% 與 box-sizing 保證網格不變形 */
+            margin: 0; width: 100%; box-sizing: border-box; 
+        }
         .task-info { flex: 1; text-align: left; overflow: hidden; }
         .task-class { font-size: 13px; color: var(--primary-color); font-weight: 900; margin-bottom: 6px; border: 1px solid var(--primary-color); padding: 3px 8px; border-radius: 8px; display: inline-block; background: rgba(255,215,0,0.1); }
         .task-unit { font-size: 18px; font-weight: 900; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
