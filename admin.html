@@ -760,31 +760,31 @@
             <h3 class="modal-title" style="color:#2ecc71; margin-bottom:5px;">📅 排定任務時程</h3>
             <p id="cal-task-info" style="text-align:center; color:#94a3b8; font-size:14px; margin:0 0 20px 0; font-weight:bold;"></p>
             
-            <div class="cal-header">
-                <button class="cal-nav-btn" onclick="changeMonth(-1)">❮</button>
-                <div id="cal-month-title" class="cal-month-title">2026年 4月</div>
-                <button class="cal-nav-btn" onclick="changeMonth(1)">❯</button>
-            </div>
-            
-            <div class="cal-weekdays">
-                <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
-            </div>
-            
-            <div id="cal-grid" class="cal-grid">
+            <div class="modal-scroll-area" style="padding-right: 5px;">
+                <div class="cal-header">
+                    <button class="cal-nav-btn" onclick="changeMonth(-1)">❮</button>
+                    <div id="cal-month-title" class="cal-month-title">2026年 4月</div>
+                    <button class="cal-nav-btn" onclick="changeMonth(1)">❯</button>
+                </div>
+                
+                <div class="cal-weekdays">
+                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                </div>
+                
+                <div id="cal-grid" class="cal-grid">
+                    </div>
+
+                <div id="event-avatar-zone" style="display:none; flex-direction:column; gap:8px; margin-top:15px; background:rgba(0,0,0,0.2); padding:12px; border-radius:12px; border:1px solid rgba(241,196,15,0.3);">
+                    <label style="color:#f1c40f; font-size:13px; font-weight:900; letter-spacing:1px;">🎭 活動首領指派 (Event 限定)</label>
+                    <select id="event-avatar-select" style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:14px; font-weight:bold; outline:none;">
+                        <option value="">-- 請選擇首領角色 --</option>
+                    </select>
                 </div>
 
-            <div id="event-avatar-zone" style="display:none; flex-direction:column; gap:8px; margin-top:15px; background:rgba(0,0,0,0.2); padding:12px; border-radius:12px; border:1px solid rgba(241,196,15,0.3);">
-                <label style="color:#f1c40f; font-size:13px; font-weight:900; letter-spacing:1px;">🎭 活動首領指派 (Event 限定)</label>
-                <select id="event-avatar-select" style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:14px; font-weight:bold; outline:none;">
-                    <option value="">-- 請選擇首領角色 --</option>
-                </select>
-            </div>
-
-            <div style="text-align:center; margin-top:15px; font-size:13px; color:#cbd5e1; height:20px;" id="cal-status-text">
-                請點擊選擇「開始日期」
-            </div>
-            
-            <div style="display:flex; gap:10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div style="text-align:center; margin-top:15px; font-size:13px; color:#cbd5e1; height:20px;" id="cal-status-text">
+                    請點擊選擇「開始日期」
+                </div>
+            </div> <div style="display:flex; gap:10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
                 <button id="cal-cancel-btn" class="btn-cancel-schedule" style="display:none;" onclick="deleteSchedule()">取消排程</button>
                 <button id="save-cal-btn" class="btn-action" style="background:linear-gradient(135deg, #27ae60, #2ecc71); font-size:18px; padding:15px; flex:1;" onclick="submitSchedule()">🚀 確認排定</button>
                 <button class="btn-action btn-gray" style="font-size:18px; padding:15px; flex:0.4;" onclick="closeModal('calendarModal')">關閉</button>
