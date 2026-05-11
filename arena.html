@@ -3701,22 +3701,8 @@
 
   // 原本寫死的圖鑑和獎池，現在改成動態變數
   let characterAssets = {};
-  
-  // 🚀 新增：SaaS 系統出廠預設值卡池 (對齊 admin 的預設值)
-  const DEFAULT_GACHA_POOLS = [
-      { rarity: 'N', prob: 70, items: [{ type: 'points', value: 0, prob: 30 }, { type: 'points', value: 5, prob: 40 }, { type: 'points', value: 10, prob: 30 }] },
-      { rarity: 'R', prob: 20, items: [{ type: 'points', value: 20, prob: 50 }, { type: 'points', value: 30, prob: 30 }, { type: 'points', value: 50, prob: 20 }] },
-      { rarity: 'SR', prob: 8, items: [{ type: 'points', value: 70, prob: 60 }, { type: 'points', value: 90, prob: 30 }, { type: 'points', value: 150, prob: 10 }] },
-      { rarity: 'SSR', prob: 2, items: [{ type: 'points', value: 500, prob: 70 }, { type: 'points', value: 888, prob: 30 }] }
-  ];
 
-  function getActivePools() {
-      return (window.gamiConfig && window.gamiConfig.gachaPools && window.gamiConfig.gachaPools.length > 0) 
-          ? window.gamiConfig.gachaPools 
-          : DEFAULT_GACHA_POOLS;
-  }
-
-  // 🚀 SaaS 系統出廠預設值卡池 (對齊 admin 的預設值)
+  // 🚀 SaaS 系統出廠預設值卡池 (對齊 admin 的絕對機率預設值)
   const DEFAULT_GACHA_ITEMS = [
       { type: 'points', value: 0, rarity: 'N', prob: 25 },
       { type: 'points', value: 5, rarity: 'N', prob: 20 },
@@ -3729,13 +3715,12 @@
       { type: 'points', value: 500, rarity: 'SSR', prob: 1 }
   ];
 
-  let characterAssets = {};
-
   function buildDynamicPrizePool() {
       // 在絕對機率架構下，不需要再構建雙層權重獎池了，保持空函式防報錯
       console.log("🎲 絕對機率直列抽獎引擎就緒！");
   }
 
+  // 🚀 盲盒封面圖庫
   const BOX_COVERS = {
     'N': '/assets/BOX_COVER_N.webp',
     'R': '/assets/BOX_COVER_R.webp',
@@ -3751,7 +3736,7 @@
                    : DEFAULT_GACHA_ITEMS;
 
       let totalProb = pool.reduce((sum, item) => sum + Number(item.prob), 0);
-      let rand = Math.random() * totalProb; // 如果管理員乖乖用，這裡就是 100
+      let rand = Math.random() * totalProb; // 如果管理員乖乖設定，這裡的分母就是剛好 100
       let selectedItem = pool[0]; // 防呆保底
 
       for (let item of pool) {
@@ -3770,14 +3755,13 @@
       return {
           type: selectedItem.type,
           value: selectedItem.value,
-          boxRarity: boxRarity,
+          boxRarity: boxRarity, // 順便把這層的外盒顏色回傳給系統
           label: selectedItem.type === 'points' ? `${selectedItem.value} 點` : boxRarity,
           class: `prize-${boxRarity}`,
           glow: glowClass
       };
   }
 
-  
   function initGacha(opponentName) {
     window.wonPoints = 0;   
     window.wonAvatars = []; 
