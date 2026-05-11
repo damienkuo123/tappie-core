@@ -116,15 +116,21 @@
                🚀 任務與學生清單：大螢幕自適應瀑布流網格 
                ============================================== */
             .tm-list-zone {
-                display: grid;
-                /* 魔法核心：自動塞入欄位，每欄最少 320px，填滿剩餘空間 */
-                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                display: grid !important; /* 🚀 強制開啟網格，覆蓋前面的 flex 設定 */
+                /* 🚀 縮小 min 寬度到 280px，確保連小尺寸 iPad 直拿都能順利雙排！ */
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
                 gap: 20px;
-                align-content: start; /* 防止數量少時卡片被垂直拉長 */
+                align-content: start; 
             }
             
+            /* 🚀 強制清單內的卡片不要自作聰明撐破網格 */
+            .tm-list-zone .task-card {
+                width: auto !important; 
+                margin: 0 !important;
+            }
+
             .tm-list-zone > p {
-                /* 讓「找不到學生」或「沒有任務」的提示文字，可以橫跨所有欄位置中 */
+                /* 讓「找不到學生」或「沒有任務」的提示文字，橫跨所有欄位置中 */
                 grid-column: 1 / -1; 
                 margin-top: 60px;
                 font-size: 20px;
