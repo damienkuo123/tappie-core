@@ -4126,8 +4126,8 @@
               
               if (alreadyOwnedInAccount || alreadyGotInThisGacha) {
                   const charName = characterAssets[charId] ? characterAssets[charId].name : prizeToAdd.label;
-                  prizeToAdd.realLabel = `(重複) ${charName} → 轉為 300 點`; 
-                  window.wonPoints += 300; 
+                  prizeToAdd.realLabel = `(重複) ${charName} → 轉為 100 點`; 
+                  window.wonPoints += 100; 
               } else {
                   prizeToAdd.realLabel = characterAssets[charId] ? characterAssets[charId].name : prizeToAdd.label;
                   window.wonAvatars.push(charId); 
