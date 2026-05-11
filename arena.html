@@ -3716,12 +3716,26 @@
           : DEFAULT_GACHA_POOLS;
   }
 
-  // 因為我們直接讀取後端分層架構，這個原本用來算總陣列的引擎可以退休了，留空防報錯
+  // 🚀 SaaS 系統出廠預設值卡池 (對齊 admin 的預設值)
+  const DEFAULT_GACHA_ITEMS = [
+      { type: 'points', value: 0, rarity: 'N', prob: 25 },
+      { type: 'points', value: 5, rarity: 'N', prob: 20 },
+      { type: 'points', value: 10, rarity: 'N', prob: 15 },
+      { type: 'points', value: 20, rarity: 'R', prob: 15 },
+      { type: 'points', value: 30, rarity: 'R', prob: 10 },
+      { type: 'points', value: 50, rarity: 'R', prob: 8 },
+      { type: 'points', value: 70, rarity: 'SR', prob: 4 },
+      { type: 'points', value: 90, rarity: 'SR', prob: 2 },
+      { type: 'points', value: 500, rarity: 'SSR', prob: 1 }
+  ];
+
+  let characterAssets = {};
+
   function buildDynamicPrizePool() {
-      console.log("🎲 動態卡池引擎啟動：使用 100% 分層矩陣讀取模式！");
+      // 在絕對機率架構下，不需要再構建雙層權重獎池了，保持空函式防報錯
+      console.log("🎲 絕對機率直列抽獎引擎就緒！");
   }
 
-  // 🚀 盲盒封面圖庫
   const BOX_COVERS = {
     'N': '/assets/BOX_COVER_N.webp',
     'R': '/assets/BOX_COVER_R.webp',
@@ -3729,55 +3743,38 @@
     'SSR': '/assets/BOX_COVER_SSR.webp'
   };
 
-  // 🚀 1. 第一層輪盤：抽盲盒外觀稀有度 (讀取頂層機率)
-  function getBoxRarity() {
-    const pools = getActivePools();
-    // 把機率加總當作分母 (如果 Admin 有防呆這應該剛好是 100)
-    let totalProb = pools.reduce((sum, p) => sum + Number(p.prob), 0);
-    let rand = Math.random() * totalProb;
-    
-    for (let pool of pools) {
-        if (rand < pool.prob) return pool.rarity;
-        rand -= pool.prob;
-    }
-    return pools[0].rarity; // 防呆保底
-  }
+  // 🚀 核心：唯一的轉盤！從 0~100 轉出結果
+  function drawSinglePrize() {
+      // 讀取從後台傳來的直列清單，若無則用預設
+      const pool = (window.gamiConfig && window.gamiConfig.gachaItems && window.gamiConfig.gachaItems.length > 0) 
+                   ? window.gamiConfig.gachaItems 
+                   : DEFAULT_GACHA_ITEMS;
 
-  // 🚀 2. 第二層輪盤：抽盲盒內容物 (讀取內層機率)
-  function drawPrizeByBox(boxRarity) {
-    const pools = getActivePools();
-    let targetPool = pools.find(p => p.rarity === boxRarity);
-    
-    // 防呆：萬一管理員不小心把這層刪光了，給個安慰獎
-    if (!targetPool || !targetPool.items || targetPool.items.length === 0) {
-        return { type: 'points', value: 10, label: '10 點', class: `prize-${boxRarity}`, glow: 'crack-white' };
-    }
+      let totalProb = pool.reduce((sum, item) => sum + Number(item.prob), 0);
+      let rand = Math.random() * totalProb; // 如果管理員乖乖用，這裡就是 100
+      let selectedItem = pool[0]; // 防呆保底
 
-    // 計算這層裡面所有物品的機率總和
-    let totalProb = targetPool.items.reduce((sum, item) => sum + Number(item.prob), 0);
-    let rand = Math.random() * totalProb;
-    let selectedItem = targetPool.items[0];
+      for (let item of pool) {
+          if (rand < item.prob) {
+              selectedItem = item;
+              break;
+          }
+          rand -= item.prob;
+      }
 
-    for (let item of targetPool.items) {
-        if (rand < item.prob) {
-            selectedItem = item;
-            break;
-        }
-        rand -= item.prob;
-    }
+      let boxRarity = selectedItem.rarity || 'N';
+      let glowClass = 'crack-white';
+      if (boxRarity === 'SR') glowClass = 'crack-purple';
+      if (boxRarity === 'SSR') glowClass = 'crack-gold';
 
-    let glowClass = 'crack-white';
-    if (boxRarity === 'SR') glowClass = 'crack-purple';
-    if (boxRarity === 'SSR') glowClass = 'crack-gold';
-
-    // 🚀 如果抽到角色，回傳的 value 就是 ID (如 A001)，後續 UI 會自動去圖鑑對應真實名字與圖片！
-    return {
-        type: selectedItem.type,
-        value: selectedItem.value,
-        label: selectedItem.type === 'points' ? `${selectedItem.value} 點` : boxRarity,
-        class: `prize-${boxRarity}`,
-        glow: glowClass
-    };
+      return {
+          type: selectedItem.type,
+          value: selectedItem.value,
+          boxRarity: boxRarity,
+          label: selectedItem.type === 'points' ? `${selectedItem.value} 點` : boxRarity,
+          class: `prize-${boxRarity}`,
+          glow: glowClass
+      };
   }
 
   
@@ -3829,12 +3826,11 @@
 
         // 🚀 3. 獎池分流：活動用專屬獎池，一般用常規獎池
         if (isEventMode) {
-            // 從圖鑑中抓取 Boss 的真實稀有度 (如果沒填則預設 SSR)
+            // (活動 Boss 邏輯不變)
             let bossRarity = 'SSR';
             let prizeClass = 'prize-SSR';
             let prizeGlow = 'crack-gold';
 
-            // 動態判斷對應的光澤與卡框
             if (EVENT_AVATAR && window.characterAssets && window.characterAssets[EVENT_AVATAR]) {
                 bossRarity = window.characterAssets[EVENT_AVATAR].rarity || 'SSR';
                 if (bossRarity === 'SR') { prizeClass = 'prize-SR'; prizeGlow = 'crack-purple'; }
@@ -3842,19 +3838,16 @@
                 else if (bossRarity === 'N') { prizeClass = 'prize-N'; prizeGlow = 'crack-white'; }
             }
 
-            boxRarity = bossRarity; // 盲盒外觀直接跟隨 Boss 真實稀有度
-
+            boxRarity = bossRarity; 
             if (Math.random() < 0.3) {
-                // 🚀 完全動態套用 Boss 的真實稀有度與光芒特效！
                 prize = { type: 'avatar', value: EVENT_AVATAR, label: '活動限定', class: prizeClass, glow: prizeGlow };
             } else {
-                // 70% 機率中活動點數 (10)
                 prize = { type: 'points', value: 10, label: '10 點', class: 'prize-N', glow: 'crack-white' };
             }
         } else {
-            // 一般模式
-            boxRarity = getBoxRarity();
-            prize = drawPrizeByBox(boxRarity);
+            // 🚀 一般模式：一鍵抽出卡片與對應外盒！
+            prize = drawSinglePrize();
+            boxRarity = prize.boxRarity; // 盲盒的外觀直接跟隨抽中的獎品
         }
         
         gachaCardsData.push({ id: i, word: randomWord, boxRarity: boxRarity, prize: prize, flipped: false });
