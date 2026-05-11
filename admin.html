@@ -107,6 +107,12 @@
             .dropdown-item { font-size: 18px; padding: 20px; }
             .container { max-width: 550px; padding: 50px 40px; }
             .modal-content { max-width: 600px; padding: 40px; }
+            
+            /* 🚀 新增：大螢幕專屬寬視窗與雙排網格引擎 */
+            .modal-content.wide-modal { max-width: 900px; }
+            .desktop-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+            /* 網格內部的元件不需要下邊距，由 gap 統一控管 */
+            .desktop-grid-2 > .accordion-group, .desktop-grid-2 > .brand-box { margin-bottom: 0 !important; }
         }
         
         /* 🚀 拖曳排序專屬物理特效 */
@@ -547,39 +553,40 @@
     </div>
 
     <div id="brandingModal" class="modal-overlay" onclick="closeModal('brandingModal')">
-        <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-content wide-modal" onclick="event.stopPropagation()">
             <h3 class="modal-title" style="color:#00cec9;">🎨 校區視覺設定</h3>
             <p style="text-align:center; color:#94a3b8; font-size:13px; margin-top:0; margin-bottom: 20px;">(僅限超級管理員修改，儲存後即刻生效)</p>
             
             <div class="modal-scroll-area">
-                <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 18px; border: 1px dashed rgba(255,255,255,0.2); margin-bottom: 20px; text-align: center;">
-                    <p style="font-weight: bold; margin-top: 0; color: #f8fafc;">1. 系統主視覺 Logo</p>
-                    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">建議規格：去背 PNG / 橫式比例 / 小於 1MB</p>
-                    <div style="height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                        <img id="preview-logo" src="/assets/logo.webp" style="max-width: 100%; max-height: 80px; object-fit: contain;">
+                <div class="desktop-grid-2">
+                    <div class="brand-box" style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 18px; border: 1px dashed rgba(255,255,255,0.2); margin-bottom: 20px; text-align: center; height: 100%; box-sizing: border-box;">
+                        <p style="font-weight: bold; margin-top: 0; color: #f8fafc;">1. 系統主視覺 Logo</p>
+                        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">建議規格：去背 PNG / 橫式比例 / 小於 1MB</p>
+                        <div style="height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                            <img id="preview-logo" src="/assets/logo.webp" style="max-width: 100%; max-height: 80px; object-fit: contain;">
+                        </div>
+                        <input type="file" id="input-logo" accept="image/png, image/webp, image/jpeg" style="display:none;" onchange="handleFileSelect(this, 'logo')">
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button class="btn-action btn-gray" style="flex: 4; font-size: 16px; padding: 12px; width: auto;" onclick="document.getElementById('input-logo').click()">選擇檔案</button>
+                            <button class="btn-action" style="flex: 1; padding: 12px; background: rgba(231,76,60,0.2); border: 1px solid #e74c3c; color: #e74c3c; font-size: 18px; width: auto;" onclick="deleteBranding('logo')">🗑️</button>
+                        </div>
                     </div>
-                    <input type="file" id="input-logo" accept="image/png, image/webp, image/jpeg" style="display:none;" onchange="handleFileSelect(this, 'logo')">
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button class="btn-action btn-gray" style="flex: 4; font-size: 16px; padding: 12px; width: auto;" onclick="document.getElementById('input-logo').click()">選擇檔案</button>
-                        <button class="btn-action" style="flex: 1; padding: 12px; background: rgba(231,76,60,0.2); border: 1px solid #e74c3c; color: #e74c3c; font-size: 18px; width: auto;" onclick="deleteBranding('logo')">🗑️</button>
-                    </div>
-                </div>
 
-                <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 18px; border: 1px dashed rgba(255,255,255,0.2); text-align: center;">
-                    <p style="font-weight: bold; margin-top: 0; color: #f8fafc;">2. 桌面 App 圖示 (Icon)</p>
-                    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">建議規格：1:1 滿版正方形 / JPG 或 PNG</p>
-                    <div style="height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                        <img id="preview-icon" src="/assets/app-icon.png" style="width: 80px; height: 80px; border-radius: 18px; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.1);">
-                    </div>
-                    <input type="file" id="input-icon" accept="image/png, image/jpeg" style="display:none;" onchange="handleFileSelect(this, 'icon')">
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button class="btn-action btn-gray" style="flex: 4; font-size: 16px; padding: 12px; width: auto;" onclick="document.getElementById('input-icon').click()">選擇檔案</button>
-                        <button class="btn-action" style="flex: 1; padding: 12px; background: rgba(231,76,60,0.2); border: 1px solid #e74c3c; color: #e74c3c; font-size: 18px; width: auto;" onclick="deleteBranding('icon')">🗑️</button>
+                    <div class="brand-box" style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 18px; border: 1px dashed rgba(255,255,255,0.2); text-align: center; height: 100%; box-sizing: border-box;">
+                        <p style="font-weight: bold; margin-top: 0; color: #f8fafc;">2. 桌面 App 圖示 (Icon)</p>
+                        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">建議規格：1:1 滿版正方形 / JPG 或 PNG</p>
+                        <div style="height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                            <img id="preview-icon" src="/assets/app-icon.png" style="width: 80px; height: 80px; border-radius: 18px; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <input type="file" id="input-icon" accept="image/png, image/jpeg" style="display:none;" onchange="handleFileSelect(this, 'icon')">
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button class="btn-action btn-gray" style="flex: 4; font-size: 16px; padding: 12px; width: auto;" onclick="document.getElementById('input-icon').click()">選擇檔案</button>
+                            <button class="btn-action" style="flex: 1; padding: 12px; background: rgba(231,76,60,0.2); border: 1px solid #e74c3c; color: #e74c3c; font-size: 18px; width: auto;" onclick="deleteBranding('icon')">🗑️</button>
+                        </div>
                     </div>
                 </div>
-                
                 <div id="upload-status" style="margin-top: 20px; font-size: 15px; font-weight: bold; text-align: center; color: #ffd700; min-height: 20px;"></div>
             </div>
             
@@ -588,91 +595,92 @@
     </div>
 
     <div id="gamiModal" class="modal-overlay" onclick="closeModal('gamiModal')">
-        <div class="modal-content" onclick="event.stopPropagation()" style="max-height: 90vh; width: 95%; max-width: 500px; padding: 25px 20px;">
+        <div class="modal-content wide-modal" onclick="event.stopPropagation()" style="max-height: 90vh; width: 95%; padding: 25px 20px;">
             <h3 class="modal-title" style="color:#f39c12; margin-bottom: 5px;">🕹️ 遊戲化數值中控台</h3>
             <p style="text-align:center; color:#94a3b8; font-size:12px; margin-top:0; margin-bottom: 15px;">調整後將套用至全校區 (僅限超級管理員)</p>
             
             <div class="modal-scroll-area" style="padding-right: 5px;">
-                
-                <div class="accordion-group">
-                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🎯 今日挑戰給點規則 ▾</div>
-                    <div class="accordion-body">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                            <span style="color:#cbd5e1; font-size:14px; font-weight:bold;">最低及格門檻 (分)</span>
-                            <input type="number" id="gami-pass-score" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;">
+                <div class="desktop-grid-2">
+                    
+                    <div class="accordion-group">
+                        <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🎯 今日挑戰給點規則 ▾</div>
+                        <div class="accordion-body">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                <span style="color:#cbd5e1; font-size:14px; font-weight:bold;">最低及格門檻 (分)</span>
+                                <input type="number" id="gami-pass-score" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;">
+                            </div>
+                            <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:10px 0;">
+                            
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center; color:#f1c40f; font-size:12px; font-weight:bold; margin-bottom:5px;">
+                                <span>分數達標 (≥)</span><span>獲得點數</span>
+                            </div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t1-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-t1-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t2-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-t2-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t3-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-t3-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
                         </div>
-                        <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:10px 0;">
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center; color:#f1c40f; font-size:12px; font-weight:bold; margin-bottom:5px;">
-                            <span>分數達標 (≥)</span><span>獲得點數</span>
-                        </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t1-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-t1-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t2-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-t2-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:8px;"><input type="number" id="gami-t3-min" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-t3-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
                     </div>
-                </div>
 
-                <div class="accordion-group">
-                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🏅 單元任務與扣點規則 ▾</div>
-                    <div class="accordion-body">
-                        <p style="color:#e74c3c; font-size:13px; font-weight:bold; margin:0 0 10px 0;">▼ 未達標懲罰</p>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold;">安全門檻 (低於幾次扣點)</span><input type="number" id="gami-fail-th" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;"></div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold;">0次基礎扣點 (負數)</span><input type="number" id="gami-fail-base" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; color:#e74c3c; flex:none;"></div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold;">每多練1次挽回多少點</span><input type="number" id="gami-fail-step" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;"></div>
-                        <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:10px 0;">
-                        <p style="color:#2ecc71; font-size:13px; font-weight:bold; margin:0 0 10px 0;">▲ 達標獎勵</p>
-                        <div style="margin-bottom:15px;"><div style="color:#cbd5e1; font-size:13px; font-weight:bold; margin-bottom:8px;">達標門檻 (次) / 獎勵點數</div><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="gami-good-th" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-good-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; color:#2ecc71;"></div></div>
-                        <div style="margin-bottom:10px;"><div style="color:#cbd5e1; font-size:13px; font-weight:bold; margin-bottom:8px;">卓越門檻 (次) / 獎勵點數</div><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="gami-perf-th" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-perf-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; color:#2ecc71;"></div></div>
-                    </div>
-                </div>
-
-                <div class="accordion-group">
-                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🏆 排行榜給點規則 ▾</div>
-                    <div class="accordion-body">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥇 第一名獎勵</span><input type="number" id="gami-lb-1" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;"></div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥈 第二名獎勵</span><input type="number" id="gami-lb-2" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;"></div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥉 第三名獎勵</span><input type="number" id="gami-lb-3" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;"></div>
-                    </div>
-                </div>
-
-                <div class="accordion-group">
-                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🎲 盲盒機率與卡池中控台 ▾</div>
-                    <div class="accordion-body">
-                        <p style="color:#3498db; font-size:13px; font-weight:bold; margin:0 0 10px 0;">勝場獲得盲盒數量</p>
-                        <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">初階 AI</div><select id="gami-pick-easy" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
-                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">中階 AI</div><select id="gami-pick-med" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
-                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">高階 AI</div><select id="gami-pick-hard" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+                    <div class="accordion-group">
+                        <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🏅 單元任務與扣點規則 ▾</div>
+                        <div class="accordion-body">
+                            <p style="color:#e74c3c; font-size:13px; font-weight:bold; margin:0 0 10px 0;">▼ 未達標懲罰</p>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold;">安全門檻 (低於幾次)</span><input type="number" id="gami-fail-th" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold;">0次基礎扣點 (負數)</span><input type="number" id="gami-fail-base" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; color:#e74c3c; flex:none;"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><span style="color:#cbd5e1; font-size:13px; font-weight:bold;">每多練1次挽回點數</span><input type="number" id="gami-fail-step" class="word-input" style="width:80px; box-sizing:border-box; padding:8px; flex:none;"></div>
+                            <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:10px 0;">
+                            <p style="color:#2ecc71; font-size:13px; font-weight:bold; margin:0 0 10px 0;">▲ 達標獎勵</p>
+                            <div style="margin-bottom:15px;"><div style="color:#cbd5e1; font-size:13px; font-weight:bold; margin-bottom:8px;">達標門檻 (次) / 獎勵點數</div><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="gami-good-th" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-good-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; color:#2ecc71;"></div></div>
+                            <div style="margin-bottom:10px;"><div style="color:#cbd5e1; font-size:13px; font-weight:bold; margin-bottom:8px;">卓越門檻 (次) / 獎勵點數</div><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="gami-perf-th" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><input type="number" id="gami-perf-pts" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; color:#2ecc71;"></div></div>
                         </div>
-                        <div style="display:flex; gap:10px; margin-bottom:15px;">
-                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">玩家對戰</div><select id="gami-pick-pvp" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
-                            <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">活動 Boss</div><select id="gami-pick-boss" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; background-color: rgba(0,0,0,0.8); cursor: not-allowed;" disabled title="活動 Boss 固定為 1 次"><option value="1">1</option></select></div>
+                    </div>
+
+                    <div class="accordion-group">
+                        <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🏆 排行榜給點規則 ▾</div>
+                        <div class="accordion-body">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥇 第一名獎勵</span><input type="number" id="gami-lb-1" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥈 第二名獎勵</span><input type="number" id="gami-lb-2" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#cbd5e1; font-size:14px; font-weight:bold;">🥉 第三名獎勵</span><input type="number" id="gami-lb-3" class="word-input" style="width:100px; box-sizing:border-box; padding:8px; flex:none;"></div>
                         </div>
-                        
-                        <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:15px 0;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <p style="color:#f1c40f; font-size:15px; font-weight:900; margin:0;">🌟 絕對機率分配清單</p>
-                            <div style="background:rgba(0,0,0,0.4); padding:4px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); font-size:12px; font-weight:bold;">
-                                總和：<span id="live-prob-sum" style="color:#2ecc71; font-size:14px;">0%</span>
+                    </div>
+
+                    <div class="accordion-group">
+                        <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🎲 盲盒機率與卡池中控台 ▾</div>
+                        <div class="accordion-body">
+                            <p style="color:#3498db; font-size:13px; font-weight:bold; margin:0 0 10px 0;">勝場獲得盲盒數量</p>
+                            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                                <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">初階 AI</div><select id="gami-pick-easy" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+                                <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">中階 AI</div><select id="gami-pick-med" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+                                <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">高階 AI</div><select id="gami-pick-hard" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+                            </div>
+                            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                                <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">玩家對戰</div><select id="gami-pick-pvp" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+                                <div style="flex:1;"><div style="font-size:11px; color:#94a3b8; margin-bottom:4px; text-align:center;">活動 Boss</div><select id="gami-pick-boss" class="word-input" style="width:100%; box-sizing:border-box; padding:8px; background-color: rgba(0,0,0,0.8); cursor: not-allowed;" disabled title="活動 Boss 固定為 1 次"><option value="1">1</option></select></div>
+                            </div>
+                            
+                            <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:15px 0;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                <p style="color:#f1c40f; font-size:15px; font-weight:900; margin:0;">🌟 絕對機率分配清單</p>
+                                <div style="background:rgba(0,0,0,0.4); padding:4px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); font-size:12px; font-weight:bold;">
+                                    總和：<span id="live-prob-sum" style="color:#2ecc71; font-size:14px;">0%</span>
+                                </div>
+                            </div>
+                            <p style="color:#94a3b8; font-size:11px; font-weight:bold; margin:0 0 15px 0;">設定真實中獎率。點數可切換區段，角色區段由商店決定。各區段會自動排序。</p>
+                            
+                            <div id="gacha-flat-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px; max-height:350px; overflow-y:auto; padding-right:5px;"></div>
+                            
+                            <button class="btn-action" style="background:rgba(46,204,113,0.15); color:#2ecc71; font-size:14px; padding:12px; width:100%; border:1px dashed #2ecc71;" onclick="addFlatPointRow(10, 'N', 1)">➕ 新增一組點數獎項</button>
+                        </div>
+                    </div>
+
+                    <div class="accordion-group">
+                        <div class="accordion-header" onclick="this.parentElement.classList.toggle('active'); if(this.parentElement.classList.contains('active')) loadShopAdminList();">🛒 角色商品定價快調 ▾</div>
+                        <div class="accordion-body" style="padding: 10px;">
+                            <div id="shop-admin-list" style="display:flex; flex-direction:column; gap:8px;">
+                                <p style="text-align:center; color:#94a3b8; font-size:13px; margin: 10px 0;">點擊展開後自動讀取...</p>
                             </div>
                         </div>
-                        <p style="color:#94a3b8; font-size:11px; font-weight:bold; margin:0 0 15px 0;">設定真實中獎率。點數可切換區段，角色區段由商店決定。各區段會自動排序。</p>
-                        
-                        <div id="gacha-flat-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px; max-height:350px; overflow-y:auto; padding-right:5px;"></div>
-                        
-                        <button class="btn-action" style="background:rgba(46,204,113,0.15); color:#2ecc71; font-size:14px; padding:12px; width:100%; border:1px dashed #2ecc71;" onclick="addFlatPointRow(10, 'N', 1)">➕ 新增一組點數獎項</button>
                     </div>
-                </div>
-
-                <div class="accordion-group">
-                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('active'); if(this.parentElement.classList.contains('active')) loadShopAdminList();">🛒 角色商品定價快調 ▾</div>
-                    <div class="accordion-body" style="padding: 10px;">
-                        <div id="shop-admin-list" style="display:flex; flex-direction:column; gap:8px;">
-                            <p style="text-align:center; color:#94a3b8; font-size:13px; margin: 10px 0;">點擊展開後自動讀取...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="gami-status" style="text-align:center; font-size:14px; font-weight:bold; height:20px; color:#2ecc71; margin-top:10px;"></div>
+                </div> <div id="gami-status" style="text-align:center; font-size:14px; font-weight:bold; height:20px; color:#2ecc71; margin-top:10px;"></div>
             </div>
             
             <div style="display:flex; gap:10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
