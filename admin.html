@@ -722,10 +722,18 @@
                         </div>
                         
                         <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:15px 0;">
-                        <p style="color:#f1c40f; font-size:14px; font-weight:900; margin:0 0 5px 0; text-align:center;">🌟 獎池機率分配矩陣 🌟</p>
-                        <p style="color:#94a3b8; font-size:11px; font-weight:bold; margin:0 0 15px 0; text-align:center;">(修改單一數值，系統會自動按比例分配剩餘機率，總和永遠 100%)</p>
                         
-                        <div id="gacha-tiers-container"></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <p style="color:#f1c40f; font-size:15px; font-weight:900; margin:0;">🌟 絕對機率分配清單</p>
+                            <div style="background:rgba(0,0,0,0.4); padding:4px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); font-size:12px; font-weight:bold;">
+                                總和：<span id="live-prob-sum" style="color:#2ecc71; font-size:14px;">0%</span>
+                            </div>
+                        </div>
+                        <p style="color:#94a3b8; font-size:11px; font-weight:bold; margin:0 0 15px 0;">設定各獎項的「真實中獎率」。不同區段決定開出的盲盒顏色。</p>
+                        
+                        <div id="gacha-flat-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;"></div>
+                        
+                        <button class="btn-action" style="background:rgba(46,204,113,0.15); color:#2ecc71; font-size:14px; padding:12px; width:100%; border:1px dashed #2ecc71;" onclick="addFlatPointRow(10, 'N', 1)">➕ 新增一組點數獎項</button>
                     </div>
                 </div>
 
@@ -1634,10 +1642,11 @@
         ];
 
         // =======================================================
-        // 🕹️ 遊戲化數值中控台與商店定價引擎 (100% 動態層級連動版)
+        // 🕹️ 遊戲化數值中控台與商店定價引擎 (老闆指定：絕對機率直列版)
         // =======================================================
         
-        let currentShopAvatars = []; 
+        let currentShopAvatars = []; // 暫存商店角色
+        let flatGachaItems = []; // 展平後的卡池資料
 
         // 🚀 SaaS 系統出廠預設值卡池
         const DEFAULT_GACHA_POOLS = [
@@ -1662,6 +1671,7 @@
 
                 currentShopAvatars = (shopData || []).filter(item => !item.id.startsWith("AI_"));
 
+                // 填入挑戰、任務、排行榜、次數等基礎設定
                 document.getElementById('gami-pass-score').value = config.dailyChallenge.passScore;
                 document.getElementById('gami-t1-min').value = config.dailyChallenge.tiers[0].min;
                 document.getElementById('gami-t1-pts').value = config.dailyChallenge.tiers[0].pts;
@@ -1691,8 +1701,29 @@
                 const t3MinInput = document.getElementById('gami-t3-min');
                 passInput.oninput = function() { t3MinInput.value = this.value; };
 
+                // 🚀 核心轉換：將後端 nested 的陣列，攤平成前端的一直排 (Flat List)
+                flatGachaItems = [];
                 const poolsToRender = (config.gachaPools && config.gachaPools.length > 0) ? config.gachaPools : DEFAULT_GACHA_POOLS;
-                renderGachaTiersUI(poolsToRender);
+                
+                poolsToRender.forEach(pool => {
+                    pool.items.forEach(item => {
+                        flatGachaItems.push({
+                            type: item.type,
+                            value: item.value,
+                            rarity: pool.rarity, // 紀錄它在哪個區段
+                            prob: Number(item.prob) || 0
+                        });
+                    });
+                });
+
+                // 把商店裡有，但原本卡池裡沒有的新角色，自動以 0% 補進列表
+                currentShopAvatars.forEach(av => {
+                    if (!flatGachaItems.find(i => i.type === 'avatar' && String(i.value) === String(av.id))) {
+                        flatGachaItems.push({ type: 'avatar', value: av.id, rarity: av.rarity, prob: 0 });
+                    }
+                });
+
+                renderFlatGachaUI();
             })
             .catch(err => {
                 document.getElementById('gami-status').innerText = "⚠️ 讀取失敗，請重試";
@@ -1700,202 +1731,203 @@
             });
         }
 
-        function renderGachaTiersUI(savedPools) {
-            const container = document.getElementById('gacha-tiers-container');
+        // 🎨 渲染一直排的 UI (按 Rarity 群組與機率高低排序)
+        function renderFlatGachaUI() {
+            const container = document.getElementById('gacha-flat-container');
             container.innerHTML = "";
 
-            const rarities = [
-                { r: 'N', color: '#ecf0f1', border: 'rgba(255,255,255,0.2)' },
-                { r: 'R', color: '#3498db', border: 'rgba(52,152,219,0.4)' },
-                { r: 'SR', color: '#9b59b6', border: 'rgba(155,89,182,0.4)' },
-                { r: 'SSR', color: '#f1c40f', border: 'rgba(241,196,15,0.4)' }
-            ];
+            // 依照 N -> R -> SR -> SSR 的順序，且同區段內依據機率由高到低排列
+            const rarityOrder = { 'N': 1, 'R': 2, 'SR': 3, 'SSR': 4 };
+            const rarityColors = { 'N': '#ecf0f1', 'R': '#3498db', 'SR': '#9b59b6', 'SSR': '#f1c40f' };
 
-            let topProbHtml = `<div class="tier-prob-group" style="display:flex; gap:8px; margin-bottom:15px;">`;
-
-            rarities.forEach((tierDef, tIndex) => {
-                let poolData = savedPools.find(p => p.rarity === tierDef.r) || { prob: (tIndex===0?100:0), items: [] };
-                
-                topProbHtml += `
-                    <div style="flex:1; background:rgba(0,0,0,0.4); border:1px solid ${tierDef.border}; border-radius:12px; padding:10px 5px; text-align:center;">
-                        <div style="color:${tierDef.color}; font-weight:900; font-size:14px; margin-bottom:5px;">${tierDef.r} 卡</div>
-                        <div style="display:flex; align-items:center; justify-content:center;">
-                            <input type="number" step="0.1" class="word-input top-prob-inp" data-rarity="${tierDef.r}" value="${poolData.prob}" style="width:100%; padding:4px; font-size:13px; text-align:center;">
-                            <span style="font-size:12px; margin-left:2px; color:#cbd5e1;">%</span>
-                        </div>
-                    </div>`;
-
-                const tierAvatars = currentShopAvatars.filter(av => av.rarity === tierDef.r);
-                let innerItemsHtml = '';
-                
-                tierAvatars.forEach(av => {
-                    let savedItem = poolData.items.find(i => i.type === 'avatar' && i.value === av.id);
-                    let iProb = savedItem ? savedItem.prob : 0;
-                    innerItemsHtml += `
-                        <div class="inner-prob-row" data-type="avatar" data-val="${av.id}" style="display:flex; align-items:center; gap:10px; margin-bottom:8px; background:rgba(255,255,255,0.05); padding:8px; border-radius:8px;">
-                            <span style="font-size:18px;">🎭</span>
-                            <span style="flex:1; font-size:14px; font-weight:bold; color:white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${av.name}</span>
-                            <input type="number" step="0.1" class="word-input inner-prob-inp" value="${iProb}" style="width:60px; padding:6px; font-size:13px; flex:none;">
-                            <span style="font-size:12px; color:#cbd5e1; width:15px;">%</span>
-                        </div>`;
-                });
-
-                let pointItems = poolData.items.filter(i => i.type === 'points');
-                pointItems.forEach(pt => {
-                    innerItemsHtml += createPointRowHtml(pt.value, pt.prob);
-                });
-
-                container.innerHTML += `
-                    <div class="tier-pool-section" id="pool-section-${tierDef.r}" style="background:rgba(0,0,0,0.2); border:1px solid ${tierDef.border}; border-radius:15px; padding:15px; margin-bottom:15px;">
-                        <h4 style="margin:0 0 10px 0; color:${tierDef.color}; font-size:15px; display:flex; justify-content:space-between; align-items:center;">
-                            <span>📦 ${tierDef.r} 內容物機率分配</span>
-                            <span style="font-size:12px; color:#cbd5e1; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:10px;">總計需為 100%</span>
-                        </h4>
-                        <div class="inner-items-container" id="inner-container-${tierDef.r}">
-                            ${innerItemsHtml}
-                        </div>
-                        <button class="btn-action" style="background:transparent; color:${tierDef.color}; border:1px dashed ${tierDef.color}; font-size:13px; padding:8px; width:100%; margin-top:5px;" onclick="addPointToTier('${tierDef.r}')">
-                            ➕ 新增點數獎項
-                        </button>
-                    </div>
-                `;
+            flatGachaItems.sort((a, b) => {
+                if (rarityOrder[a.rarity] !== rarityOrder[b.rarity]) {
+                    return rarityOrder[a.rarity] - rarityOrder[b.rarity];
+                }
+                return b.prob - a.prob; // 同區段機率高的在前面
             });
 
-            topProbHtml += `</div>`;
-            container.insertAdjacentHTML('afterbegin', topProbHtml);
+            let currentRarityHeader = "";
 
-            attachAutoBalance('.tier-prob-group', '.top-prob-inp');
-            rarities.forEach(t => attachAutoBalance(`#pool-section-${t.r}`, '.inner-prob-inp'));
+            flatGachaItems.forEach((item, index) => {
+                // 畫出區段分隔線
+                if (item.rarity !== currentRarityHeader) {
+                    currentRarityHeader = item.rarity;
+                    container.innerHTML += `<div style="color:${rarityColors[currentRarityHeader]}; font-size:13px; font-weight:900; margin: 10px 0 0 5px; border-bottom: 1px solid ${rarityColors[currentRarityHeader]}40; padding-bottom: 4px;">■ ${currentRarityHeader} 區段</div>`;
+                }
+
+                let isAvatar = item.type === 'avatar';
+                let displayName = "";
+                if (isAvatar) {
+                    let shopItem = currentShopAvatars.find(av => av.id === item.value);
+                    displayName = shopItem ? shopItem.name : "未知角色";
+                }
+
+                // 產生卡片列 HTML
+                let rowHtml = `
+                <div class="flat-item-row" data-index="${index}" data-type="${item.type}" data-val="${item.value}" style="display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.3); padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                    <span style="font-size:16px; flex:none;">${isAvatar ? '🎭' : '💰'}</span>`;
+                
+                if (isAvatar) {
+                    // 角色不可改區段、不可改名字、不可刪除
+                    rowHtml += `
+                    <span style="flex:1; font-size:14px; font-weight:bold; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${displayName}">${displayName}</span>
+                    <span style="width:60px; font-size:12px; color:#cbd5e1; text-align:center;">(鎖定)</span>`;
+                } else {
+                    // 點數可以改面額、可以改區段、可以刪除
+                    rowHtml += `
+                    <input type="number" class="word-input flat-pts-val" value="${item.value}" style="flex:1; padding:6px; font-size:14px; text-align:center; min-width:0;">
+                    <select class="word-input flat-rarity-sel" style="width:65px; padding:6px; font-size:12px; flex:none; text-align:center; appearance:none;" onchange="updateFlatDataAndRender()">
+                        <option value="N" ${item.rarity==='N'?'selected':''}>N</option>
+                        <option value="R" ${item.rarity==='R'?'selected':''}>R</option>
+                        <option value="SR" ${item.rarity==='SR'?'selected':''}>SR</option>
+                        <option value="SSR" ${item.rarity==='SSR'?'selected':''}>SSR</option>
+                    </select>`;
+                }
+
+                rowHtml += `
+                    <input type="number" step="0.01" min="0" class="word-input flat-prob-inp" value="${item.prob}" style="width:65px; padding:6px; font-size:14px; text-align:center; flex:none;" oninput="updateLiveSum()">
+                    <span style="font-size:12px; color:#cbd5e1; width:12px;">%</span>`;
+                
+                if (!isAvatar) {
+                    rowHtml += `<button onclick="deleteFlatItem(${index})" style="background:rgba(231,76,60,0.2); border:1px solid #e74c3c; color:#e74c3c; border-radius:6px; width:26px; height:26px; font-size:12px; cursor:pointer; flex:none; display:flex; justify-content:center; align-items:center;">✖</button>`;
+                } else {
+                    rowHtml += `<div style="width:26px;"></div>`; // 排版佔位
+                }
+
+                rowHtml += `</div>`;
+                container.innerHTML += rowHtml;
+            });
+
+            updateLiveSum();
         }
 
-        window.addPointToTier = function(rarity) {
-            const container = document.getElementById(`inner-container-${rarity}`);
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = createPointRowHtml(10, 0); 
-            container.appendChild(tempDiv.firstElementChild);
-            attachAutoBalance(`#pool-section-${rarity}`, '.inner-prob-inp');
-        };
-
-        window.removePointRow = function(btnEl) {
-            const container = btnEl.closest('.tier-pool-section');
-            btnEl.closest('.inner-prob-row').remove();
-            attachAutoBalance(`#${container.id}`, '.inner-prob-inp');
-        };
-
-        function createPointRowHtml(val, prob) {
-            return `
-                <div class="inner-prob-row" data-type="points" style="display:flex; align-items:center; gap:10px; margin-bottom:8px; background:rgba(0,0,0,0.4); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                    <span style="font-size:18px;">💰</span>
-                    <input type="number" class="word-input point-val-inp" value="${val}" style="flex:1; padding:6px; font-size:14px; text-align:center;">
-                    <span style="font-size:13px; font-weight:bold; color:#f1c40f;">點</span>
-                    <input type="number" step="0.1" class="word-input inner-prob-inp" value="${prob}" style="width:60px; padding:6px; font-size:13px; flex:none;">
-                    <span style="font-size:12px; color:#cbd5e1; width:15px;">%</span>
-                    <button onclick="removePointRow(this)" style="background:rgba(231,76,60,0.2); border:1px solid #e74c3c; color:#e74c3c; border-radius:6px; width:28px; height:28px; display:flex; justify-content:center; align-items:center; cursor:pointer;">✖</button>
-                </div>`;
+        function addFlatPointRow(val, rarity, prob) {
+            syncInputToFlatData(); // 先把當前輸入框的值存回陣列
+            flatGachaItems.push({ type: 'points', value: val, rarity: rarity, prob: prob });
+            renderFlatGachaUI(); // 重新排序渲染
         }
 
-        function attachAutoBalance(containerSelector, inputSelector) {
-            const container = document.querySelector(containerSelector);
-            if (!container) return;
-            const inputs = Array.from(container.querySelectorAll(inputSelector));
+        function deleteFlatItem(index) {
+            syncInputToFlatData();
+            flatGachaItems.splice(index, 1);
+            renderFlatGachaUI();
+        }
+
+        function updateFlatDataAndRender() {
+            syncInputToFlatData();
+            renderFlatGachaUI(); // 只要改了下拉選單區段，立刻重新排序！
+        }
+
+        // 把畫面上輸入的最新數字，同步回 flatGachaItems 陣列
+        function syncInputToFlatData() {
+            const rows = document.querySelectorAll('.flat-item-row');
+            rows.forEach(row => {
+                const idx = row.getAttribute('data-index');
+                const isAvatar = row.getAttribute('data-type') === 'avatar';
+                
+                const probVal = parseFloat(row.querySelector('.flat-prob-inp').value) || 0;
+                flatGachaItems[idx].prob = probVal;
+
+                if (!isAvatar) {
+                    flatGachaItems[idx].value = parseInt(row.querySelector('.flat-pts-val').value) || 0;
+                    flatGachaItems[idx].rarity = row.querySelector('.flat-rarity-sel').value;
+                }
+            });
+        }
+
+        // 計算右上角的總和顯示
+        function updateLiveSum() {
+            const probInputs = document.querySelectorAll('.flat-prob-inp');
+            let sum = 0;
+            probInputs.forEach(inp => sum += (parseFloat(inp.value) || 0));
             
-            inputs.forEach(inp => inp.dataset.prev = inp.value || 0);
-
-            inputs.forEach(inp => {
-                inp.onchange = null;
-                inp.onchange = function(e) {
-                    let changedVal = parseFloat(e.target.value) || 0;
-                    if(changedVal < 0) changedVal = 0; 
-                    if(changedVal > 100) changedVal = 100;
-                    e.target.value = changedVal.toFixed(1);
-
-                    let remaining = 100 - changedVal;
-                    let sumOthers = 0;
-                    
-                    inputs.forEach(other => {
-                        if(other !== e.target) sumOthers += parseFloat(other.dataset.prev) || 0;
-                    });
-
-                    inputs.forEach(other => {
-                        if(other !== e.target) {
-                            if (inputs.length === 1) {
-                                other.value = "100.0";
-                            } else if(sumOthers === 0) {
-                                other.value = (remaining / (inputs.length - 1)).toFixed(1);
-                            } else {
-                                let oldVal = parseFloat(other.dataset.prev) || 0;
-                                other.value = ((oldVal / sumOthers) * remaining).toFixed(1);
-                            }
-                            other.dataset.prev = other.value; 
-                        }
-                    });
-                    e.target.dataset.prev = e.target.value; 
-                };
-            });
+            const liveSumEl = document.getElementById('live-prob-sum');
+            liveSumEl.innerText = sum.toFixed(2) + "%";
+            
+            if (Math.abs(sum - 100) > 0.01) {
+                liveSumEl.style.color = "#e74c3c"; // 錯誤時變紅
+            } else {
+                liveSumEl.style.color = "#2ecc71"; // 100% 時變綠
+            }
+            return sum;
         }
 
-        let pendingSaveData = null; // 暫存要存擋的資料
-        let errorContainerId = null; // 紀錄出錯的區塊
-
+        // 🚀 儲存核心：攔截總和驗證
         function saveGamification() {
+            syncInputToFlatData(); // 確保抓到最新數據
+            const sum = updateLiveSum();
+
+            if (Math.abs(sum - 100) > 0.01) {
+                // 不滿 100%，觸發跳窗！
+                const diff = (100 - sum).toFixed(2);
+                document.getElementById('prob-current-sum').innerText = sum.toFixed(2) + "%";
+                document.getElementById('prob-diff-text').innerText = sum > 100 ? `(多了 ${Math.abs(diff)}%)` : `(少了 ${diff}%)`;
+                document.getElementById('probCheckModal').style.display = 'flex';
+                return;
+            }
+            
+            executeSaveToBackend();
+        }
+
+        // ✨ 自動比例校正器 (Auto-Normalize)
+        function autoNormalizeProbabilities() {
+            document.getElementById('probCheckModal').style.display = 'none';
+            syncInputToFlatData();
+            
+            let sum = 0;
+            flatGachaItems.forEach(i => sum += i.prob);
+            
+            if (sum === 0) {
+                alert("目前機率全部是 0！系統無法分配，請手動填寫。");
+                return;
+            }
+
+            // 依據原始比例放大縮小
+            let newSum = 0;
+            flatGachaItems.forEach(i => {
+                i.prob = parseFloat(((i.prob / sum) * 100).toFixed(2));
+                newSum += i.prob;
+            });
+
+            // 處理小數點四捨五入的微小誤差 (例如加起來變 99.99)，補給最高機率的那個
+            if (Math.abs(newSum - 100) > 0.001) {
+                flatGachaItems.sort((a, b) => b.prob - a.prob);
+                let diff = 100 - newSum;
+                flatGachaItems[0].prob = parseFloat((flatGachaItems[0].prob + diff).toFixed(2));
+            }
+
+            renderFlatGachaUI(); // 畫面更新
+            alert("✨ 系統已將機率完美調整為 100%，請確認無誤後再次點擊儲存！");
+        }
+
+        // 真正的後端儲存函式
+        function executeSaveToBackend() {
             const btn = document.getElementById('save-gami-btn');
             const statusEl = document.getElementById('gami-status');
-            btn.innerText = "⏳ 檢查機率中...";
+            btn.innerText = "⏳ 儲存中...";
             btn.style.pointerEvents = "none";
             statusEl.innerText = "";
 
+            // 🚀 將 Flat 陣列還原回 Nested 陣列以符合後台架構
             let newGachaPools = [];
             const rarities = ['N', 'R', 'SR', 'SSR'];
-            const topProbs = Array.from(document.querySelectorAll('.top-prob-inp'));
             
-            // 1. 檢查頂層機率總和是否為 100%
-            let topSum = topProbs.reduce((sum, inp) => sum + (parseFloat(inp.value) || 0), 0);
-            if (Math.abs(topSum - 100) > 0.1) {
-                showProbErrorModal(topSum, '.tier-prob-group', '.top-prob-inp');
-                resetSaveBtn(btn);
-                return;
-            }
-
-            // 2. 檢查各區段內部總和是否為 100% (如果該區段頂層機率 > 0 才檢查)
-            let hasError = false;
-            for (let r of rarities) {
-                let rProbInp = topProbs.find(inp => inp.getAttribute('data-rarity') === r);
-                let rProb = rProbInp ? Number(rProbInp.value) : 0;
+            rarities.forEach(r => {
+                let itemsInTier = flatGachaItems.filter(i => i.rarity === r && i.prob > 0);
+                let tierTotalProb = itemsInTier.reduce((s, i) => s + i.prob, 0);
                 
-                let itemsArr = [];
-                const section = document.getElementById(`pool-section-${r}`);
-                if (section) {
-                    const rows = section.querySelectorAll('.inner-prob-row');
-                    let innerSum = 0;
-                    rows.forEach(row => {
-                        let iType = row.getAttribute('data-type');
-                        let iProb = Number(row.querySelector('.inner-prob-inp').value);
-                        innerSum += iProb;
-                        
-                        if (iType === 'avatar') {
-                            itemsArr.push({ type: 'avatar', value: row.getAttribute('data-val'), prob: iProb });
-                        } else if (iType === 'points') {
-                            itemsArr.push({ type: 'points', value: Number(row.querySelector('.point-val-inp').value), prob: iProb });
-                        }
+                // 只有該區段有機率大於 0 的物品，我們才存進去
+                if (tierTotalProb > 0) {
+                    newGachaPools.push({
+                        rarity: r,
+                        prob: parseFloat(tierTotalProb.toFixed(2)), // 區段總機率就是裡面物品加起來
+                        items: itemsInTier.map(i => ({ type: i.type, value: i.value, prob: i.prob }))
                     });
-
-                    // 若區段被賦予機率，但內部沒東西，或內部總和不是 100%
-                    if (rProb > 0 && Math.abs(innerSum - 100) > 0.1) {
-                        showProbErrorModal(innerSum, `#pool-section-${r}`, '.inner-prob-inp', r);
-                        hasError = true;
-                        break;
-                    }
                 }
-                newGachaPools.push({ rarity: r, prob: rProb, items: itemsArr });
-            }
+            });
 
-            if (hasError) {
-                resetSaveBtn(btn);
-                return;
-            }
-
-            // 3. 都沒問題，準備送給後台
-            pendingSaveData = {
+            const newConfig = {
                 dailyChallenge: {
                     passScore: Number(document.getElementById('gami-pass-score').value),
                     tiers: [
@@ -1925,75 +1957,11 @@
                     "玩家對戰": Number(document.getElementById('gami-pick-pvp').value),
                     "活動Boss": Number(document.getElementById('gami-pick-boss').value)
                 },
-                gachaPools: newGachaPools
+                gachaPools: newGachaPools // 🚀 把還原後的階層陣列塞進去！
             };
 
-            executeSaveToBackend();
-        }
-
-        function resetSaveBtn(btn) {
-            btn.innerText = "🚀 儲存全域數值";
-            btn.style.pointerEvents = "auto";
-        }
-
-        function showProbErrorModal(currentSum, containerSel, inputSel, rarityName = null) {
-            const diff = (100 - currentSum).toFixed(1);
-            document.getElementById('prob-current-sum').innerText = currentSum.toFixed(1) + "%";
-            document.getElementById('prob-diff-text').innerText = currentSum > 100 ? `(多了 ${Math.abs(diff)}%)` : `(少了 ${diff}%)`;
-            
-            const titleEl = document.querySelector('#probCheckModal h3');
-            if (rarityName) {
-                titleEl.innerHTML = `⚖️ [${rarityName} 區段] 總和異常`;
-            } else {
-                titleEl.innerHTML = `⚖️ [頂層區段] 總和異常`;
-            }
-
-            errorContainerId = { containerSel, inputSel };
-            document.getElementById('probCheckModal').style.display = 'flex';
-        }
-
-        // ✨ 自動比例校正器 (Auto-Normalize)
-        function autoNormalizeProbabilities() {
-            document.getElementById('probCheckModal').style.display = 'none';
-            if (!errorContainerId) return;
-
-            const container = document.querySelector(errorContainerId.containerSel);
-            const inputs = Array.from(container.querySelectorAll(errorContainerId.inputSel));
-            
-            let sum = 0;
-            inputs.forEach(inp => sum += (parseFloat(inp.value) || 0));
-            
-            if (sum === 0) {
-                alert("目前機率全部是 0！系統無法分配，請手動填寫。");
-                return;
-            }
-
-            let newSum = 0;
-            inputs.forEach(inp => {
-                let val = parseFloat(inp.value) || 0;
-                let newVal = parseFloat(((val / sum) * 100).toFixed(1));
-                inp.value = newVal;
-                inp.dataset.prev = newVal;
-                newSum += newVal;
-            });
-
-            if (Math.abs(newSum - 100) > 0.01) {
-                let diff = 100 - newSum;
-                let firstVal = parseFloat(inputs[0].value);
-                inputs[0].value = (firstVal + diff).toFixed(1);
-                inputs[0].dataset.prev = inputs[0].value;
-            }
-
-            alert("✨ 系統已將機率完美調整為 100%，請確認無誤後再次點擊儲存！");
-        }
-
-        function executeSaveToBackend() {
-            const btn = document.getElementById('save-gami-btn');
-            const statusEl = document.getElementById('gami-status');
-            btn.innerText = "⏳ 寫入雲端...";
-
             const formData = new URLSearchParams();
-            formData.append('config', JSON.stringify(pendingSaveData));
+            formData.append('config', JSON.stringify(newConfig));
 
             fetch(`${GAS_URL}?action=save_gamification_settings&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN`, { method: 'POST', body: formData })
                 .then(res => res.json())
@@ -2011,7 +1979,10 @@
                     statusEl.innerText = "⚠️ 網路異常";
                     statusEl.style.color = "#e74c3c";
                 })
-                .finally(() => resetSaveBtn(btn));
+                .finally(() => {
+                    btn.innerText = "🚀 儲存全域數值";
+                    btn.style.pointerEvents = "auto";
+                });
         }
 
         // 🛒 商店定價動態讀取與個別儲存
