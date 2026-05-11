@@ -679,7 +679,7 @@
                 </div>
 
                 <div class="accordion-group">
-                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🎲 盲盒抽獎參數設定 ▾</div>
+                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">🎲 盲盒機率與卡池中控台 ▾</div>
                     <div class="accordion-body">
                         <p style="color:#3498db; font-size:13px; font-weight:bold; margin:0 0 10px 0;">勝場獲得盲盒數量</p>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
@@ -720,28 +720,12 @@
                                 </select>
                             </div>
                         </div>
-                        <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:10px 0;">
                         
-                        <p style="color:#9b59b6; font-size:13px; font-weight:bold; margin:0 0 10px 0;">「角色卡片」各稀有度掉落權重</p>
-                        <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <div style="flex:1;"><div style="font-size:12px; color:white; margin-bottom:4px; text-align:center; font-weight:bold;">N 卡</div><input type="number" step="0.1" id="gami-w-n" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
-                            <div style="flex:1;"><div style="font-size:12px; color:#0984e3; margin-bottom:4px; text-align:center; font-weight:bold;">R 卡</div><input type="number" step="0.1" id="gami-w-r" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
-                            <div style="flex:1;"><div style="font-size:12px; color:#9b59b6; margin-bottom:4px; text-align:center; font-weight:bold;">SR 卡</div><input type="number" step="0.1" id="gami-w-sr" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
-                            <div style="flex:1;"><div style="font-size:12px; color:#f1c40f; margin-bottom:4px; text-align:center; font-weight:bold;">SSR 卡</div><input type="number" step="0.1" id="gami-w-ssr" class="word-input" style="width:100%; box-sizing:border-box; padding:8px;"></div>
-                        </div>
-
                         <hr style="border:0.5px dashed rgba(255,255,255,0.1); margin:15px 0;">
+                        <p style="color:#f1c40f; font-size:14px; font-weight:900; margin:0 0 5px 0; text-align:center;">🌟 獎池機率分配矩陣 🌟</p>
+                        <p style="color:#94a3b8; font-size:11px; font-weight:bold; margin:0 0 15px 0; text-align:center;">(修改單一數值，系統會自動按比例分配剩餘機率，總和永遠 100%)</p>
                         
-                        <p style="color:#2ecc71; font-size:13px; font-weight:bold; margin:0 0 10px 0;">💰 點數獎池清單 (自訂點數與中獎權重)</p>
-                        <div style="font-size:11px; color:#cbd5e1; display:flex; margin-bottom:5px; padding:0 5px; text-align:center;">
-                            <span style="flex:1;">點數額度</span>
-                            <span style="flex:1;">稀有度(特效)</span>
-                            <span style="flex:1;">抽中權重</span>
-                            <span style="width:35px;"></span>
-                        </div>
-                        <div id="gami-points-list" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; padding-right:5px; margin-bottom:10px;">
-                            </div>
-                        <button class="btn-action" style="background:rgba(46,204,113,0.15); color:#2ecc71; font-size:14px; padding:10px; width:100%; border:1px dashed #2ecc71;" onclick="addGamiPointRow()">➕ 新增點數獎項</button>
+                        <div id="gacha-tiers-container"></div>
                     </div>
                 </div>
 
@@ -1615,67 +1599,229 @@
         }
 
         // =======================================================
-        // 🕹️ 遊戲化數值中控台與商店定價引擎
+        // 🕹️ 遊戲化數值中控台與商店定價引擎 (100% 動態機率版)
         // =======================================================
+        
+        let currentShopAvatars = []; // 暫存商店裡的角色供卡池比對使用
+
         function openGamiModal() {
             document.getElementById('menu-dropdown').classList.remove('show');
             document.getElementById('gamiModal').style.display = 'flex';
             document.getElementById('gami-status').innerText = "讀取設定中...";
             
-            // 🚀 核心修復：補上 { method: 'POST' }，精準對齊後端的 VIP 通道！
-            fetch(`${GAS_URL}?action=get_gamification_config&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN`, { method: 'POST' })
-                .then(res => res.json())
-                .then(config => {
-                    document.getElementById('gami-status').innerText = "";
-                    if (!config || !config.dailyChallenge) return; // 容錯
+            // 🚀 同時請求「遊戲設定」與「商店角色清單」
+            Promise.all([
+                fetch(`${GAS_URL}?action=get_gamification_config&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN`, { method: 'POST' }).then(r => r.json()),
+                fetch(`${GAS_URL}?action=get_shop_items_admin&secret=${ADMIN_SECRET}&id=${CURRENT_SCHOOL}-ADMIN`, { method: 'POST' }).then(r => r.json())
+            ])
+            .then(([config, shopData]) => {
+                document.getElementById('gami-status').innerText = "";
+                if (!config || !config.dailyChallenge) return;
+
+                // 過濾掉隱藏的 AI 角色，只留下學生抽得到的
+                currentShopAvatars = (shopData || []).filter(item => !item.id.startsWith("AI_"));
+
+                // 填入挑戰、任務、排行榜設定
+                document.getElementById('gami-pass-score').value = config.dailyChallenge.passScore;
+                document.getElementById('gami-t1-min').value = config.dailyChallenge.tiers[0].min;
+                document.getElementById('gami-t1-pts').value = config.dailyChallenge.tiers[0].pts;
+                document.getElementById('gami-t2-min').value = config.dailyChallenge.tiers[1].min;
+                document.getElementById('gami-t2-pts').value = config.dailyChallenge.tiers[1].pts;
+                document.getElementById('gami-t3-min').value = config.dailyChallenge.tiers[2].min;
+                document.getElementById('gami-t3-pts').value = config.dailyChallenge.tiers[2].pts;
+
+                document.getElementById('gami-fail-th').value = config.mission.failThreshold;
+                document.getElementById('gami-fail-base').value = config.mission.failBasePenalty;
+                document.getElementById('gami-fail-step').value = config.mission.failPenaltyStep;
+                document.getElementById('gami-good-th').value = config.mission.goodThreshold;
+                document.getElementById('gami-good-pts').value = config.mission.goodReward;
+                document.getElementById('gami-perf-th').value = config.mission.perfectThreshold;
+                document.getElementById('gami-perf-pts').value = config.mission.perfectReward;
+
+                document.getElementById('gami-lb-1').value = config.leaderboard[0];
+                document.getElementById('gami-lb-2').value = config.leaderboard[1];
+                document.getElementById('gami-lb-3').value = config.leaderboard[2];
+
+                document.getElementById('gami-pick-easy').value = config.gachaPicks["初階Ai"];
+                document.getElementById('gami-pick-med').value = config.gachaPicks["中階Ai"];
+                document.getElementById('gami-pick-hard').value = config.gachaPicks["高階Ai"];
+                document.getElementById('gami-pick-pvp').value = config.gachaPicks["玩家對戰"];
+
+                const passInput = document.getElementById('gami-pass-score');
+                const t3MinInput = document.getElementById('gami-t3-min');
+                passInput.oninput = function() { t3MinInput.value = this.value; };
+
+                // 🚀 核心渲染：構建四層獨立卡池矩陣
+                renderGachaTiersUI(config.gachaPools || []);
+            })
+            .catch(err => {
+                document.getElementById('gami-status').innerText = "⚠️ 讀取失敗，請重試";
+                document.getElementById('gami-status').style.color = "#e74c3c";
+            });
+        }
+
+        // 🎨 渲染動態卡池 UI
+        function renderGachaTiersUI(savedPools) {
+            const container = document.getElementById('gacha-tiers-container');
+            container.innerHTML = "";
+
+            // 定義四大稀有度 (確保順序與顏色)
+            const rarities = [
+                { r: 'N', color: '#ecf0f1', border: 'rgba(255,255,255,0.2)' },
+                { r: 'R', color: '#3498db', border: 'rgba(52,152,219,0.4)' },
+                { r: 'SR', color: '#9b59b6', border: 'rgba(155,89,182,0.4)' },
+                { r: 'SSR', color: '#f1c40f', border: 'rgba(241,196,15,0.4)' }
+            ];
+
+            // 頂層機率容器 (用於 100% 連動)
+            let topProbHtml = `<div class="tier-prob-group" style="display:flex; gap:8px; margin-bottom:15px;">`;
+
+            rarities.forEach((tierDef, tIndex) => {
+                // 找出該稀有度在資料庫中的設定，如果沒有就預設
+                let poolData = savedPools.find(p => p.rarity === tierDef.r) || { prob: (tIndex===0?100:0), items: [] };
+                
+                // 1. 建立頂層的機率輸入框
+                topProbHtml += `
+                    <div style="flex:1; background:rgba(0,0,0,0.4); border:1px solid ${tierDef.border}; border-radius:12px; padding:10px 5px; text-align:center;">
+                        <div style="color:${tierDef.color}; font-weight:900; font-size:14px; margin-bottom:5px;">${tierDef.r} 卡</div>
+                        <div style="display:flex; align-items:center; justify-content:center;">
+                            <input type="number" step="0.1" class="word-input top-prob-inp" data-rarity="${tierDef.r}" value="${poolData.prob}" style="width:100%; padding:4px; font-size:13px; text-align:center;">
+                            <span style="font-size:12px; margin-left:2px; color:#cbd5e1;">%</span>
+                        </div>
+                    </div>`;
+
+                // 2. 建立各稀有度內部的物品清單 (包含角色與點數)
+                // 找出屬於這個稀有度的角色
+                const tierAvatars = currentShopAvatars.filter(av => av.rarity === tierDef.r);
+                
+                // 整理該層的所有項目
+                let innerItemsHtml = '';
+                
+                // A. 先印出角色 (不可刪除)
+                tierAvatars.forEach(av => {
+                    // 從存檔中找這個角色的機率，若無則給 0
+                    let savedItem = poolData.items.find(i => i.type === 'avatar' && i.value === av.id);
+                    let iProb = savedItem ? savedItem.prob : 0;
                     
-                    // 填入今日挑戰
-                    document.getElementById('gami-pass-score').value = config.dailyChallenge.passScore;
-                    document.getElementById('gami-t1-min').value = config.dailyChallenge.tiers[0].min;
-                    document.getElementById('gami-t1-pts').value = config.dailyChallenge.tiers[0].pts;
-                    document.getElementById('gami-t2-min').value = config.dailyChallenge.tiers[1].min;
-                    document.getElementById('gami-t2-pts').value = config.dailyChallenge.tiers[1].pts;
-                    document.getElementById('gami-t3-min').value = config.dailyChallenge.tiers[2].min;
-                    document.getElementById('gami-t3-pts').value = config.dailyChallenge.tiers[2].pts;
-
-                    // 填入任務規則
-                    document.getElementById('gami-fail-th').value = config.mission.failThreshold;
-                    document.getElementById('gami-fail-base').value = config.mission.failBasePenalty;
-                    document.getElementById('gami-fail-step').value = config.mission.failPenaltyStep;
-                    document.getElementById('gami-good-th').value = config.mission.goodThreshold;
-                    document.getElementById('gami-good-pts').value = config.mission.goodReward;
-                    document.getElementById('gami-perf-th').value = config.mission.perfectThreshold;
-                    document.getElementById('gami-perf-pts').value = config.mission.perfectReward;
-
-                    // 填入排行榜
-                    document.getElementById('gami-lb-1').value = config.leaderboard[0];
-                    document.getElementById('gami-lb-2').value = config.leaderboard[1];
-                    document.getElementById('gami-lb-3').value = config.leaderboard[2];
-
-                    // 填入抽獎次數
-                    document.getElementById('gami-pick-easy').value = config.gachaPicks["初階Ai"];
-                    document.getElementById('gami-pick-med').value = config.gachaPicks["中階Ai"];
-                    document.getElementById('gami-pick-hard').value = config.gachaPicks["高階Ai"];
-                    document.getElementById('gami-pick-pvp').value = config.gachaPicks["玩家對戰"];
-                    document.getElementById('gami-pick-boss').value = config.gachaPicks["活動Boss"];
-
-                    // 填入機率權重
-                    document.getElementById('gami-w-n').value = config.gachaWeights["N"];
-                    document.getElementById('gami-w-r').value = config.gachaWeights["R"];
-                    document.getElementById('gami-w-sr').value = config.gachaWeights["SR"];
-                    document.getElementById('gami-w-ssr').value = config.gachaWeights["SSR"];
-
-                    // 🚀 自動連動引擎：當改動「及格分數」時，自動把最低第三階的門檻設成一樣，避免 55分過關卻 0點 的困惑
-                    const passInput = document.getElementById('gami-pass-score');
-                    const t3MinInput = document.getElementById('gami-t3-min');
-                    passInput.oninput = function() {
-                        t3MinInput.value = this.value;
-                    };
-                })
-                .catch(err => {
-                    document.getElementById('gami-status').innerText = "⚠️ 讀取失敗，請重試";
-                    document.getElementById('gami-status').style.color = "#e74c3c";
+                    innerItemsHtml += `
+                        <div class="inner-prob-row" data-type="avatar" data-val="${av.id}" style="display:flex; align-items:center; gap:10px; margin-bottom:8px; background:rgba(255,255,255,0.05); padding:8px; border-radius:8px;">
+                            <span style="font-size:18px;">🎭</span>
+                            <span style="flex:1; font-size:14px; font-weight:bold; color:white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${av.name}</span>
+                            <input type="number" step="0.1" class="word-input inner-prob-inp" value="${iProb}" style="width:60px; padding:6px; font-size:13px; flex:none;">
+                            <span style="font-size:12px; color:#cbd5e1; width:15px;">%</span>
+                        </div>`;
                 });
+
+                // B. 印出點數 (可以修改面額、可以刪除)
+                let pointItems = poolData.items.filter(i => i.type === 'points');
+                pointItems.forEach(pt => {
+                    innerItemsHtml += createPointRowHtml(pt.value, pt.prob);
+                });
+
+                // 組合該稀有度的區塊
+                container.innerHTML += `
+                    <div class="tier-pool-section" id="pool-section-${tierDef.r}" style="background:rgba(0,0,0,0.2); border:1px solid ${tierDef.border}; border-radius:15px; padding:15px; margin-bottom:15px;">
+                        <h4 style="margin:0 0 10px 0; color:${tierDef.color}; font-size:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <span>📦 ${tierDef.r} 內容物機率分配</span>
+                            <span style="font-size:12px; color:#cbd5e1; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:10px;">總計需為 100%</span>
+                        </h4>
+                        
+                        <div class="inner-items-container" id="inner-container-${tierDef.r}">
+                            ${innerItemsHtml}
+                        </div>
+                        
+                        <button class="btn-action" style="background:transparent; color:${tierDef.color}; border:1px dashed ${tierDef.color}; font-size:13px; padding:8px; width:100%; margin-top:5px;" onclick="addPointToTier('${tierDef.r}')">
+                            ➕ 新增點數獎項
+                        </button>
+                    </div>
+                `;
+            });
+
+            topProbHtml += `</div>`;
+            container.insertAdjacentHTML('afterbegin', topProbHtml); // 把頂層機率插在最前面
+
+            // 🚀 啟動自適應 100% 引擎！
+            attachAutoBalance('.tier-prob-group', '.top-prob-inp');
+            rarities.forEach(t => attachAutoBalance(`#pool-section-${t.r}`, '.inner-prob-inp'));
+        }
+
+        // 幫指定層新增一行點數
+        window.addPointToTier = function(rarity) {
+            const container = document.getElementById(`inner-container-${rarity}`);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = createPointRowHtml(10, 0); // 預設 10 點，0%
+            container.appendChild(tempDiv.firstElementChild);
+            // 重新綁定該層的連動引擎
+            attachAutoBalance(`#pool-section-${rarity}`, '.inner-prob-inp');
+        };
+
+        // 刪除點數獎項 (綁在按鈕上的 onclick)
+        window.removePointRow = function(btnEl) {
+            const container = btnEl.closest('.tier-pool-section');
+            btnEl.closest('.inner-prob-row').remove();
+            // 重新綁定連動引擎
+            attachAutoBalance(`#${container.id}`, '.inner-prob-inp');
+        };
+
+        // 產生點數 HTML 字串
+        function createPointRowHtml(val, prob) {
+            return `
+                <div class="inner-prob-row" data-type="points" style="display:flex; align-items:center; gap:10px; margin-bottom:8px; background:rgba(0,0,0,0.4); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                    <span style="font-size:18px;">💰</span>
+                    <input type="number" class="word-input point-val-inp" value="${val}" style="flex:1; padding:6px; font-size:14px; text-align:center;">
+                    <span style="font-size:13px; font-weight:bold; color:#f1c40f;">點</span>
+                    <input type="number" step="0.1" class="word-input inner-prob-inp" value="${prob}" style="width:60px; padding:6px; font-size:13px; flex:none;">
+                    <span style="font-size:12px; color:#cbd5e1; width:15px;">%</span>
+                    <button onclick="removePointRow(this)" style="background:rgba(231,76,60,0.2); border:1px solid #e74c3c; color:#e74c3c; border-radius:6px; width:28px; height:28px; display:flex; justify-content:center; align-items:center; cursor:pointer;">✖</button>
+                </div>`;
+        }
+
+        // 🚀 核心黑魔法：100% 比例自動連動平衡器
+        function attachAutoBalance(containerSelector, inputSelector) {
+            const container = document.querySelector(containerSelector);
+            if (!container) return;
+            const inputs = Array.from(container.querySelectorAll(inputSelector));
+            
+            // 初始化 dataset.prev
+            inputs.forEach(inp => inp.dataset.prev = inp.value || 0);
+
+            inputs.forEach(inp => {
+                // 移除舊的監聽器以免重複綁定
+                inp.onchange = null;
+                inp.onchange = function(e) {
+                    let changedVal = parseFloat(e.target.value) || 0;
+                    if(changedVal < 0) changedVal = 0; 
+                    if(changedVal > 100) changedVal = 100;
+                    e.target.value = changedVal.toFixed(1);
+
+                    let remaining = 100 - changedVal;
+                    let sumOthers = 0;
+                    
+                    // 算出除了自己以外，其他人原本加起來是多少
+                    inputs.forEach(other => {
+                        if(other !== e.target) sumOthers += parseFloat(other.dataset.prev) || 0;
+                    });
+
+                    // 將剩下的空間，按照原本的比例分配給其他人
+                    inputs.forEach(other => {
+                        if(other !== e.target) {
+                            if (inputs.length === 1) {
+                                // 只有一個輸入框，強制 100
+                                other.value = "100.0";
+                            } else if(sumOthers === 0) {
+                                // 如果其他人原本都是 0，那就平分剩下的
+                                other.value = (remaining / (inputs.length - 1)).toFixed(1);
+                            } else {
+                                // 按比例縮放
+                                let oldVal = parseFloat(other.dataset.prev) || 0;
+                                other.value = ((oldVal / sumOthers) * remaining).toFixed(1);
+                            }
+                            other.dataset.prev = other.value; // 同步紀錄
+                        }
+                    });
+                    e.target.dataset.prev = e.target.value; // 同步紀錄
+                };
+            });
         }
 
         function saveGamification() {
@@ -1685,19 +1831,35 @@
             btn.style.pointerEvents = "none";
             statusEl.innerText = "";
 
-            // 🚀 核心：打包點數列表
-            const pointsRows = document.querySelectorAll('.gami-point-row');
-            let newPointsPool = [];
-            pointsRows.forEach(row => {
-                newPointsPool.push({
-                    value: Number(row.querySelector('.gp-val').value),
-                    rarity: row.querySelector('.gp-rarity').value,
-                    weight: Number(row.querySelector('.gp-weight').value)
-                });
-            });
+            // 🚀 搜集並打包全新的 gachaPools 資料
+            let newGachaPools = [];
+            const rarities = ['N', 'R', 'SR', 'SSR'];
             
-            // 防呆：如果全刪光了，至少給個保底點數避免抽卡機當機
-            if (newPointsPool.length === 0) newPointsPool = [{ value: 5, rarity: "N", weight: 100 }];
+            // 抓取頂層機率
+            const topProbs = Array.from(document.querySelectorAll('.top-prob-inp'));
+            
+            rarities.forEach(r => {
+                let rProbInp = topProbs.find(inp => inp.getAttribute('data-rarity') === r);
+                let rProb = rProbInp ? Number(rProbInp.value) : 0;
+
+                let itemsArr = [];
+                const section = document.getElementById(`pool-section-${r}`);
+                if (section) {
+                    const rows = section.querySelectorAll('.inner-prob-row');
+                    rows.forEach(row => {
+                        let iType = row.getAttribute('data-type'); // avatar or points
+                        let iProb = Number(row.querySelector('.inner-prob-inp').value);
+                        
+                        if (iType === 'avatar') {
+                            itemsArr.push({ type: 'avatar', value: row.getAttribute('data-val'), prob: iProb });
+                        } else if (iType === 'points') {
+                            itemsArr.push({ type: 'points', value: Number(row.querySelector('.point-val-inp').value), prob: iProb });
+                        }
+                    });
+                }
+                
+                newGachaPools.push({ rarity: r, prob: rProb, items: itemsArr });
+            });
 
             const newConfig = {
                 dailyChallenge: {
@@ -1729,13 +1891,7 @@
                     "玩家對戰": Number(document.getElementById('gami-pick-pvp').value),
                     "活動Boss": Number(document.getElementById('gami-pick-boss').value)
                 },
-                gachaWeights: {
-                    "N": Number(document.getElementById('gami-w-n').value),
-                    "R": Number(document.getElementById('gami-w-r').value),
-                    "SR": Number(document.getElementById('gami-w-sr').value),
-                    "SSR": Number(document.getElementById('gami-w-ssr').value)
-                },
-                pointsPool: newPointsPool // 🚀 加入動態點數陣列
+                gachaPools: newGachaPools // 🚀 把大禮包塞進去！
             };
 
             const formData = new URLSearchParams();
@@ -1745,7 +1901,7 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        statusEl.innerText = "✅ 設定已全域同步！";
+                        statusEl.innerText = "✅ 卡池機率已全域同步！";
                         statusEl.style.color = "#2ecc71";
                         setTimeout(() => closeModal('gamiModal'), 1500);
                     } else {
