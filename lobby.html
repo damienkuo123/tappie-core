@@ -1114,13 +1114,81 @@
       });
     }
 
+    // 🚀 狀態鎖：防止全域的重複點擊
+    let isPurchasing = false;
+
     function buyCharacter(id, cost) {
+      // 1. 防禦：如果已經有購買請求在跑，直接擋掉所有新的點擊！
+      if (isPurchasing) {
+          console.log("防護機制：購買處理中，攔截重複點擊！");
+          return;
+      }
+      
+      // 2. 瀏覽器確認視窗
       if (!confirm(`確定要花費 ${cost} 點兌換此角色嗎？`)) return;
+      
+      // 3. 進入購買狀態：全域上鎖
+      isPurchasing = true;
+
+      // 4. 尋找畫面上所有的購買按鈕，將它們全部變灰並鎖定 (避免他跑去點別隻角色)
+      const allBuyBtns = document.querySelectorAll('.btn-buy');
+      allBuyBtns.forEach(btn => {
+          if (!btn.disabled) { // 只改那些原本可以按的
+              btn.dataset.originalText = btn.innerText; // 記住原本的字
+              btn.innerText = "⏳ 處理中...";
+              btn.style.pointerEvents = "none";
+              btn.style.filter = "grayscale(1)";
+          }
+      });
+
+      // 5. 蓋上一層隱形的防護網，徹底阻擋任何可能的觸控操作
+      const purchaseBlocker = document.createElement('div');
+      purchaseBlocker.id = "purchase-blocker";
+      purchaseBlocker.style.cssText = "position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); color: #f1c40f; font-size: 24px; font-weight: 900; letter-spacing: 2px;";
+      purchaseBlocker.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center;"><div class="spinner" style="width:40px; height:40px; border-width:4px; margin-bottom:15px;"></div>資料寫入中...</div>`;
+      document.body.appendChild(purchaseBlocker);
+
+      // 6. 發送請求給 GAS
       fetch(`${GAS_URL}?action=purchase_avatar&id=${STUDENT_ID}&avatarId=${id}`)
-        .then(res => res.json()).then(data => {
+        .then(res => res.json())
+        .then(data => {
+          // 解除全域鎖定
+          isPurchasing = false;
+          const blocker = document.getElementById('purchase-blocker');
+          if (blocker) blocker.remove();
+
           alert(data.msg);
-          if (data.success) location.reload(); 
-        }).catch(() => alert("連線失敗，請稍後再試。"));
+          
+          if (data.success) {
+              // 成功的話直接重整畫面
+              location.reload(); 
+          } else {
+              // 如果失敗 (例如點數不足)，恢復所有按鈕的狀態
+              allBuyBtns.forEach(btn => {
+                  if (btn.dataset.originalText) {
+                      btn.innerText = btn.dataset.originalText;
+                      btn.style.pointerEvents = "auto";
+                      btn.style.filter = "none";
+                  }
+              });
+          }
+        })
+        .catch(() => {
+          isPurchasing = false;
+          const blocker = document.getElementById('purchase-blocker');
+          if (blocker) blocker.remove();
+
+          alert("連線失敗，請稍後再試。");
+          
+          // 恢復按鈕狀態
+          allBuyBtns.forEach(btn => {
+              if (btn.dataset.originalText) {
+                  btn.innerText = btn.dataset.originalText;
+                  btn.style.pointerEvents = "auto";
+                  btn.style.filter = "none";
+              }
+          });
+        });
     }
 
     // =======================================================
