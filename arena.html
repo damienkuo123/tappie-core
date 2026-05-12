@@ -2422,9 +2422,20 @@
                                 let rawAzureData = SpeechSDK.PronunciationAssessmentResult.fromResult(result).detailResult;
                                 azureReports[currentIndex] = rawAzureData;
 
+                                // 🚀 核心升級：導入 10 秒絕對斬斷防護網 (AbortController)
+                                const abortController = new AbortController();
+                                const fetchTimeout = setTimeout(() => {
+                                    abortController.abort(); // ⏱️ 10秒一到，無情斬斷連線！
+                                }, 10000);
+
                                 fetch(`${GAS_URL}?action=evaluate_speech_azure&word=${encodeURIComponent(targetWord)}&id=${STUDENT_ID}`, { 
-                                    method: 'POST', body: JSON.stringify(rawAzureData) 
-                                }).then(res => res.json()).then(data => {
+                                    method: 'POST', 
+                                    body: JSON.stringify(rawAzureData),
+                                    signal: abortController.signal // 🔗 綁定引爆線
+                                }).then(res => {
+                                    clearTimeout(fetchTimeout); // ✅ 平安歸來，拆除炸彈
+                                    return res.json();
+                                }).then(data => {
                                     scores[currentIndex] = data.score; 
                                     if(!window.feedbacks) window.feedbacks = [];
                                     window.feedbacks[currentIndex] = data.feedback;
@@ -2432,12 +2443,21 @@
                                     // 🚀 成功！解除灰色裝甲，恢復原始紅色按鈕
                                     rb.classList.remove('processing-locked');
                                     renderWord();
-                                }).catch(() => {
-                                    document.getElementById('status').innerText = "⚠️ 導師寫評語失敗";
+                                }).catch((err) => {
+                                    clearTimeout(fetchTimeout); // 💣 發生錯誤也要拆除炸彈
+                                    
+                                    // 判斷是因為 Timeout 被我們斬斷，還是真的發生錯誤
+                                    if (err.name === 'AbortError') {
+                                        document.getElementById('status').innerText = "⚠️ 網路壅塞，請重按麥克風";
+                                    } else {
+                                        document.getElementById('status').innerText = "⚠️ 導師寫評語失敗";
+                                    }
+                                    
                                     document.getElementById('status').style.color = "#e74c3c";
-                                    rb.classList.remove('processing-locked');
+                                    rb.classList.remove('processing-locked'); // 🛡️ 強制解鎖按鈕
                                     renderWord();
                                 });
+
                             } else {
                                 document.getElementById('status').innerText = "❌ 發音含糊或無關，請重唸";
                                 document.getElementById('status').style.color = "#e74c3c";
