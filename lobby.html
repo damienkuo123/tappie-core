@@ -1120,7 +1120,7 @@
     function buyCharacter(id, cost) {
       // 1. 防禦：如果已經有購買請求在跑，直接擋掉所有新的點擊！
       if (isPurchasing) {
-          console.log("防護機制：購買處理中，攔截重複點擊！");
+          console.log("角色解鎖中...");
           return;
       }
       
@@ -1145,7 +1145,7 @@
       const purchaseBlocker = document.createElement('div');
       purchaseBlocker.id = "purchase-blocker";
       purchaseBlocker.style.cssText = "position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); color: #f1c40f; font-size: 24px; font-weight: 900; letter-spacing: 2px;";
-      purchaseBlocker.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center;"><div class="spinner" style="width:40px; height:40px; border-width:4px; margin-bottom:15px;"></div>資料寫入中...</div>`;
+      purchaseBlocker.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center;"><div class="spinner" style="width:40px; height:40px; border-width:4px; margin-bottom:15px;"></div>角色解鎖中...</div>`;
       document.body.appendChild(purchaseBlocker);
 
       // 6. 發送請求給 GAS
