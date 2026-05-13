@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tappie - AI 口說對戰系統</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tappie">
+    <link rel="apple-touch-icon" href="/assets/app-icon.png">
+    
+    <style>
+        :root {
+            --primary-blue: #007bff;
+            --marian-gold: #ffcc00;
+            --bg-dark: #0b0f1a;
+            --glass-bg: rgba(30, 41, 59, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background: var(--bg-dark);
+            color: white;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* ✨ 背景動態光暈 */
+        .ambient-orb {
+            position: fixed; border-radius: 50%; filter: blur(80px);
+            z-index: -1; opacity: 0.3; pointer-events: none;
+        }
+        .orb-1 { width: 400px; height: 400px; background: var(--primary-blue); top: -10%; left: -10%; }
+        .orb-2 { width: 300px; height: 300px; background: #8e44ad; bottom: 10%; right: -5%; }
+
+        /* 🚀 頂部導航欄 */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 70px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 30px; box-sizing: border-box;
+            background: rgba(11, 15, 26, 0.8); backdrop-filter: blur(10px);
+            z-index: 1000; border-bottom: 1px solid var(--glass-border);
+        }
+        .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 20px; letter-spacing: 2px; }
+        .nav-logo img { width: 35px; }
+
+        /* 🏰 英雄區塊 (Hero Section) */
+        .hero {
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 100px 20px 60px; text-align: center; box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 3rem; margin: 0; font-weight: 900; letter-spacing: -1px;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 1.2rem; color: #94a3b8; margin: 15px 0 40px; max-width: 600px; line-height: 1.6; }
+
+        /* 🗃️ 登入控制中心 (Login Hub) */
+        .login-card {
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 35px; border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%; max-width: 420px; box-sizing: border-box;
+            position: relative;
+        }
+
+        .login-method-group { display: flex; flex-direction: column; gap: 15px; margin-top: 25px; }
+        
+        .btn-login {
+            padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05); color: white; font-weight: bold;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-login:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .btn-login.primary { background: var(--primary-blue); border: none; }
+        .btn-login.line { background: #06C755; border: none; }
+
+        /* 手動輸入框 */
+        #manual-input-zone { display: none; margin-top: 20px; animation: fadeIn 0.4s; }
+        .uid-input {
+            width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--glass-border);
+            background: rgba(0,0,0,0.3); color: white; text-align: center; font-size: 18px;
+            letter-spacing: 2px; font-weight: bold; outline: none; margin-bottom: 10px; box-sizing: border-box;
+        }
+
+        .status-badge {
+            margin-bottom: 20px; display: inline-flex; align-items: center;
+            background: rgba(0,0,0,0.3); padding: 8px 16px; border-radius: 100px;
+        }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 10px; animation: blink 1.5s infinite; }
+
+        /* 📱 響應式優化 */
+        @media (min-width: 992px) {
+            .hero { flex-direction: row; text-align: left; justify-content: space-between; max-width: 1100px; margin: 0 auto; gap: 50px; }
+            .hero-text { flex: 1; }
+            h1 { font-size: 4rem; }
+            .login-card { flex: 0.8; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <nav>
+        <div class="nav-logo">
+            <img src="/assets/logo.webp" alt="Tappie Logo">
+            Tappie
+        </div>
+        <div style="font-size: 14px; color: var(--marian-gold); font-weight: bold; cursor: pointer;">校區管理入口 ➔</div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-text">
+            <div class="status-badge" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; font-size: 12px; font-weight: bold; border: 1px solid rgba(34, 197, 94, 0.2);">
+                ONLINE • AI 口說對戰系統 v2.5
+            </div>
+            <h1>讓孩子愛上<br>開口說英文</h1>
+            <p>融合 AI 語音辨識、遊戲化對戰與 3D 角色收藏。這不只是練習，而是一場讓孩子廢寢忘食的英語冒險。</p>
+        </div>
+
+        <div class="login-card" id="mainCard">
+            <div id="login-home">
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    <span id="msg" style="font-size: 13px; font-weight: bold;">等待感應學生卡...</span>
+                </div>
+                
+                <h3 style="margin: 0; letter-spacing: 1px;">學生登入中心</h3>
+                <p style="color: #94a3b8; font-size: 14px; margin: 10px 0 0 0;">請選擇登入方式</p>
+
+                <div class="login-method-group">
+                    <div class="btn-login" style="cursor: default; border: 2px dashed var(--primary-blue); background: rgba(0, 123, 255, 0.05);">
+                        <span>🪪</span> 靠近 NFC 感應區
+                    </div>
+                    <button class="btn-login" onclick="toggleManualInput()">
+                        <span>⌨️</span> 手動輸入 UID 序號
+                    </button>
+                    <button class="btn-login line" onclick="alert('LIFF 靜默登入開發中，敬請期待！')">
+                        <span>💬</span> 使用 Line 快速進入
+                    </button>
+                </div>
+            </div>
+
+            <div id="manual-input-zone">
+                <div style="text-align: left; margin-bottom: 20px; color: #94a3b8; font-size: 14px; cursor: pointer;" onclick="toggleManualInput()">❮ 返回方式選擇</div>
+                <h3 style="margin-bottom: 20px;">手動登入</h3>
+                <input type="text" id="uid-input-field" class="uid-input" placeholder="例如: TP01-S001" autocomplete="off">
+                <button class="btn-login primary" id="manual-submit-btn" style="width: 100%;" onclick="handleManualLogin()">確認進入系統</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwK3b9vyc9g0w_nloyltFNJNc2C8iaSxEKqH6KU3OPUJpgzP9Zz7ZUpWt-xpb5uqT4F/exec";
+        
+        // 切換手動輸入介面
+        function toggleManualInput() {
+            const home = document.getElementById('login-home');
+            const manual = document.getElementById('manual-input-zone');
+            if (manual.style.display === 'block') {
+                manual.style.display = 'none';
+                home.style.display = 'block';
+            } else {
+                manual.style.display = 'block';
+                home.style.display = 'none';
+                document.getElementById('uid-input-field').focus();
+            }
+        }
+
+        // 處理手動登入
+        function handleManualLogin() {
+            const uid = document.getElementById('uid-input-field').value.trim().toUpperCase();
+            if (uid.length < 4) {
+                alert("請輸入完整的 UID 序號！");
+                return;
+            }
+            
+            const btn = document.getElementById('manual-submit-btn');
+            btn.innerText = "⏳ 驗證中...";
+            btn.style.pointerEvents = "none";
+
+            // 直接跳轉 (Dashboard 會負責最終驗證)
+            window.location.href = `dashboard.html?id=${uid}`;
+        }
+
+        // =======================================================
+        // 🚀 原有的 NFC 無痕掃描系統 (保持背景運作)
+        // =======================================================
+        let rawBuffer = "";
+        let lastPressTime = Date.now();
+        const focusHunter = document.createElement('input');
+        focusHunter.type = "text";
+        focusHunter.setAttribute('inputmode', 'none'); 
+        focusHunter.style.position = "fixed"; focusHunter.style.top = "-500px"; focusHunter.style.opacity = "0";
+        document.body.appendChild(focusHunter);
+
+        setInterval(() => { 
+            if (document.activeElement.tagName !== 'INPUT') { focusHunter.focus(); }
+        }, 500);
+
+        focusHunter.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                let inputStr = rawBuffer.trim();
+                rawBuffer = "";
+                if (inputStr.length < 4) return;
+
+                document.getElementById('msg').innerText = "🚀 掃描成功...";
+                
+                let extractedUid = null;
+                if (inputStr.includes("uid=")) extractedUid = inputStr.split("uid=")[1].split("&")[0];
+                else if (inputStr.includes("id=")) extractedUid = inputStr.split("id=")[1].split("&")[0];
+
+                if (extractedUid) {
+                    window.location.href = `dashboard.html?id=${extractedUid}`;
+                } else {
+                    // 舊版卡片驗證
+                    fetch(`${GAS_URL}?action=verify_card&cardId=${encodeURIComponent(inputStr)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) window.location.href = `dashboard.html?id=${data.uid}`;
+                            else alert("查無此卡，請聯繫老師");
+                        });
+                }
+            }
+            if (e.key.length === 1) {
+                const now = Date.now();
+                if (now - lastPressTime > 300) rawBuffer = "";
+                rawBuffer += e.key;
+                lastPressTime = now;
+            }
+        });
+    </script>
+</body>
+</html>
