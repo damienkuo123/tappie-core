@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tappie - AI 口說對戰系統</title>
+    <title>Tappie - 讓孩子愛上開口說英文</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Tappie">
-    <link rel="apple-touch-icon" href="/assets/app-icon.png">
     
     <style>
         :root {
             --primary-blue: #007bff;
-            --marian-gold: #ffcc00;
+            --marian-gold: #f1c40f;
+            --marian-green: #2ecc71;
+            --marian-red: #e74c3c;
             --bg-dark: #0b0f1a;
-            --glass-bg: rgba(30, 41, 59, 0.6);
+            --glass-bg: rgba(30, 41, 59, 0.4);
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
@@ -22,6 +22,7 @@
             margin: 0; padding: 0;
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
             background: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 123, 255, 0.15) 0%, transparent 70%);
             color: white;
             overflow-x: hidden;
             scroll-behavior: smooth;
@@ -29,81 +30,130 @@
 
         /* ✨ 背景動態光暈 */
         .ambient-orb {
-            position: fixed; border-radius: 50%; filter: blur(80px);
-            z-index: -1; opacity: 0.3; pointer-events: none;
+            position: fixed; border-radius: 50%; filter: blur(100px);
+            z-index: -1; opacity: 0.4; pointer-events: none;
+            animation: floatOrb 15s infinite alternate ease-in-out;
         }
-        .orb-1 { width: 400px; height: 400px; background: var(--primary-blue); top: -10%; left: -10%; }
-        .orb-2 { width: 300px; height: 300px; background: #8e44ad; bottom: 10%; right: -5%; }
+        .orb-1 { width: 400px; height: 400px; background: var(--primary-blue); top: 10%; left: -10%; }
+        .orb-2 { width: 300px; height: 300px; background: #8e44ad; bottom: 20%; right: -5%; }
+        @keyframes floatOrb { 0% { transform: translate(0, 0); } 100% { transform: translate(50px, -50px); } }
 
         /* 🚀 頂部導航欄 */
         nav {
-            position: fixed; top: 0; width: 100%; height: 70px;
+            position: fixed; top: 0; width: 100%; height: 75px;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 30px; box-sizing: border-box;
-            background: rgba(11, 15, 26, 0.8); backdrop-filter: blur(10px);
+            background: rgba(11, 15, 26, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             z-index: 1000; border-bottom: 1px solid var(--glass-border);
         }
-        .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 20px; letter-spacing: 2px; }
-        .nav-logo img { width: 35px; }
+        .nav-logo { display: flex; align-items: center; gap: 12px; font-weight: 900; font-size: 22px; letter-spacing: 2px; }
+        .nav-logo img { width: 40px; }
+        .nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .nav-btn:active { transform: scale(0.95); }
 
-        /* 🏰 英雄區塊 (Hero Section) */
-        .hero {
+        /* ========================================= */
+        /* 🏰 第一屏：Hero 區塊與登入器 */
+        /* ========================================= */
+        .section {
             min-height: 100vh;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 100px 20px 60px; text-align: center; box-sizing: border-box;
+            padding: 100px 25px 60px; box-sizing: border-box; position: relative;
+            max-width: 1200px; margin: 0 auto;
         }
 
-        h1 {
-            font-size: 3rem; margin: 0; font-weight: 900; letter-spacing: -1px;
-            background: linear-gradient(to bottom, #fff, #94a3b8);
+        .hero-content { display: flex; flex-direction: column; gap: 50px; width: 100%; align-items: center; text-align: center; }
+        
+        .hero-text h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem); margin: 0 0 20px 0; font-weight: 900; letter-spacing: -1px; line-height: 1.2;
+            background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .hero p { font-size: 1.2rem; color: #94a3b8; margin: 15px 0 40px; max-width: 600px; line-height: 1.6; }
+        .hero-text h1 span { color: var(--marian-gold); -webkit-text-fill-color: initial; background: none; }
+        .hero-text p { font-size: clamp(1.1rem, 2vw, 1.4rem); color: #94a3b8; margin: 0 auto; max-width: 600px; line-height: 1.6; }
 
-        /* 🗃️ 登入控制中心 (Login Hub) */
+        /* 🗃️ 登入控制中心 */
         .login-card {
-            background: var(--glass-bg); backdrop-filter: blur(20px);
-            padding: 40px; border-radius: 35px; border: 1px solid var(--glass-border);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            width: 100%; max-width: 420px; box-sizing: border-box;
-            position: relative;
+            background: rgba(20, 25, 35, 0.6); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            padding: 45px 35px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1);
+            width: 100%; max-width: 450px; box-sizing: border-box; position: relative; z-index: 10;
         }
+        .status-badge { display: inline-flex; align-items: center; background: rgba(0,0,0,0.4); padding: 10px 20px; border-radius: 100px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--marian-gold); margin-right: 12px; animation: blink 1.5s infinite; box-shadow: 0 0 10px var(--marian-gold); }
 
-        .login-method-group { display: flex; flex-direction: column; gap: 15px; margin-top: 25px; }
-        
         .btn-login {
-            padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.05); color: white; font-weight: bold;
-            cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05); color: white; font-weight: 900; font-size: 16px; letter-spacing: 1px;
+            cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 15px;
         }
-        .btn-login:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
-        .btn-login.primary { background: var(--primary-blue); border: none; }
-        .btn-login.line { background: #06C755; border: none; }
+        .btn-login:hover { background: rgba(255,255,255,0.1); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .btn-login:active { transform: translateY(0) scale(0.96); }
+        
+        .btn-login.primary { background: linear-gradient(135deg, var(--primary-blue), #2980b9); border: none; box-shadow: 0 10px 25px rgba(0, 123, 255, 0.4); }
+        .btn-login.line { background: linear-gradient(135deg, #00c300, #009e00); border: none; box-shadow: 0 10px 25px rgba(0, 195, 0, 0.3); }
 
-        /* 手動輸入框 */
-        #manual-input-zone { display: none; margin-top: 20px; animation: fadeIn 0.4s; }
+        #manual-input-zone { display: none; animation: fadeIn 0.4s; }
         .uid-input {
-            width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--glass-border);
-            background: rgba(0,0,0,0.3); color: white; text-align: center; font-size: 18px;
-            letter-spacing: 2px; font-weight: bold; outline: none; margin-bottom: 10px; box-sizing: border-box;
+            width: 100%; padding: 18px; border-radius: 18px; border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.5); color: var(--marian-gold); text-align: center; font-size: 20px;
+            letter-spacing: 3px; font-weight: 900; outline: none; margin-bottom: 20px; box-sizing: border-box; transition: 0.3s;
         }
+        .uid-input:focus { border-color: var(--primary-blue); box-shadow: 0 0 20px rgba(0,123,255,0.3); }
 
-        .status-badge {
-            margin-bottom: 20px; display: inline-flex; align-items: center;
-            background: rgba(0,0,0,0.3); padding: 8px 16px; border-radius: 100px;
+        /* ========================================= */
+        /* 🎭 滾動劇本區塊 (Feature Sections) */
+        /* ========================================= */
+        .feature-row {
+            display: flex; flex-direction: column; align-items: center; gap: 40px;
+            width: 100%; margin: 80px 0;
         }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 10px; animation: blink 1.5s infinite; }
+        .feature-text { flex: 1; text-align: center; }
+        .feature-text h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin: 0 0 20px 0; color: #fff; }
+        .feature-text p { font-size: 1.1rem; color: #94a3b8; line-height: 1.8; margin: 0; }
+        .feature-visual { flex: 1; width: 100%; display: flex; justify-content: center; position: relative; }
+
+        /* 🎨 假 UI 佔位符：模擬 AI 聲學面板 */
+        .mock-ui-box {
+            width: 100%; max-width: 350px; height: 350px; background: rgba(255,255,255,0.05);
+            border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .mock-mic { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #ff4757, #ff6b81); display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 0 30px rgba(255,71,87,0.5); margin-bottom: 30px; animation: breathe 2s infinite alternate; }
+        .mock-wave { display: flex; gap: 8px; align-items: flex-end; height: 50px; }
+        .mock-bar { width: 8px; background: #2ed573; border-radius: 4px; animation: jump 1s infinite alternate; }
+        
+        /* 🎨 假 UI 佔位符：模擬抽卡展示 */
+        .mock-cards-container { position: relative; width: 300px; height: 400px; }
+        .mock-card { position: absolute; width: 220px; height: 320px; border-radius: 20px; background: linear-gradient(135deg, #1e272e, #2c3e50); border: 2px solid; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-size: 60px; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .mock-card-1 { border-color: #3498db; transform: rotate(-15deg) translate(-40px, 40px); z-index: 1; }
+        .mock-card-2 { border-color: #9b59b6; transform: rotate(15deg) translate(40px, 40px); z-index: 2; }
+        .mock-card-3 { border-color: var(--marian-gold); transform: rotate(0deg) translate(0, 0) scale(1.1); z-index: 3; box-shadow: 0 0 40px rgba(241,196,15,0.4); }
+
+        /* ========================================= */
+        /* 🎬 滾動動畫引擎 CSS 類別 */
+        /* ========================================= */
+        .reveal-up { opacity: 0; transform: translateY(80px); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .reveal-left { opacity: 0; transform: translateX(-80px); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .reveal-right { opacity: 0; transform: translateX(80px); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        .is-visible { opacity: 1; transform: translate(0, 0); }
 
         /* 📱 響應式優化 */
         @media (min-width: 992px) {
-            .hero { flex-direction: row; text-align: left; justify-content: space-between; max-width: 1100px; margin: 0 auto; gap: 50px; }
-            .hero-text { flex: 1; }
-            h1 { font-size: 4rem; }
+            .hero-content { flex-direction: row; text-align: left; justify-content: space-between; gap: 60px; }
+            .hero-text { flex: 1.2; }
             .login-card { flex: 0.8; }
+            .feature-row { flex-direction: row; margin: 120px 0; }
+            .feature-row:nth-child(even) { flex-direction: row-reverse; } /* 偶數列左右反轉 */
+            .feature-text { text-align: left; }
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes breathe { to { transform: scale(1.1); box-shadow: 0 0 50px rgba(255,71,87,0.8); } }
+        @keyframes jump { 0% { height: 20%; } 100% { height: 100%; } }
     </style>
 </head>
 <body>
@@ -113,57 +163,130 @@
 
     <nav>
         <div class="nav-logo">
-            <img src="/assets/logo.webp" alt="Tappie Logo">
+            <img src="/assets/logo.webp" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
             Tappie
         </div>
-        <div style="font-size: 14px; color: var(--marian-gold); font-weight: bold; cursor: pointer;">校區管理入口 ➔</div>
+        <div class="nav-btn" onclick="alert('這裡是校區後台管理入口')">校區管理</div>
     </nav>
 
-    <section class="hero">
-        <div class="hero-text">
-            <div class="status-badge" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; font-size: 12px; font-weight: bold; border: 1px solid rgba(34, 197, 94, 0.2);">
-                ONLINE • AI 口說對戰系統 v2.5
+    <section class="section">
+        <div class="hero-content">
+            <div class="hero-text reveal-up">
+                <h1>不再死背，<br>用 <span>說的</span> 贏得勝利。</h1>
+                <p>業界首創「實境對戰式」英語學習平台。融合微軟 Azure 醫療級語音診斷與 3D 盲盒抽卡系統。每天十分鐘，讓孩子沉浸在全英語的冒險世界中。</p>
             </div>
-            <h1>讓孩子愛上<br>開口說英文</h1>
-            <p>融合 AI 語音辨識、遊戲化對戰與 3D 角色收藏。這不只是練習，而是一場讓孩子廢寢忘食的英語冒險。</p>
-        </div>
 
-        <div class="login-card" id="mainCard">
-            <div id="login-home">
-                <div class="status-badge">
-                    <div class="status-dot"></div>
-                    <span id="msg" style="font-size: 13px; font-weight: bold;">等待感應學生卡...</span>
-                </div>
-                
-                <h3 style="margin: 0; letter-spacing: 1px;">學生登入中心</h3>
-                <p style="color: #94a3b8; font-size: 14px; margin: 10px 0 0 0;">請選擇登入方式</p>
+            <div class="login-card reveal-up" style="transition-delay: 0.2s;" id="mainCard">
+                <div id="login-home">
+                    <div class="status-badge">
+                        <div class="status-dot"></div>
+                        <span id="msg" style="font-size: 14px; font-weight: 900;">請感應學生專屬 NFC 卡片</span>
+                    </div>
+                    
+                    <h3 style="margin: 0; letter-spacing: 2px; font-size: 22px;">STUDENT LOGIN</h3>
+                    <p style="color: #94a3b8; font-size: 13px; margin: 5px 0 20px 0; font-weight: bold;">多平台無縫登入</p>
 
-                <div class="login-method-group">
-                    <div class="btn-login" style="cursor: default; border: 2px dashed var(--primary-blue); background: rgba(0, 123, 255, 0.05);">
-                        <span>🪪</span> 靠近 NFC 感應區
+                    <div class="btn-login" style="cursor: default; border: 2px dashed var(--primary-blue); background: rgba(0, 123, 255, 0.1);">
+                        <span style="font-size: 20px;">🪪</span> <span style="flex:1; text-align: left;">NFC 實體感應</span> <span style="font-size: 12px; color: #2ecc71;">偵測中...</span>
                     </div>
                     <button class="btn-login" onclick="toggleManualInput()">
-                        <span>⌨️</span> 手動輸入 UID 序號
+                        <span style="font-size: 20px;">⌨️</span> <span style="flex:1; text-align: left;">手動輸入 UID 序號</span> <span>➔</span>
                     </button>
                     <button class="btn-login line" onclick="alert('LIFF 靜默登入開發中，敬請期待！')">
-                        <span>💬</span> 使用 Line 快速進入
+                        <span style="font-size: 20px;">💬</span> <span style="flex:1; text-align: left;">使用 Line 快速進入</span> <span>➔</span>
                     </button>
                 </div>
-            </div>
 
-            <div id="manual-input-zone">
-                <div style="text-align: left; margin-bottom: 20px; color: #94a3b8; font-size: 14px; cursor: pointer;" onclick="toggleManualInput()">❮ 返回方式選擇</div>
-                <h3 style="margin-bottom: 20px;">手動登入</h3>
-                <input type="text" id="uid-input-field" class="uid-input" placeholder="例如: TP01-S001" autocomplete="off">
-                <button class="btn-login primary" id="manual-submit-btn" style="width: 100%;" onclick="handleManualLogin()">確認進入系統</button>
+                <div id="manual-input-zone">
+                    <div style="text-align: left; margin-bottom: 20px; color: #94a3b8; font-size: 14px; cursor: pointer; font-weight: bold;" onclick="toggleManualInput()">❮ 返回方式選擇</div>
+                    <h3 style="margin-bottom: 25px; letter-spacing: 2px;">遠端手動登入</h3>
+                    <input type="text" id="uid-input-field" class="uid-input" placeholder="例: TP01-S001" autocomplete="off">
+                    <button class="btn-login primary" id="manual-submit-btn" style="width: 100%; font-size: 18px;" onclick="handleManualLogin()">驗證並進入系統</button>
+                </div>
+                
+                <input type="text" id="scanner" inputmode="none" autofocus style="opacity: 0; position: absolute; top: -100px;">
             </div>
         </div>
     </section>
 
+    <section class="section" style="justify-content: flex-start; padding-top: 50px;">
+        
+        <div class="feature-row">
+            <div class="feature-text reveal-left">
+                <span style="color: var(--primary-blue); font-weight: 900; letter-spacing: 3px; font-size: 14px;">AZURE NEURAL TTS</span>
+                <h2>醫療級口說診斷</h2>
+                <p>我們不只給分數，我們找病因。透過微軟 Azure 音素級切片分析，精準揪出漏音與連音錯誤。配合 Gemini AI 導師給予即時白話文指導，讓孩子每一次開口都在進步。</p>
+            </div>
+            <div class="feature-visual reveal-right">
+                <div class="mock-ui-box">
+                    <div class="mock-mic">🎤</div>
+                    <div class="mock-wave">
+                        <div class="mock-bar" style="height: 40%; animation-delay: 0.1s;"></div>
+                        <div class="mock-bar" style="height: 80%; animation-delay: 0.2s;"></div>
+                        <div class="mock-bar" style="height: 100%; animation-delay: 0.3s; background:#f1c40f;"></div>
+                        <div class="mock-bar" style="height: 60%; animation-delay: 0.4s;"></div>
+                        <div class="mock-bar" style="height: 30%; animation-delay: 0.5s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-row">
+            <div class="feature-text reveal-right">
+                <span style="color: var(--marian-gold); font-weight: 900; letter-spacing: 3px; font-size: 14px;">GAMIFICATION</span>
+                <h2>實境對戰與 3D 盲盒收藏</h2>
+                <p>學習不再是枯燥的作業。打敗不同難度的 AI 對手，累積戰利品點數！高質感的 3D 角色卡牌抽獎系統，讓孩子為了獲得傳說級 SSR 角色，自發性地不斷練習。</p>
+            </div>
+            <div class="feature-visual reveal-left">
+                <div class="mock-cards-container">
+                    <div class="mock-card mock-card-1">🤖</div>
+                    <div class="mock-card mock-card-2">🦸‍♂️</div>
+                    <div class="mock-card mock-card-3">✨</div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <footer style="text-align: center; padding: 40px; color: #64748b; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 50px;">
+        © 2026 Tappie Education System. All rights reserved.<br>
+        <span style="font-size: 12px; opacity: 0.6; display: block; margin-top: 10px;">Powered by Google Apps Script & Microsoft Azure</span>
+    </footer>
+
     <script>
+        // =======================================================
+        // 🎬 滾動偵測引擎 (Intersection Observer API)
+        // =======================================================
+        document.addEventListener("DOMContentLoaded", function() {
+            // 抓出畫面上所有帶有 reveal-up, reveal-left, reveal-right 的元素
+            const animatedElements = document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right');
+
+            const observerOptions = {
+                root: null, // 代表使用瀏覽器視窗作為觀察範圍
+                rootMargin: '0px',
+                threshold: 0.2 // 當元素有 20% 進入畫面時，就觸發動畫
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // 元素進入畫面，加上 is-visible 觸發 CSS 動畫
+                        entry.target.classList.add('is-visible');
+                        // 觸發後就解除觀察，讓動畫只播一次，節省效能
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            // 把所有的元素餵給觀察器
+            animatedElements.forEach(el => observer.observe(el));
+        });
+
+        // =======================================================
+        // 🗃️ 登入邏輯 (與舊版完全相容)
+        // =======================================================
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwK3b9vyc9g0w_nloyltFNJNc2C8iaSxEKqH6KU3OPUJpgzP9Zz7ZUpWt-xpb5uqT4F/exec";
         
-        // 切換手動輸入介面
         function toggleManualInput() {
             const home = document.getElementById('login-home');
             const manual = document.getElementById('manual-input-zone');
@@ -177,45 +300,46 @@
             }
         }
 
-        // 處理手動登入
         function handleManualLogin() {
             const uid = document.getElementById('uid-input-field').value.trim().toUpperCase();
-            if (uid.length < 4) {
-                alert("請輸入完整的 UID 序號！");
-                return;
-            }
-            
+            if (uid.length < 4) { alert("請輸入完整的 UID 序號！"); return; }
             const btn = document.getElementById('manual-submit-btn');
             btn.innerText = "⏳ 驗證中...";
             btn.style.pointerEvents = "none";
-
-            // 直接跳轉 (Dashboard 會負責最終驗證)
             window.location.href = `dashboard.html?id=${uid}`;
         }
 
-        // =======================================================
-        // 🚀 原有的 NFC 無痕掃描系統 (保持背景運作)
-        // =======================================================
+        // 🚀 無痕 NFC 掃描系統 (背景隱形攔截)
         let rawBuffer = "";
         let lastPressTime = Date.now();
-        const focusHunter = document.createElement('input');
-        focusHunter.type = "text";
-        focusHunter.setAttribute('inputmode', 'none'); 
-        focusHunter.style.position = "fixed"; focusHunter.style.top = "-500px"; focusHunter.style.opacity = "0";
-        document.body.appendChild(focusHunter);
+        const focusHunter = document.getElementById('scanner');
 
         setInterval(() => { 
-            if (document.activeElement.tagName !== 'INPUT') { focusHunter.focus(); }
+            // 只有當焦點不在手動輸入框時，才把焦點搶回隱形吸鐵
+            if (document.activeElement.id !== 'uid-input-field') { 
+                focusHunter.focus(); 
+            }
         }, 500);
 
         focusHunter.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') e.preventDefault(); 
+
+            const now = Date.now();
+            if (now - lastPressTime > 300 && e.key !== 'Enter') rawBuffer = "";
+            lastPressTime = now;
+
+            if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                rawBuffer += e.key;
+            }
+
             if (e.key === 'Enter') {
-                e.preventDefault();
                 let inputStr = rawBuffer.trim();
-                rawBuffer = "";
+                rawBuffer = ""; focusHunter.value = "";
+                
                 if (inputStr.length < 4) return;
 
-                document.getElementById('msg').innerText = "🚀 掃描成功...";
+                document.getElementById('msg').innerText = "🚀 讀取中...";
+                document.getElementById('msg').style.color = "#f1c40f";
                 
                 let extractedUid = null;
                 if (inputStr.includes("uid=")) extractedUid = inputStr.split("uid=")[1].split("&")[0];
@@ -224,20 +348,21 @@
                 if (extractedUid) {
                     window.location.href = `dashboard.html?id=${extractedUid}`;
                 } else {
-                    // 舊版卡片驗證
                     fetch(`${GAS_URL}?action=verify_card&cardId=${encodeURIComponent(inputStr)}`)
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) window.location.href = `dashboard.html?id=${data.uid}`;
-                            else alert("查無此卡，請聯繫老師");
+                            else {
+                                document.getElementById('msg').innerText = "❌ 查無此卡";
+                                document.getElementById('msg').style.color = "#e74c3c";
+                                setTimeout(() => { document.getElementById('msg').innerText = "請感應學生專屬 NFC 卡片"; document.getElementById('msg').style.color = "#fff"; }, 2000);
+                            }
+                        }).catch(err => {
+                            document.getElementById('msg').innerText = "⚠️ 網路異常";
+                            document.getElementById('msg').style.color = "#e74c3c";
+                            setTimeout(() => { document.getElementById('msg').innerText = "請感應學生專屬 NFC 卡片"; document.getElementById('msg').style.color = "#fff"; }, 2000);
                         });
                 }
-            }
-            if (e.key.length === 1) {
-                const now = Date.now();
-                if (now - lastPressTime > 300) rawBuffer = "";
-                rawBuffer += e.key;
-                lastPressTime = now;
             }
         });
     </script>
