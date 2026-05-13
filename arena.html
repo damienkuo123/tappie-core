@@ -2360,7 +2360,7 @@
                     console.log("⏱️ 錄音超時 10 秒，強制截斷！");
                     togglePracticeRecord(e); // 模擬第二次點擊
                 }
-            }, 10000);
+            }, 12000);
 
         } 
         // 🔴 狀態 B：如果目前正在錄音 -> 停止錄音並送出
@@ -2426,7 +2426,7 @@
                                 const abortController = new AbortController();
                                 const fetchTimeout = setTimeout(() => {
                                     abortController.abort(); // ⏱️ 10秒一到，無情斬斷連線！
-                                }, 10000);
+                                }, 12000);
 
                                 fetch(`${GAS_URL}?action=evaluate_speech_azure&word=${encodeURIComponent(targetWord)}&id=${STUDENT_ID}`, { 
                                     method: 'POST', 
@@ -2881,7 +2881,7 @@
                     console.log("⏱️ 戰鬥錄音超時 10 秒，強制發射！");
                     toggleBattleRecord(e); // 模擬第二次點擊
                 }
-            }, 10000);
+            }, 12000);
 
         } 
         // 🔴 狀態 B：如果目前正在錄音 -> 停止錄音並送出
