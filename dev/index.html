@@ -312,7 +312,7 @@
                     <input type="text" id="uid-input-field" class="uid-input" placeholder="例: TP01-S001" autocomplete="off">
                     <button class="btn-login primary" id="manual-submit-btn" style="width: 100%; font-size: 18px;" onclick="handleManualLogin()">驗證並進入系統</button>
                 </div>
-                <input type="text" id="scanner" inputmode="none" autofocus style="opacity: 0; position: absolute; top: -100px;">
+                <input type="text" id="scanner" inputmode="none" autofocus style="opacity: 0; position: fixed; top: -10px; left: -100px; width: 1px; height: 1px;">
             </div>
         </div>
     </section>
@@ -735,7 +735,13 @@
         let rawBuffer = "";
         let lastPressTime = Date.now();
         const focusHunter = document.getElementById('scanner');
-        setInterval(() => { if (document.activeElement.id !== 'uid-input-field') focusHunter.focus(); }, 500);
+        
+        // 🚀 修復：加入 { preventScroll: true }，警告瀏覽器奪回焦點時絕對不准滾動畫面！
+        setInterval(() => { 
+            if (document.activeElement.id !== 'uid-input-field') {
+                focusHunter.focus({ preventScroll: true }); 
+            }
+        }, 500);
 
         focusHunter.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
