@@ -816,27 +816,29 @@
             const phoneScreens = document.querySelectorAll('.phone-screen');
             
             // 🚀 設定觸發線：將感應區大幅往下壓！
-            // -55% 0px 代表：當文字的頂部碰到螢幕高度 45% (剛好是手機下緣) 的瞬間，立刻判定離開雷達！
+            // rootMargin: '-80% 0px -10% 0px' 代表感應區只有在螢幕「底部 10% ~ 20%」這個極窄的區間。
+            // 這樣文字的頂部一碰到大手機下緣 (螢幕高度 45% 處)，它的底部就會徹底離開感應區，觸發消失機制！
             const stepObserverOptions = {
                 root: null,
-                rootMargin: '-55% 0px -20% 0px', 
+                rootMargin: '-80% 0px -10% 0px', 
                 threshold: 0
             };
 
             const stepObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        // 1. 把所有文字變暗，只點亮當前的這段文字
-                        scrollSteps.forEach(step => step.classList.remove('active'));
+                        // 進入感應區：點亮文字
                         entry.target.classList.add('active');
                         
-                        // 2. 抓取當前文字的步驟編號 (data-step="1/2/3")
+                        // 切換左邊大手機的畫面
                         const stepNum = entry.target.getAttribute('data-step');
-                        
-                        // 3. 切換左邊大手機的畫面
                         phoneScreens.forEach(screen => screen.classList.remove('active'));
                         const targetScreen = document.getElementById(`screen-${stepNum}`);
                         if (targetScreen) targetScreen.classList.add('active');
+                    } else {
+                        // 🚀 關鍵修復：一旦離開感應區，立刻讓這段文字變透明消失！
+                        // 這樣它就絕對沒有機會活著滑進大手機的背後！
+                        entry.target.classList.remove('active');
                     }
                 });
             }, stepObserverOptions);
