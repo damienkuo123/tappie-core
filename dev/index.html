@@ -204,6 +204,62 @@
         /* ========================================= */
         /* 🚀 擴充區塊：場景、權威、方案、FAQ */
         /* ========================================= */
+        /* 🌟 亮色白玉毛玻璃視覺斷點 (Visual Break) */
+        .light-break-section {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1a252f;
+            border-radius: 40px;
+            margin: 100px 20px;
+            padding: 80px 25px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.4), inset 0 2px 10px rgba(255,255,255,1);
+            position: relative;
+            z-index: 20;
+        }
+
+        /* 📱 黏性滾動佈局 (Sticky Scroll Layout) */
+        .sticky-layout {
+            display: flex; flex-direction: column; gap: 40px;
+            width: 100%; max-width: 1100px; margin: 0 auto;
+        }
+        
+        .sticky-visual-container {
+            position: sticky; top: 100px; height: 60vh; max-height: 600px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        
+        /* 超精緻模擬手機外框 */
+        .mock-big-phone {
+            width: 90%; max-width: 320px; height: 100%; max-height: 650px;
+            background: #000; border-radius: 45px; border: 12px solid #e2e8f0;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3), inset 0 0 0 4px #cbd5e1;
+            position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .mock-big-phone::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 25px; background: #e2e8f0; border-radius: 0 0 15px 15px; z-index: 10;
+        }
+        
+        /* 手機內畫面切換 */
+        .phone-screen {
+            position: absolute; inset: 0; background: var(--bg-dark);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transform: scale(0.95) translateY(20px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .phone-screen.active { opacity: 1; transform: scale(1) translateY(0); z-index: 5; }
+        
+        /* 📜 右側文字滾動區 */
+        .scroll-text-container {
+            display: flex; flex-direction: column; padding-bottom: 20vh;
+        }
+        .scroll-step {
+            min-height: 60vh; display: flex; flex-direction: column; justify-content: center;
+            opacity: 0.2; transform: translateX(30px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .scroll-step.active { opacity: 1; transform: translateX(0); }
+        .step-num { font-size: 60px; font-weight: 900; color: #e2e8f0; line-height: 1; margin-bottom: -15px; }
+        .step-title { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 900; color: #1a252f; margin-bottom: 15px; }
+        .step-desc { font-size: 1.15rem; color: #64748b; line-height: 1.8; font-weight: bold; }
+        
         .timeline-grid { display: grid; grid-template-columns: 1fr; gap: 30px; margin-top: 40px; width: 100%; max-width: 1100px; }
         .timeline-card { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 30px 25px; border-radius: 25px; position: relative; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .timeline-num { font-size: 80px; font-weight: 900; color: rgba(255,255,255,0.05); position: absolute; top: -10px; right: 20px; line-height: 1; pointer-events: none; }
@@ -255,6 +311,11 @@
             .timeline-grid { grid-template-columns: repeat(3, 1fr); }
             .pricing-grid { grid-template-columns: repeat(3, 1fr); align-items: center; }
             .pricing-card.highlight { transform: scale(1.08); z-index: 10; }
+            /* 🚀 Apple 黏性滾動大螢幕雙欄配置 */
+            .sticky-layout { flex-direction: row-reverse; gap: 80px; align-items: flex-start; }
+            .sticky-visual-container { flex: 1; height: 80vh; max-height: 800px; top: 100px; }
+            .scroll-text-container { flex: 1; padding-top: 10vh; padding-bottom: 50vh; }
+            .scroll-step { min-height: 80vh; }
         }
 
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -559,26 +620,51 @@
 
     <div class="global-section">
         
-        <section class="section" style="padding-top: 80px; min-height: auto; text-align: center;">
-            <span style="color: var(--primary-blue); font-weight: 900; letter-spacing: 3px; font-size: 14px; text-transform: uppercase;" class="reveal-up">User Scenario</span>
-            <h2 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin: 15px 0 20px; color: #fff;" class="reveal-up">Tappie 的完美一日</h2>
-            <p style="color: #94a3b8; font-size: 1.15rem; max-width: 600px; margin: 0 auto; line-height: 1.6;" class="reveal-up">從補習班大廳到家裡的客廳，無縫接軌的口說生態系。</p>
+        <section class="light-break-section">
+            <div style="text-align: center; margin-bottom: 60px;">
+                <span style="color: var(--primary-blue); font-weight: 900; letter-spacing: 3px; font-size: 14px; text-transform: uppercase;">User Scenario</span>
+                <h2 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin: 15px 0 20px; color: #1a252f;">Tappie 的完美一日</h2>
+                <p style="color: #64748b; font-size: 1.15rem; max-width: 600px; margin: 0 auto; line-height: 1.6; font-weight: bold;">從補習班大廳到家裡的客廳，無縫接軌的口說生態系。</p>
+            </div>
             
-            <div class="timeline-grid">
-                <div class="timeline-card reveal-up" style="transition-delay: 0.1s;">
-                    <div class="timeline-num">1</div>
-                    <h3 style="color: var(--marian-gold); margin-top: 0;">一逼即戰</h3>
-                    <p style="color: #cbd5e1; font-size: 14px; line-height: 1.8; font-weight: bold; margin: 0;">下課前 10 分鐘，學生在校區大廳拿出專屬實體卡片感應平板。無需帳號密碼，瞬間進入專屬的學習大廳。</p>
+            <div class="sticky-layout">
+                <div class="sticky-visual-container">
+                    <div class="mock-big-phone">
+                        <div class="phone-screen active" id="screen-1">
+                            <div class="mock-nfc-waves" style="border-color:#3498db;"></div>
+                            <div class="mock-nfc-card" style="transform: rotate(0); scale: 0.8; box-shadow: 0 0 40px rgba(0,102,204,0.6);">
+                                <div class="mock-nfc-chip"></div>
+                            </div>
+                            <h3 style="color: white; z-index: 10; margin-top: 30px; text-shadow: 0 2px 10px #000;">感應成功</h3>
+                        </div>
+                        <div class="phone-screen" id="screen-2" style="background: radial-gradient(circle, #1a2235, #050914);">
+                            <div style="font-size: 80px; filter: drop-shadow(0 0 20px #e74c3c); margin-bottom: 20px;">🎤</div>
+                            <div style="color: #f1c40f; font-size: 30px; font-weight: 900;">2495 PTS</div>
+                            <div style="color: #2ecc71; font-weight: bold; margin-top: 10px;">✅ 發音判定成功</div>
+                        </div>
+                        <div class="phone-screen" id="screen-3" style="background: white;">
+                            <div style="width: 80%; padding: 15px; background: #f8fafc; border-radius: 15px; margin-bottom: 10px; border: 1px solid #e2e8f0; color: #1a252f; font-weight: 900;">本週口說診斷報告</div>
+                            <div class="radar-shape" style="width: 150px; height: 150px; border-color: var(--primary-blue); background: rgba(0,102,204,0.1);"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="timeline-card reveal-up" style="transition-delay: 0.2s;">
-                    <div class="timeline-num">2</div>
-                    <h3 style="color: var(--primary-blue); margin-top: 0;">沉浸式陪練</h3>
-                    <p style="color: #cbd5e1; font-size: 14px; line-height: 1.8; font-weight: bold; margin: 0;">啟動當日挑戰。在 AI 教練的引導下，進行高頻率的發音開口。即便遇到長句子結巴，系統也會溫柔寬容，重建自信。</p>
-                </div>
-                <div class="timeline-card reveal-up" style="transition-delay: 0.3s;">
-                    <div class="timeline-num">3</div>
-                    <h3 style="color: var(--marian-green); margin-top: 0;">數據與回饋</h3>
-                    <p style="color: #cbd5e1; font-size: 14px; line-height: 1.8; font-weight: bold; margin: 0;">練習結束後，學生抽取 3D 盲盒獲得成就感。同時，家長的手機已自動收到精美的雷達圖診斷與專屬教育週報。</p>
+                
+                <div class="scroll-text-container">
+                    <div class="scroll-step active" data-step="1">
+                        <div class="step-num">01</div>
+                        <h3 class="step-title">一逼即戰，無縫切換</h3>
+                        <p class="step-desc">下課前 10 分鐘，學生在校區大廳拿出專屬實體卡片感應平板。無需輸入帳號密碼，系統瞬間喚醒專屬學習大廳，立刻準備好進入全英語戰場。</p>
+                    </div>
+                    <div class="scroll-step" data-step="2">
+                        <div class="step-num">02</div>
+                        <h3 class="step-title">沉浸式 AI 陪練</h3>
+                        <p class="step-desc">啟動對戰挑戰。在 Azure 醫療級引擎的精準抓錯與 Gemini AI 教練的引導下，進行高頻率的發音開口。即便遇到長句子結巴，系統也會給予溫柔寬容，重建孩子的開口自信。</p>
+                    </div>
+                    <div class="scroll-step" data-step="3">
+                        <div class="step-num">03</div>
+                        <h3 class="step-title">成效視覺化與回饋</h3>
+                        <p class="step-desc">練習結束後，學生抽取 3D 盲盒獲得實質成就感。同時，家長的手機已自動收到精美的雷達圖診斷與專屬教育週報，徹底解放老師的課後溝通時間。</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -707,6 +793,38 @@
             // 初始化：把第一區段 (學生)、英雄區，以及我們剛剛新增的「下半部全局區段 (.global-section)」餵給觀察器
             const activeElements = document.querySelectorAll('#tab-student .reveal-up, #tab-student .reveal-left, #tab-student .reveal-right, .hero-text, .login-card, .global-section .reveal-up, .global-section .reveal-left, .global-section .reveal-right');
             activeElements.forEach(el => scrollObserver.observe(el));
+            // ==========================================
+            // 🚀 專屬 Apple 黏性滾動引擎 (Sticky Scroll)
+            // ==========================================
+            const scrollSteps = document.querySelectorAll('.scroll-step');
+            const phoneScreens = document.querySelectorAll('.phone-screen');
+            
+            // 設定觸發線：當文字區塊滾動到畫面中間偏上一點 (40%~60% 處) 時觸發
+            const stepObserverOptions = {
+                root: null,
+                rootMargin: '-30% 0px -40% 0px',
+                threshold: 0
+            };
+
+            const stepObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // 1. 把所有文字變暗，只點亮當前的這段文字
+                        scrollSteps.forEach(step => step.classList.remove('active'));
+                        entry.target.classList.add('active');
+                        
+                        // 2. 抓取當前文字的步驟編號 (data-step="1/2/3")
+                        const stepNum = entry.target.getAttribute('data-step');
+                        
+                        // 3. 切換左邊大手機的畫面
+                        phoneScreens.forEach(screen => screen.classList.remove('active'));
+                        const targetScreen = document.getElementById(`screen-${stepNum}`);
+                        if (targetScreen) targetScreen.classList.add('active');
+                    }
+                });
+            }, stepObserverOptions);
+
+            scrollSteps.forEach(step => stepObserver.observe(step));
         });
 
         // =======================================================
