@@ -165,6 +165,28 @@
         
         /* 🎨 假 UI 佔位符：SaaS 校區客製化 */
         .mock-app-icon { width: 100px; height: 100px; background: linear-gradient(135deg, #2ecc71, #27ae60); border-radius: 25px; display: flex; align-items: center; justify-content: center; font-size: 45px; box-shadow: 0 15px 30px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.3); margin-bottom: 20px; }
+        
+        /* 🎨 假 UI 佔位符：NFC 實體卡與感應波紋 */
+        .mock-nfc-card { width: 200px; height: 125px; background: linear-gradient(135deg, var(--primary-blue), #1e3799); border-radius: 15px; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 15px 35px rgba(0,102,204,0.5); position: relative; display: flex; align-items: center; justify-content: center; z-index: 2; transform: rotate(-5deg); transition: 0.5s; }
+        .mock-nfc-card::before { content: 'NFC'; position: absolute; top: 15px; right: 15px; font-size: 12px; font-weight: 900; color: rgba(255,255,255,0.8); letter-spacing: 2px; }
+        .mock-nfc-chip { width: 35px; height: 25px; background: linear-gradient(135deg, #f1c40f, #e67e22); border-radius: 5px; border: 1px solid rgba(255,255,255,0.5); }
+        .mock-nfc-waves { position: absolute; width: 100px; height: 100px; border: 2px solid var(--marian-green); border-radius: 50%; opacity: 0; animation: nfcWave 2s infinite; z-index: 1; }
+        .mock-nfc-waves:nth-child(2) { animation-delay: 0.6s; }
+        @keyframes nfcWave { 0% { transform: scale(0.5); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }
+
+        /* 🎨 假 UI 佔位符：Gemini 溫柔教練與 KTV 燈泡 */
+        .mock-chat-bubble { background: rgba(255,255,255,0.9); color: #2c3e50; padding: 20px; border-radius: 20px 20px 20px 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 80%; text-align: left; position: relative; margin-bottom: 20px; }
+        .mock-chat-bubble::after { content: '✨ AI 教練'; position: absolute; top: -12px; left: 15px; background: var(--marian-gold); color: #000; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 8px; }
+        .mock-ktv-word { font-size: 28px; font-weight: 900; color: #bdc3c7; letter-spacing: 2px; text-align: center; margin-top: 15px; }
+        .mock-ktv-word span { color: var(--primary-blue); position: relative; }
+        .mock-ktv-light { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font-size: 14px; animation: bounce 1s infinite alternate; }
+
+        /* 🎨 假 UI 佔位符：遊戲化拉桿 */
+        .mock-slider-group { width: 85%; margin-bottom: 15px; text-align: left; }
+        .mock-slider-label { display: flex; justify-content: space-between; font-size: 12px; color: #a4b0be; font-weight: bold; margin-bottom: 8px; }
+        .mock-slider-track { width: 100%; height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; position: relative; border: 1px solid rgba(255,255,255,0.1); }
+        .mock-slider-fill { height: 100%; background: linear-gradient(90deg, var(--marian-green), var(--marian-gold)); border-radius: 4px; position: relative; }
+        .mock-slider-thumb { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; right: -8px; top: -4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 
         /* 🎨 假 UI 佔位符：任務排程日曆 */
         .mock-gantt { width: 90%; margin-bottom: 15px; height: 20px; background: rgba(52, 152, 219, 0.4); border-radius: 10px; }
@@ -267,6 +289,42 @@
         
         <section class="section" style="padding-top: 0; min-height: auto;">
             <div class="feature-row">
+                <div class="feature-text reveal-right">
+                    <span class="tag">Zero-Download Entry</span>
+                    <h2>逼卡即戰，免下載 App</h2>
+                    <p>丟掉繁瑣的帳號密碼與下載流程！只要拿著專屬的實體魔法卡，用手機或平板一「逼」，瞬間啟動全英語戰場。極致簡化的體驗，連阿公阿嬤也能輕鬆陪練。</p>
+                </div>
+                <div class="feature-visual reveal-left">
+                    <div class="mock-ui-box" style="justify-content: center;">
+                        <div class="mock-nfc-waves"></div>
+                        <div class="mock-nfc-waves"></div>
+                        <div class="mock-nfc-card">
+                            <div class="mock-nfc-chip"></div>
+                        </div>
+                        <div style="margin-top: 40px; font-weight: 900; color: var(--marian-green); letter-spacing: 2px; z-index: 2;">✅ 驗證成功，傳送中...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-row">
+                <div class="feature-text reveal-left">
+                    <span class="tag">Gemini AI Coach</span>
+                    <h2>聽得懂的溫暖指導</h2>
+                    <p>我們不只冷冰冰地扣分。結合 Gemini AI 生成白話文發音建議（例如：「寶貝，試著把嘴巴張大一點喔！」），並配備「KTV 式小燈泡」精準定位弱點音素，降速陪讀，重建孩子的開口自信。</p>
+                </div>
+                <div class="feature-visual reveal-right">
+                    <div class="mock-ui-box" style="justify-content: center; padding: 20px;">
+                        <div class="mock-chat-bubble">
+                            太棒了！你的語氣充滿自信。接下來我們把 "th" 的音輕輕咬住舌尖，就會完美囉！
+                        </div>
+                        <div class="mock-ktv-word">
+                            bro<span><div class="mock-ktv-light">💡</div>th</span>er
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-row">
                 <div class="feature-text reveal-left">
                     <span class="tag">Azure Neural TTS</span>
                     <h2>醫療級口說診斷</h2>
@@ -338,6 +396,45 @@
     <div id="tab-school" class="audience-tab">
         
         <section class="section" style="padding-top: 0; min-height: auto;">
+            <div class="feature-row">
+                <div class="feature-text reveal-right">
+                    <span class="tag">Hardware Identity</span>
+                    <h2>一人一卡，最強實體行銷</h2>
+                    <p>Tappie 不只是軟體，更是貴校的科技名片。客製化印有您校區 Logo 的 NFC 學習卡，不僅是登入鑰匙，更是孩子帶去學校向同儕炫耀的最佳實體行銷利器。</p>
+                </div>
+                <div class="feature-visual reveal-left">
+                    <div class="mock-ui-box" style="justify-content: center; background: radial-gradient(circle at center, rgba(241,196,15,0.1), transparent);">
+                        <div class="mock-nfc-card" style="transform: rotate(10deg); scale: 1.1; border-color: var(--marian-gold); box-shadow: 0 20px 50px rgba(241,196,15,0.4);">
+                            <div style="position:absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; font-weight: 900; opacity: 0.8;">YOUR LOGO</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-row">
+                <div class="feature-text reveal-left">
+                    <span class="tag">LiveOps Dashboard</span>
+                    <h2>手遊級數值營運後台</h2>
+                    <p>完全掌控您的學習經濟學。系統提供直觀的中控台，讓您可以隨時動態調整每日任務門檻、獎勵點數發放比例，甚至是 3D 盲盒的 SSR 抽獎機率，像營運頂級手遊一樣經營您的補習班。</p>
+                </div>
+                <div class="feature-visual reveal-right">
+                    <div class="mock-ui-box" style="justify-content: center; padding: 20px;">
+                        <div class="mock-slider-group">
+                            <div class="mock-slider-label"><span>SSR 掉落機率</span><span style="color:var(--marian-gold);">5.0%</span></div>
+                            <div class="mock-slider-track"><div class="mock-slider-fill" style="width: 5%;"><div class="mock-slider-thumb"></div></div></div>
+                        </div>
+                        <div class="mock-slider-group">
+                            <div class="mock-slider-label"><span>每日達標點數</span><span style="color:var(--marian-green);">+150 PTS</span></div>
+                            <div class="mock-slider-track"><div class="mock-slider-fill" style="width: 60%;"><div class="mock-slider-thumb"></div></div></div>
+                        </div>
+                        <div class="mock-slider-group">
+                            <div class="mock-slider-label"><span>未達標扣點</span><span style="color:var(--marian-red);">-50 PTS</span></div>
+                            <div class="mock-slider-track"><div class="mock-slider-fill" style="width: 20%; background: var(--marian-red);"><div class="mock-slider-thumb"></div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="feature-row">
                 <div class="feature-text reveal-left">
                     <span class="tag">Enterprise SaaS</span>
