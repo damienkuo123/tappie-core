@@ -257,16 +257,17 @@
         /* 📜 右側文字滾動區 */
         .scroll-text-container {
             display: flex; flex-direction: column; padding-bottom: 5vh;
-            z-index: 20; /* 🚀 層級比手機低，讓文字從手機底下鑽過去 */
-            padding-top: 45vh; /* 🚀 完美修正：讓第一段文字起點在手機下方，不要一開始就撞在一起 */
-            /* 🚀 魔術遮罩：讓文字在頂部 15% 的區域自動漸層隱形，不會硬生生切斷 */
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 100%);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 100%);
+            z-index: 20; /* 層級比手機低 */
+            padding-top: 45vh; /* 讓第一段文字起點在手機下方 */
+            /* 🚀 移除原本的 mask-image，改由 JS 精準觸發全透明控制 */
         }
         .scroll-step {
-            min-height: 55vh; display: flex; flex-direction: column; justify-content: center;
-            opacity: 0.15; transform: translateX(30px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            /* 🚀 將大區塊拆成「小實體」+「大下邊距」，縮小感應體積，讓它提早離開雷達！ */
+            min-height: 25vh; margin-bottom: 30vh; 
+            display: flex; flex-direction: column; justify-content: flex-start; /* 讓文字靠上，定位更精準 */
+            opacity: 0; transform: translateX(30px); transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .scroll-step:last-child { margin-bottom: 0; } /* 最後一個不需要留白 */
         .scroll-step.active { opacity: 1; transform: translateX(0); }
         .step-num { font-size: 60px; font-weight: 900; color: #e2e8f0; line-height: 1; margin-bottom: -15px; transition: 0.3s; }
         .scroll-step.active .step-num { color: var(--marian-gold); } /* 啟動時數字變色，引導視覺 */
@@ -328,7 +329,7 @@
             .sticky-layout { flex-direction: row-reverse; gap: 80px; align-items: flex-start; }
             .sticky-visual-container { flex: 1; height: 80vh; max-height: 800px; top: 120px; }
             .scroll-text-container { flex: 1; padding-top: 5vh; padding-bottom: 30vh; }
-            .scroll-step { min-height: 80vh; }
+            .scroll-step { min-height: 80vh; margin-bottom: 0; justify-content: center; } /* 🚀 恢復大螢幕的滿版高度設定 */
             
             /* 大螢幕恢復大手機 */
             .mock-big-phone { max-width: 320px; border-width: 12px; border-radius: 45px; }
@@ -816,11 +817,11 @@
             const scrollSteps = document.querySelectorAll('.scroll-step');
             const phoneScreens = document.querySelectorAll('.phone-screen');
             
-            // 設定觸發線：往下移到螢幕下半部。
-            // 這樣文字剛進入畫面下半部就會亮起，一準備靠近上半部的大手機就會立刻變暗消失！
+            // 🚀 設定觸發線：將感應區大幅往下移 (位於螢幕底部 15% ~ 30% 的極窄區間)
+            // 這樣文字只要一往上滑，底部離開 70% 的界線，就會立刻判定為失效而提早消失！
             const stepObserverOptions = {
                 root: null,
-                rootMargin: '-50% 0px -25% 0px', 
+                rootMargin: '-70% 0px -15% 0px', 
                 threshold: 0
             };
 
