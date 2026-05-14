@@ -112,7 +112,8 @@
         .toggle-wrapper {
             display: flex; justify-content: center; width: 100%; max-width: 500px; margin: 20px auto 60px;
             background: rgba(0,0,0,0.4); border-radius: 40px; padding: 6px; border: 1px solid rgba(255,255,255,0.1);
-            position: sticky; top: 90px; z-index: 900; backdrop-filter: blur(20px);
+            position: relative; /* 🚀 移除 sticky，讓它自然滾走不擋畫面 */
+            z-index: 100;
         }
         .toggle-btn {
             flex: 1; padding: 15px 0; border-radius: 35px; font-size: 16px; font-weight: 900;
@@ -225,28 +226,30 @@
         }
         
         .sticky-visual-container {
-            /* 🚀 手機版：手機稍微縮小，固定在畫面上方，讓出下方空間給文字滾動 */
             position: sticky; top: 90px; height: 45vh; max-height: 450px;
             display: flex; justify-content: center; align-items: center;
-            z-index: 10;
+            z-index: 30; /* 🚀 提高層級，確保手機絕對壓在文字上方 */
         }
         
-        /* 🚀 手機版：超精緻模擬手機外框縮小適配 */
+        /* 超精緻模擬手機外框 */
         .mock-big-phone {
             width: 90%; max-width: 250px; height: 100%; 
             background: #000; border-radius: 40px; border: 10px solid #e2e8f0;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3), inset 0 0 0 4px #cbd5e1;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5), inset 0 0 0 4px #cbd5e1;
             position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+            transform: translateZ(0); /* 🚀 終極防抖：強制開啟 GPU 硬體加速，鎖死邊框防止晃動！ */
         }
         .mock-big-phone::before {
             content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100px; height: 20px; background: #e2e8f0; border-radius: 0 0 15px 15px; z-index: 10;
+            width: 100px; height: 20px; background: #e2e8f0; border-radius: 0 0 15px 15px; z-index: 20;
         }
         
         /* 手機內畫面切換 */
         .phone-screen {
             position: absolute; inset: 0; background: var(--bg-dark);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            /* 🚀 加上 width 和 height 100%，並設定 border-radius，避免內部切換時撐破外框導致微晃 */
+            width: 100%; height: 100%; box-sizing: border-box; border-radius: 30px;
             opacity: 0; transform: scale(0.95) translateY(20px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .phone-screen.active { opacity: 1; transform: scale(1) translateY(0); z-index: 5; }
@@ -254,14 +257,19 @@
         /* 📜 右側文字滾動區 */
         .scroll-text-container {
             display: flex; flex-direction: column; padding-bottom: 5vh;
-            z-index: 20; /* 讓文字滑上來時不會被手機吃掉 */
+            z-index: 20; /* 🚀 層級比手機低，讓文字從手機底下鑽過去 */
+            padding-top: 45vh; /* 🚀 完美修正：讓第一段文字起點在手機下方，不要一開始就撞在一起 */
+            /* 🚀 魔術遮罩：讓文字在頂部 15% 的區域自動漸層隱形，不會硬生生切斷 */
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 100%);
         }
         .scroll-step {
             min-height: 55vh; display: flex; flex-direction: column; justify-content: center;
-            opacity: 0.2; transform: translateX(30px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0.15; transform: translateX(30px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .scroll-step.active { opacity: 1; transform: translateX(0); }
-        .step-num { font-size: 60px; font-weight: 900; color: #e2e8f0; line-height: 1; margin-bottom: -15px; }
+        .step-num { font-size: 60px; font-weight: 900; color: #e2e8f0; line-height: 1; margin-bottom: -15px; transition: 0.3s; }
+        .scroll-step.active .step-num { color: var(--marian-gold); } /* 啟動時數字變色，引導視覺 */
         .step-title { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 900; color: #1a252f; margin-bottom: 15px; }
         .step-desc { font-size: 1.15rem; color: #64748b; line-height: 1.8; font-weight: bold; }
         
@@ -808,10 +816,11 @@
             const scrollSteps = document.querySelectorAll('.scroll-step');
             const phoneScreens = document.querySelectorAll('.phone-screen');
             
-            // 設定觸發線：當文字區塊滾動到畫面中間偏上一點時觸發
+            // 設定觸發線：往下移到螢幕下半部。
+            // 這樣文字剛進入畫面下半部就會亮起，一準備靠近上半部的大手機就會立刻變暗消失！
             const stepObserverOptions = {
                 root: null,
-                rootMargin: '-40% 0px -40% 0px', // 🚀 縮小感應區，讓觸發更精準
+                rootMargin: '-50% 0px -25% 0px', 
                 threshold: 0
             };
 
