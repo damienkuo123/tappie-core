@@ -1847,6 +1847,64 @@
   }
 
   const originalOnload = async () => {
+    
+    // 🛡️ 戰場防護網啟動
+    if (MODE === 'battle' && ROOM_ID) {
+        
+        // 🗡️ 第一道防線：零容忍防 F5 重新整理 (抓現行犯)
+        let activeRoom = sessionStorage.getItem('active_battle_room');
+        if (activeRoom === ROOM_ID) {
+            sessionStorage.removeItem('active_battle_room'); // 清除紀錄
+            alert("⚠️ 系統偵測到重新整理或異常離開！\n\n對戰中離開視同放棄比賽，系統已判定您敗北！");
+            // 發送投降電報給 GAS，讓對手獲勝
+            fetch(`${GAS_URL}?action=surrender_battle&id=${STUDENT_ID}&roomId=${ROOM_ID}`);
+            window.location.href = `/lobby.html?id=${STUDENT_ID}`; // 踢回大廳
+            return; // 終止後續載入
+        }
+
+        // 🗡️ 第二道防線：深度斷線重連 (防手機沒電、重開瀏覽器)
+        try {
+            let res = await fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${ROOM_ID}&t=${new Date().getTime()}`);
+            let data = await res.json();
+            
+            if (data.status === "Finished" || data.status === "Canceled") {
+                sessionStorage.removeItem('active_battle_room'); 
+                if (normalizeStr(data.winnerId) === normalizeStr(STUDENT_ID)) {
+                    alert("🎉 您已贏得上一場比賽！");
+                } else {
+                    alert("⚠️ 由於您剛剛網路不穩或離開戰場，對手已取得上一場的勝利囉！");
+                }
+                window.location.href = `/lobby.html?id=${STUDENT_ID}`;
+                return; 
+            }
+            
+            // 🚀 房間還在打，強制快進！
+            const hS = data.hostScores ? data.hostScores.filter(s => s !== -1) : [];
+            const gS = data.guestScores ? data.guestScores.filter(s => s !== -1) : [];
+            const isMeHost = (normalizeStr(STUDENT_ID) === normalizeStr(data.hostId));
+            
+            currentBattleRound = isMeHost ? hS.length : gS.length; 
+            console.log(`🔌 斷線重連成功！將直接進入第 ${currentBattleRound + 1} 局`);
+
+            // 🚀🚀🚀 【潛在 Bug 修復點】：強制觸發一次 UI 更新與同步！
+            // 隱藏主面板，顯示戰場
+            document.getElementById('main-card').style.display = 'none';
+            document.getElementById('battle-portal-overlay').style.display = 'none';
+            document.getElementById('battle-arena').style.display = 'flex';
+            
+            // 去要題目
+            fetchBattleDataAndStart(ROOM_ID); 
+            // 呼叫這兩行，確保圓點、血量、名字都正確恢復
+            updateArenaUI(ROOM_ID, true); 
+            startRoundCountdown(ROOM_ID);
+
+            return; // 🚀 已經重連成功，就不要再往下執行一般的 onload 邏輯了
+
+        } catch(e) {
+            console.error("斷線重連檢查失敗", e);
+        }
+    }
+
     if(MODE === 'review') document.getElementById('title-text').innerText = "📖 自由練習模式";
     
     // 🚀 既然已經通過 Dashboard 大門的檢查進來，這裡就不囉唆，直接開啟保溫麥克風！
@@ -2014,6 +2072,7 @@
             
             // 🚀 關鍵修復：同步給抽獎系統的變數，並啟動獎池引擎！
             characterAssets = window.characterAssets;   
+            window.gamiConfig = data.gamification || null; // 👈 🚀 新增這行：儲存全域遊戲設定
             buildDynamicPrizePool();                    
 
             showPortal();
@@ -2137,6 +2196,7 @@
 
         // 綁定「點擊進入戰場」的跳轉功能
         window.portalJump = () => {
+          sessionStorage.setItem('active_battle_room', ROOM_ID); // 🚀 鎖定：正式進入對戰
           clearInterval(pTimer);
           portal.style.display = 'none';
           document.getElementById('battle-arena').style.display = 'flex';
@@ -2155,6 +2215,7 @@
         enterBtn.classList.add('portal-btn-show');
         
         window.portalJump = () => {
+          sessionStorage.setItem('active_battle_room', ROOM_ID); // 🚀 鎖定：即使連線有誤，進入也要鎖定
           clearInterval(pTimer);
           portal.style.display = 'none';
           document.getElementById('battle-arena').style.display = 'flex';
@@ -2299,7 +2360,7 @@
                     console.log("⏱️ 錄音超時 10 秒，強制截斷！");
                     togglePracticeRecord(e); // 模擬第二次點擊
                 }
-            }, 10000);
+            }, 12000);
 
         } 
         // 🔴 狀態 B：如果目前正在錄音 -> 停止錄音並送出
@@ -2361,9 +2422,20 @@
                                 let rawAzureData = SpeechSDK.PronunciationAssessmentResult.fromResult(result).detailResult;
                                 azureReports[currentIndex] = rawAzureData;
 
+                                // 🚀 核心升級：導入 10 秒絕對斬斷防護網 (AbortController)
+                                const abortController = new AbortController();
+                                const fetchTimeout = setTimeout(() => {
+                                    abortController.abort(); // ⏱️ 10秒一到，無情斬斷連線！
+                                }, 12000);
+
                                 fetch(`${GAS_URL}?action=evaluate_speech_azure&word=${encodeURIComponent(targetWord)}&id=${STUDENT_ID}`, { 
-                                    method: 'POST', body: JSON.stringify(rawAzureData) 
-                                }).then(res => res.json()).then(data => {
+                                    method: 'POST', 
+                                    body: JSON.stringify(rawAzureData),
+                                    signal: abortController.signal // 🔗 綁定引爆線
+                                }).then(res => {
+                                    clearTimeout(fetchTimeout); // ✅ 平安歸來，拆除炸彈
+                                    return res.json();
+                                }).then(data => {
                                     scores[currentIndex] = data.score; 
                                     if(!window.feedbacks) window.feedbacks = [];
                                     window.feedbacks[currentIndex] = data.feedback;
@@ -2371,12 +2443,21 @@
                                     // 🚀 成功！解除灰色裝甲，恢復原始紅色按鈕
                                     rb.classList.remove('processing-locked');
                                     renderWord();
-                                }).catch(() => {
-                                    document.getElementById('status').innerText = "⚠️ 導師寫評語失敗";
+                                }).catch((err) => {
+                                    clearTimeout(fetchTimeout); // 💣 發生錯誤也要拆除炸彈
+                                    
+                                    // 判斷是因為 Timeout 被我們斬斷，還是真的發生錯誤
+                                    if (err.name === 'AbortError') {
+                                        document.getElementById('status').innerText = "⚠️ 網路壅塞，請重按麥克風";
+                                    } else {
+                                        document.getElementById('status').innerText = "⚠️ 導師寫評語失敗";
+                                    }
+                                    
                                     document.getElementById('status').style.color = "#e74c3c";
-                                    rb.classList.remove('processing-locked');
+                                    rb.classList.remove('processing-locked'); // 🛡️ 強制解鎖按鈕
                                     renderWord();
                                 });
+
                             } else {
                                 document.getElementById('status').innerText = "❌ 發音含糊或無關，請重唸";
                                 document.getElementById('status').style.color = "#e74c3c";
@@ -2671,15 +2752,35 @@
 
         document.getElementById('battle-arena').classList.add('battle-ready');
 
-        // 更新圓點分數
-        const hS = data.hostScores.filter(s => s !== -1);
-        const gS = data.guestScores.filter(s => s !== -1);
+        // 更新圓點分數 (🚀 嚴格對齊版)
+        const hS = data.hostScores || [];
+        const gS = data.guestScores || [];
         myTotalWins = 0; opTotalWins = 0;
+        
+        // 我們不先 filter 掉 -1，而是直接用迴圈一局一局比對！
+        // 只有雙方陣列在同一個局數都有值，且都不是 -1 (準備狀態)，才進行勝負判定。
         const commonLen = Math.min(hS.length, gS.length);
-        for(let i=0; i < commonLen; i++) { 
-           if(hS[i] > gS[i]) isMeHost ? myTotalWins++ : opTotalWins++; 
-           else if(gS[i] > hS[i]) isMeHost ? opTotalWins++ : myTotalWins++; 
+        
+        for(let i = 0; i < commonLen; i++) { 
+            let hostScore = hS[i];
+            let guestScore = gS[i];
+            
+            // 🚀 關鍵防護：如果有人這局的分數是 -1，代表他還沒交卷，這局絕對不能結算！
+            if (hostScore === -1 || guestScore === -1) {
+                continue; // 跳過這局，不給任何人亮燈
+            }
+            
+            // 將大招分數還原為基礎分數來比較
+            let realHost = hostScore > 500 ? hostScore - 1000 : hostScore;
+            let realGuest = guestScore > 500 ? guestScore - 1000 : guestScore;
+
+            if (realHost > realGuest) {
+                isMeHost ? myTotalWins++ : opTotalWins++; 
+            } else if (realGuest > realHost) {
+                isMeHost ? opTotalWins++ : myTotalWins++; 
+            }
         }
+        
         document.getElementById('my-rounds').innerHTML = renderDots(myTotalWins, true);
         document.getElementById('op-rounds').innerHTML = renderDots(opTotalWins, false);
 
@@ -2780,7 +2881,7 @@
                     console.log("⏱️ 戰鬥錄音超時 10 秒，強制發射！");
                     toggleBattleRecord(e); // 模擬第二次點擊
                 }
-            }, 10000);
+            }, 12000);
 
         } 
         // 🔴 狀態 B：如果目前正在錄音 -> 停止錄音並送出
@@ -2967,7 +3068,6 @@
 
   function submitBattleScore(roomId, score) {
     if (currentLimitTimer) clearInterval(currentLimitTimer);
-    
     document.getElementById('battle-controls').style.visibility = 'hidden';
 
     const myCard = document.getElementById('my-card');
@@ -2978,7 +3078,6 @@
     // 🚀 大招機制判斷
     let finalScore = score;
     let delayTime = 0; 
-
     if (isUltimateMode) {
         finalScore = score + 1000; 
         delayTime = 1500; 
@@ -2989,16 +3088,69 @@
         document.getElementById('battle-info').innerText = "等待對手...";
     }, 0); 
 
-    fetch(`${GAS_URL}?action=submit_battle_score&id=${STUDENT_ID}&roomId=${roomId}&score=${finalScore}&t=${new Date().getTime()}`)
-      .then(() => { 
+    // 🚀 核心升級：把 currentBattleRound 加上去！
+    fetch(`${GAS_URL}?action=submit_battle_score&id=${STUDENT_ID}&roomId=${roomId}&score=${finalScore}&round=${currentBattleRound}&t=${new Date().getTime()}`)
+      .then(res => res.json())
+      .then((data) => { 
+        // 🚀 B 慢吞吞送出分數時，發現房間早就被 A 關閉了
+        if (data.status === "Finished") {
+            if (window.GlobalAudio) GlobalAudio.play('popupClose'); // 播放失敗音效
+            alert("⏱️ 糟糕！您送出分數的時間太晚囉！\n對手等候超時，系統已判定對手獲勝！");
+            
+            // 強制呼叫「0 - 5」的戰敗結算畫面給 B 看，讓他心服口服
+            showImpactOverlay(0, 5, true, null, null); 
+            
+            setTimeout(() => {
+                window.location.href = `/lobby.html?id=${STUDENT_ID}`;
+            }, 4500); // 讓他看完敗北動畫再踢回大廳
+            return;
+        }
+
         if(waitOpTimer) clearInterval(waitOpTimer); 
-        
-        // 🚀 關鍵提速與防禦：確保不會有殘留的 isChecking 擋住我們第一次的檢查
         isChecking = false;
-        checkBoth(roomId); 
         
-        // 萬一對手是真人還沒答題，才繼續每 2 秒輪詢
-        waitOpTimer = setInterval(() => checkBoth(roomId), 2000); 
+        // 🚀 留守者補償機制：最多等真人對手 24 秒 (12次 x 2秒)
+        let maxWaitChecks = 12; 
+        
+        const checkBothWrapper = () => {
+            // 🚀 核心防護：如果對手是 AI，我們【絕對不扣減等待次數】，讓他變成無限期等待！
+            // 判定方式：只要對手名稱包含 Ai 或 活動，就視為機器人
+            const opNameElement = document.getElementById('op-name');
+            const isOpponentAI = opNameElement && (opNameElement.innerText.includes("Ai") || opNameElement.innerText.includes("活動"));
+
+            if (!isOpponentAI) {
+                maxWaitChecks--;
+            }
+
+            if (maxWaitChecks <= 0) {
+                clearInterval(waitOpTimer);
+                alert("對手網路不穩或已逃跑，系統判定您獲勝！🎉");
+                
+                fetch(`${GAS_URL}?action=claim_timeout_win&id=${STUDENT_ID}&roomId=${roomId}`)
+                  .then(() => {
+                      showImpactOverlay(5, 0, true, null, null); 
+                      
+                      setTimeout(() => {
+                          const triggerOverlay = document.getElementById('gacha-trigger-overlay');
+                          const enterBtn = document.getElementById('btn-enter-gacha');
+                          triggerOverlay.style.display = 'flex';
+                          setTimeout(() => { triggerOverlay.style.opacity = '1'; }, 50);
+                          enterBtn.onclick = () => {
+                              const opponentName = document.getElementById('op-name').innerText;
+                              document.getElementById('impact-overlay').classList.remove('active');
+                              triggerOverlay.style.display = 'none';
+                              if (window.GlobalAudio) GlobalAudio.playGachaBGM();
+                              initGacha(opponentName);
+                          };
+                      }, 3500);
+                  });
+                return;
+            }
+            checkBoth(roomId);
+        };
+
+        checkBothWrapper(); 
+        waitOpTimer = setInterval(checkBothWrapper, 2000);
       });
   }
 
@@ -3226,6 +3378,29 @@
     // 🚀 補上 &id=${STUDENT_ID}
     fetch(`${GAS_URL}?action=get_battle_status&id=${STUDENT_ID}&roomId=${roomId}&t=${new Date().getTime()}`)
       .then(res => res.json()).then(data => {
+        // 🚀 新增：如果發現房間突然結束了，且勝利者是我！(對手 F5 逃跑了)
+        if (data.status === "Finished" && normalizeStr(data.winnerId) === normalizeStr(STUDENT_ID)) {
+            clearInterval(waitOpTimer);
+            alert("對手已逃跑，您獲得了最終勝利！🏆");
+            showImpactOverlay(5, 0, true, null, null); 
+            
+            // 🚀 補上這段：3.5 秒後彈出抽盲盒按鈕
+            setTimeout(() => {
+                const triggerOverlay = document.getElementById('gacha-trigger-overlay');
+                const enterBtn = document.getElementById('btn-enter-gacha');
+                triggerOverlay.style.display = 'flex';
+                setTimeout(() => { triggerOverlay.style.opacity = '1'; }, 50);
+                enterBtn.onclick = () => {
+                    const opponentName = document.getElementById('op-name').innerText;
+                    document.getElementById('impact-overlay').classList.remove('active');
+                    triggerOverlay.style.display = 'none';
+                    if (window.GlobalAudio) GlobalAudio.playGachaBGM();
+                    initGacha(opponentName);
+                };
+            }, 3500);
+            return;
+        }
+
         const hS = data.hostScores.filter(s => s !== -1);
         const gS = data.guestScores.filter(s => s !== -1);
 
@@ -3364,7 +3539,12 @@
     document.getElementById('impact-op-score').innerText = opNum;
     sub.innerText = isFinal ? "FINAL MATCH RESULT" : "回合結果";
     
-    if (isFinal) o.classList.add('is-final');
+    if (isFinal) {
+        o.classList.add('is-final');
+        // 🚀 解鎖：當顯示最終對戰結果時，移除房間記錄
+        // 這樣學生看完分數後按重整，就不會再被判定為逃跑。
+        sessionStorage.removeItem('active_battle_room'); 
+    }
 
     // 🚀 根據勝負，套用贏家的全息卡片資料！
     if (myNum > opNum) { 
@@ -3541,107 +3721,67 @@
 
   // 原本寫死的圖鑑和獎池，現在改成動態變數
   let characterAssets = {};
-  let PRIZE_POOL = [];
 
-  // 🚀 新增：全自動動態獎池引擎 (自動讀取 Google Sheet 數據)
+  // 🚀 SaaS 系統出廠預設值卡池 (對齊 admin 的絕對機率預設值)
+  const DEFAULT_GACHA_ITEMS = [
+      { type: 'points', value: 0, rarity: 'N', prob: 25 },
+      { type: 'points', value: 5, rarity: 'N', prob: 20 },
+      { type: 'points', value: 10, rarity: 'N', prob: 15 },
+      { type: 'points', value: 20, rarity: 'R', prob: 15 },
+      { type: 'points', value: 30, rarity: 'R', prob: 10 },
+      { type: 'points', value: 50, rarity: 'R', prob: 8 },
+      { type: 'points', value: 70, rarity: 'SR', prob: 4 },
+      { type: 'points', value: 90, rarity: 'SR', prob: 2 },
+      { type: 'points', value: 500, rarity: 'SSR', prob: 1 }
+  ];
+
   function buildDynamicPrizePool() {
-      // 1. 保留原本固定的「點數獎池」
-      let pool = [
-          { type: 'points', value: 0, label: '0 點', class: 'prize-N', glow: 'crack-white', weight: 40 },
-          { type: 'points', value: 5, label: '5 點', class: 'prize-N', glow: 'crack-white', weight: 30 },
-          { type: 'points', value: 10, label: '10 點', class: 'prize-N', glow: 'crack-white', weight: 15 },
-          { type: 'points', value: 20, label: '20 點', class: 'prize-R', glow: 'crack-white', weight: 4 },
-          { type: 'points', value: 30, label: '30 點', class: 'prize-R', glow: 'crack-white', weight: 3 },
-          { type: 'points', value: 50, label: '50 點', class: 'prize-R', glow: 'crack-white', weight: 2 },
-          { type: 'points', value: 70, label: '70 點', class: 'prize-SR', glow: 'crack-purple', weight: 1 },
-          { type: 'points', value: 90, label: '90 點', class: 'prize-SR', glow: 'crack-purple', weight: 0.5 },
-          { type: 'points', value: 150, label: '150 點', class: 'prize-SR', glow: 'crack-purple', weight: 0.3 },
-          { type: 'points', value: 500, label: '500 點', class: 'prize-SSR', glow: 'crack-gold', weight: 0.1 },
-          { type: 'points', value: 888, label: '888 點', class: 'prize-SSR', glow: 'crack-gold', weight: 0.1 }
-      ];
-
-      // 2. 從全域圖鑑中，篩選出第 J 欄 (Category) 為「一般」的角色
-      let normalAvatars = Object.entries(characterAssets).filter(([id, char]) => char.category === '一般');
-
-      // 3. 統計各稀有度的卡片數量，用來平分機率
-      let counts = { 'N': 0, 'R': 0, 'SR': 0, 'SSR': 0 };
-      normalAvatars.forEach(([id, char]) => {
-          if (counts[char.rarity] !== undefined) counts[char.rarity]++;
-      });
-
-      // 4. 設定各稀有度的「總機率權重」(你的完美設計)
-      const totalWeights = { 'N': 2, 'R': 0.8, 'SR': 0.2, 'SSR': 0.1 };
-
-      // 5. 將「一般」角色動態加入獎池，自動計算平分權重與開卡特效
-      normalAvatars.forEach(([id, char]) => {
-          let r = char.rarity;
-          // 計算單張卡片的專屬權重 (總權重 ÷ 該稀有度總數量)
-          let weight = (counts[r] > 0) ? (totalWeights[r] / counts[r]) : 0;
-          
-          // 自動套用你指定的開卡光芒特效
-          let glowClass = 'crack-white';
-          if (r === 'SR') glowClass = 'crack-purple';
-          if (r === 'SSR') glowClass = 'crack-gold';
-
-          pool.push({
-              type: 'avatar',
-              value: id,
-              label: r,
-              class: `prize-${r}`,
-              glow: glowClass,
-              weight: weight
-          });
-      });
-
-      PRIZE_POOL = pool; // 寫入正式獎池
-      console.log("🎲 動態獎池生成完畢！目前獎池總數：", PRIZE_POOL.length);
+      // 在絕對機率架構下，不需要再構建雙層權重獎池了，保持空函式防報錯
+      console.log("🎲 絕對機率直列抽獎引擎就緒！");
   }
 
-  // 🚀 盲盒封面圖庫 (你可以隨時替換成你想要的網址)
+  // 🚀 盲盒封面圖庫
   const BOX_COVERS = {
-    'N': '/assets/BOX_COVER_N.webp', /* 預設底圖 */
+    'N': '/assets/BOX_COVER_N.webp',
     'R': '/assets/BOX_COVER_R.webp',
     'SR': '/assets/BOX_COVER_SR.webp',
     'SSR': '/assets/BOX_COVER_SSR.webp'
   };
 
-  // 1. 先抽盲盒稀有度
-  function getBoxRarity() {
-    let r = Math.random() * 100;
-    if (r < 97) return 'N';
-    if (r < 99) return 'R';
-    if (r < 99.5) return 'SR';
-    return 'SSR';
+  // 🚀 核心：唯一的轉盤！從 0~100 轉出結果
+  function drawSinglePrize() {
+      // 讀取從後台傳來的直列清單，若無則用預設
+      const pool = (window.gamiConfig && window.gamiConfig.gachaItems && window.gamiConfig.gachaItems.length > 0) 
+                   ? window.gamiConfig.gachaItems 
+                   : DEFAULT_GACHA_ITEMS;
+
+      let totalProb = pool.reduce((sum, item) => sum + Number(item.prob), 0);
+      let rand = Math.random() * totalProb; // 如果管理員乖乖設定，這裡的分母就是剛好 100
+      let selectedItem = pool[0]; // 防呆保底
+
+      for (let item of pool) {
+          if (rand < item.prob) {
+              selectedItem = item;
+              break;
+          }
+          rand -= item.prob;
+      }
+
+      let boxRarity = selectedItem.rarity || 'N';
+      let glowClass = 'crack-white';
+      if (boxRarity === 'SR') glowClass = 'crack-purple';
+      if (boxRarity === 'SSR') glowClass = 'crack-gold';
+
+      return {
+          type: selectedItem.type,
+          value: selectedItem.value,
+          boxRarity: boxRarity, // 順便把這層的外盒顏色回傳給系統
+          label: selectedItem.type === 'points' ? `${selectedItem.value} 點` : boxRarity,
+          class: `prize-${boxRarity}`,
+          glow: glowClass
+      };
   }
 
-  // 2. 根據盲盒稀有度，過濾獎池並抽獎
-  function drawPrizeByBox(boxRarity) {
-    let pool = [];
-    if (boxRarity === 'N') pool = PRIZE_POOL; // N箱可抽所有
-    else if (boxRarity === 'R') pool = PRIZE_POOL.filter(p => p.class !== 'prize-N'); // R箱保底 R 以上
-    else if (boxRarity === 'SR') pool = PRIZE_POOL.filter(p => p.class === 'prize-SR' || p.class === 'prize-SSR'); // SR箱保底 SR 以上
-    else if (boxRarity === 'SSR') pool = PRIZE_POOL.filter(p => p.class === 'prize-SSR'); // SSR箱保底 SSR
-
-    let totalWeight = pool.reduce((sum, item) => sum + item.weight, 0);
-    let random = Math.random() * totalWeight;
-    for (let item of pool) {
-      if (random < item.weight) return item;
-      random -= item.weight;
-    }
-    return pool[0];
-  }
-
-  function drawPrize() {
-    let totalWeight = PRIZE_POOL.reduce((sum, item) => sum + item.weight, 0);
-    let random = Math.random() * totalWeight;
-    for (let item of PRIZE_POOL) {
-      if (random < item.weight) return item;
-      random -= item.weight;
-    }
-    return PRIZE_POOL[0];
-  }
-
-  
   function initGacha(opponentName) {
     window.wonPoints = 0;   
     window.wonAvatars = []; 
@@ -3656,14 +3796,22 @@
     const board = document.getElementById('gacha-board');
     const picksSpan = document.getElementById('picks-left');
     
-    // 🚀 1. 設定抽獎次數
+    // 🚀 1. 讀取動態設定的抽獎次數
+    const picksConf = window.gamiConfig ? window.gamiConfig.gachaPicks : { "初階Ai": 1, "中階Ai": 2, "高階Ai": 3, "玩家對戰": 3, "活動Boss": 1 };
+
     if (isEventMode) {
-        gachaPicksLeft = 1; // 活動模式強制只有 1 次機會！
+        // 🚀 防呆：Boss 最多只能抽 1 次！
+        let bossPicks = picksConf["活動Boss"] || 1;
+        gachaPicksLeft = Math.max(1, Math.min(1, bossPicks)); 
     } else {
-        // 一般對戰依照難度給予次數
-        if (opponentName.includes("初階")) gachaPicksLeft = 1;
-        else if (opponentName.includes("中階")) gachaPicksLeft = 2;
-        else gachaPicksLeft = 3; 
+        // 一般對戰依照難度給予動態次數
+        if (opponentName.includes("初階")) gachaPicksLeft = picksConf["初階Ai"];
+        else if (opponentName.includes("中階")) gachaPicksLeft = picksConf["中階Ai"];
+        else if (opponentName.includes("高階") || opponentName.includes("Ai")) gachaPicksLeft = picksConf["高階Ai"];
+        else gachaPicksLeft = picksConf["玩家對戰"]; 
+        
+        // 🚀 終極防爆防呆機制：不管管理員設多少，強制鎖死在 1 ~ 6 次之間！
+        gachaPicksLeft = Math.max(1, Math.min(6, gachaPicksLeft));
     }
 
     picksSpan.innerText = gachaPicksLeft;
@@ -3682,12 +3830,11 @@
 
         // 🚀 3. 獎池分流：活動用專屬獎池，一般用常規獎池
         if (isEventMode) {
-            // 從圖鑑中抓取 Boss 的真實稀有度 (如果沒填則預設 SSR)
+            // (活動 Boss 邏輯不變)
             let bossRarity = 'SSR';
             let prizeClass = 'prize-SSR';
             let prizeGlow = 'crack-gold';
 
-            // 動態判斷對應的光澤與卡框
             if (EVENT_AVATAR && window.characterAssets && window.characterAssets[EVENT_AVATAR]) {
                 bossRarity = window.characterAssets[EVENT_AVATAR].rarity || 'SSR';
                 if (bossRarity === 'SR') { prizeClass = 'prize-SR'; prizeGlow = 'crack-purple'; }
@@ -3695,19 +3842,16 @@
                 else if (bossRarity === 'N') { prizeClass = 'prize-N'; prizeGlow = 'crack-white'; }
             }
 
-            boxRarity = bossRarity; // 盲盒外觀直接跟隨 Boss 真實稀有度
-
+            boxRarity = bossRarity; 
             if (Math.random() < 0.3) {
-                // 🚀 完全動態套用 Boss 的真實稀有度與光芒特效！
                 prize = { type: 'avatar', value: EVENT_AVATAR, label: '活動限定', class: prizeClass, glow: prizeGlow };
             } else {
-                // 70% 機率中活動點數 (10)
                 prize = { type: 'points', value: 10, label: '10 點', class: 'prize-N', glow: 'crack-white' };
             }
         } else {
-            // 一般模式
-            boxRarity = getBoxRarity();
-            prize = drawPrizeByBox(boxRarity);
+            // 🚀 一般模式：一鍵抽出卡片與對應外盒！
+            prize = drawSinglePrize();
+            boxRarity = prize.boxRarity; // 盲盒的外觀直接跟隨抽中的獎品
         }
         
         gachaCardsData.push({ id: i, word: randomWord, boxRarity: boxRarity, prize: prize, flipped: false });
@@ -4002,8 +4146,8 @@
               
               if (alreadyOwnedInAccount || alreadyGotInThisGacha) {
                   const charName = characterAssets[charId] ? characterAssets[charId].name : prizeToAdd.label;
-                  prizeToAdd.realLabel = `(重複) ${charName} → 轉為 300 點`; 
-                  window.wonPoints += 300; 
+                  prizeToAdd.realLabel = `(重複) ${charName} → 轉為 100 點`; 
+                  window.wonPoints += 100; 
               } else {
                   prizeToAdd.realLabel = characterAssets[charId] ? characterAssets[charId].name : prizeToAdd.label;
                   window.wonAvatars.push(charId); 
