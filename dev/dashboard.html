@@ -162,6 +162,10 @@
     .mission-node { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: #fff; border: 4px solid #e0e0e0; border-radius: 50%; z-index: 5; transition: 0.4s; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .mission-node.active { border-color: var(--marian-green); box-shadow: 0 0 15px rgba(46,204,113,0.6); }
     .node-icon { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); font-size: 22px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); }
+    
+    /* 🚀 新增：進度條下方的次數標籤 */
+    .node-label { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 900; color: #a4b0be; white-space: nowrap; transition: 0.3s; }
+    .mission-node.active .node-label { color: var(--marian-green); }
     .reward-bar { display: flex; justify-content: space-between; background: rgba(255,255,255,0.7); border-radius: 18px; padding: 16px 20px; margin-top: 15px; border: 1px solid rgba(255,255,255,1); box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
     .reward-unit { font-size: 13px; font-weight: 900; color: var(--text-sub); display: flex; align-items: center; gap: 6px; letter-spacing: 1px; }
     .reward-val { color: var(--marian-green); font-size: 15px; }
@@ -325,9 +329,18 @@
           </div>
         </div>
         <div class="mission-bar-bg">
-          <div id="node-1" class="mission-node" style="left: 33.33%;"><span class="node-icon">⚠️</span></div>
-          <div id="node-2" class="mission-node" style="left: 66.66%;"><span class="node-icon">🚩</span></div>
-          <div id="node-3" class="mission-node" style="left: 100%;"><span class="node-icon">🔥</span></div>
+          <div id="node-1" class="mission-node" style="left: 33.33%;">
+              <span class="node-icon">⚠️</span>
+              <span id="node-1-label" class="node-label">5次</span>
+          </div>
+          <div id="node-2" class="mission-node" style="left: 66.66%;">
+              <span class="node-icon">🚩</span>
+              <span id="node-2-label" class="node-label">10次</span>
+          </div>
+          <div id="node-3" class="mission-node" style="left: 100%;">
+              <span class="node-icon">🔥</span>
+              <span id="node-3-label" class="node-label">15次</span>
+          </div>
           <div id="mission-fill" class="mission-bar-fill" style="width: 0%;"></div>
         </div>
         <div id="mission-reward-bar" class="reward-bar">
@@ -911,7 +924,12 @@
       // 📊 以下的數據渲染，不管是不是資優生都照常執行！
       // 這樣當一般生偷偷用開發者工具把 .locked 拿掉時，看到的也是正確的數據，而不是空版。
 
-      // 今日挑戰 Box 渲染
+      // 🚀 關鍵第一步：先把 Admin 的遊戲設定抓出來！
+      const gami = data.gamification;
+
+      // ==========================================
+      // 🎯 今日挑戰 Box 渲染 (動態計算得分版)
+      // ==========================================
       const unitText = data.currentUnit || "未排定";
       document.getElementById('current-unit').innerText = unitText;
       const hwBox = document.getElementById('hw-box');
@@ -941,8 +959,25 @@
         hwTitle.innerText = "今日已完成";
         
         hwScoreInfo.classList.remove('hidden');
-        document.getElementById('last-score').innerText = data.lastScore;
-        document.getElementById('awarded-points').innerText = data.awardedPoints;
+        
+        // 🚀 動態覆寫點數：依照 Admin 的階梯設定重新計算 (解決 GAS 舊版 60 分硬編碼的問題)
+        let bestScore = Number(data.lastScore) || 0;
+        let calculatedPoints = data.awardedPoints || 0;
+        
+        if (gami && gami.dailyChallenge && gami.dailyChallenge.tiers) {
+            // 將階梯依照分數由高到低排序，避免邏輯錯誤
+            const sortedTiers = [...gami.dailyChallenge.tiers].sort((a, b) => b.min - a.min);
+            calculatedPoints = 0; // 預設 0 點
+            for (let t of sortedTiers) {
+                if (bestScore >= t.min) {
+                    calculatedPoints = t.pts;
+                    break;
+                }
+            }
+        }
+        
+        document.getElementById('last-score').innerText = bestScore;
+        document.getElementById('awarded-points').innerText = calculatedPoints;
         
         oralBtn.className = "btn btn-green";
         oralBtn.innerText = "再次練習";
@@ -969,11 +1004,8 @@
         };
       }
 
-      // 🚀 抓取後台傳來的動態遊戲設定
-      const gami = data.gamification;
-
       // ==========================================
-      // 🏅 單元任務進度與扣點渲染 (動態版)
+      // 🏅 單元任務進度與扣點渲染 (全動態比例版)
       // ==========================================
       const count = data.missionCount || 0;
       document.getElementById('mission-count').innerText = `${count} 次`;
@@ -1002,6 +1034,20 @@
             <div class="reward-unit">🚩 <span class="reward-val">+${gami.mission.goodReward}</span></div>
             <div class="reward-unit">🔥 <span class="reward-val">+${gami.mission.perfectReward}</span></div>
           `;
+          
+          // 🚀 動態更新 3 個 Node 的位置與底下的文字標籤！
+          const maxScore = gami.mission.perfectThreshold > 0 ? gami.mission.perfectThreshold : 15;
+          const failPos = Math.min(100, (gami.mission.failThreshold / maxScore) * 100);
+          const goodPos = Math.min(100, (gami.mission.goodThreshold / maxScore) * 100);
+          
+          document.getElementById('node-1').style.left = `${failPos}%`;
+          document.getElementById('node-1-label').innerText = `${gami.mission.failThreshold}次`;
+          
+          document.getElementById('node-2').style.left = `${goodPos}%`;
+          document.getElementById('node-2-label').innerText = `${gami.mission.goodThreshold}次`;
+          
+          document.getElementById('node-3').style.left = `100%`;
+          document.getElementById('node-3-label').innerText = `${maxScore}次`;
       }
       
       document.getElementById('mission-est').innerText = estText;
@@ -1012,10 +1058,10 @@
         const fill = document.getElementById('mission-fill');
         fill.style.background = barColor;
         // 依照滿分標準動態計算進度條 % 數
-        const maxScore = gami ? gami.mission.perfectThreshold : 15;
+        const maxScore = (gami && gami.mission && gami.mission.perfectThreshold > 0) ? gami.mission.perfectThreshold : 15;
         fill.style.width = `${Math.min(100, (count / maxScore) * 100)}%`; 
         
-        if (gami) {
+        if (gami && gami.mission) {
             if (count >= gami.mission.failThreshold) document.getElementById('node-1').classList.add('active');
             if (count >= gami.mission.goodThreshold) document.getElementById('node-2').classList.add('active');
             if (count >= gami.mission.perfectThreshold) document.getElementById('node-3').classList.add('active');
