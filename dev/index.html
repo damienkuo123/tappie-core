@@ -57,7 +57,7 @@
         .section {
             min-height: 100vh;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 100px 25px 60px; box-sizing: border-box; position: relative;
+            padding: 120px 25px 40px; box-sizing: border-box; position: relative;
             max-width: 1200px; margin: 0 auto;
         }
 
@@ -102,34 +102,78 @@
         .uid-input:focus { border-color: var(--primary-blue); box-shadow: 0 0 20px rgba(0,123,255,0.3); }
 
         /* ========================================= */
+        /* 🎛️ 分眾切換膠囊 (Audience Toggle) */
+        /* ========================================= */
+        .toggle-wrapper {
+            display: flex; justify-content: center; width: 100%; max-width: 500px; margin: 20px auto 60px;
+            background: rgba(0,0,0,0.4); border-radius: 40px; padding: 6px; border: 1px solid rgba(255,255,255,0.1);
+            position: sticky; top: 90px; z-index: 900; backdrop-filter: blur(20px);
+        }
+        .toggle-btn {
+            flex: 1; padding: 15px 0; border-radius: 35px; font-size: 16px; font-weight: 900;
+            color: #94a3b8; cursor: pointer; text-align: center; transition: 0.3s;
+        }
+        .toggle-btn.active {
+            background: var(--primary-blue); color: white; box-shadow: 0 4px 15px rgba(0,123,255,0.4);
+        }
+
+        .audience-tab { display: none; width: 100%; animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .audience-tab.active { display: block; }
+
+        /* ========================================= */
         /* 🎭 滾動劇本區塊 (Feature Sections) */
         /* ========================================= */
         .feature-row {
             display: flex; flex-direction: column; align-items: center; gap: 40px;
-            width: 100%; margin: 80px 0;
+            width: 100%; margin-bottom: 120px;
         }
         .feature-text { flex: 1; text-align: center; }
-        .feature-text h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin: 0 0 20px 0; color: #fff; }
-        .feature-text p { font-size: 1.1rem; color: #94a3b8; line-height: 1.8; margin: 0; }
+        .feature-text .tag { color: var(--primary-blue); font-weight: 900; letter-spacing: 3px; font-size: 14px; text-transform: uppercase; margin-bottom: 10px; display: block; }
+        .feature-text h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin: 0 0 20px 0; color: #fff; line-height: 1.3; }
+        .feature-text p { font-size: 1.15rem; color: #94a3b8; line-height: 1.8; margin: 0; }
         .feature-visual { flex: 1; width: 100%; display: flex; justify-content: center; position: relative; }
 
         /* 🎨 假 UI 佔位符：模擬 AI 聲學面板 */
         .mock-ui-box {
-            width: 100%; max-width: 350px; height: 350px; background: rgba(255,255,255,0.05);
+            width: 100%; max-width: 400px; height: 350px; background: rgba(255,255,255,0.03);
             border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
             display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5); overflow: hidden; box-sizing: border-box;
         }
+        
         .mock-mic { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #ff4757, #ff6b81); display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 0 30px rgba(255,71,87,0.5); margin-bottom: 30px; animation: breathe 2s infinite alternate; }
         .mock-wave { display: flex; gap: 8px; align-items: flex-end; height: 50px; }
         .mock-bar { width: 8px; background: #2ed573; border-radius: 4px; animation: jump 1s infinite alternate; }
         
-        /* 🎨 假 UI 佔位符：模擬抽卡展示 */
+        /* 🎨 假 UI 佔位符：抽卡展示 */
         .mock-cards-container { position: relative; width: 300px; height: 400px; }
         .mock-card { position: absolute; width: 220px; height: 320px; border-radius: 20px; background: linear-gradient(135deg, #1e272e, #2c3e50); border: 2px solid; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-size: 60px; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .mock-card-1 { border-color: #3498db; transform: rotate(-15deg) translate(-40px, 40px); z-index: 1; }
         .mock-card-2 { border-color: #9b59b6; transform: rotate(15deg) translate(40px, 40px); z-index: 2; }
-        .mock-card-3 { border-color: var(--marian-gold); transform: rotate(0deg) translate(0, 0) scale(1.1); z-index: 3; box-shadow: 0 0 40px rgba(241,196,15,0.4); }
+        .mock-card-3 { border-color: var(--marian-gold); transform: rotate(0deg) translate(0, 0) scale(1.1); z-index: 3; box-shadow: 0 0 40px rgba(241,196,15,0.4); background: linear-gradient(135deg, #e67e22, #f1c40f); }
+
+        /* 🎨 假 UI 佔位符：雷達圖 */
+        .radar-shape { width: 60%; height: 60%; background: rgba(0, 102, 204, 0.2); border: 2px solid var(--primary-blue); clip-path: polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%); animation: radarRotate 10s infinite linear; }
+        @keyframes radarRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* 🎨 假 UI 佔位符：排行榜 */
+        .mock-lb-row { width: 90%; display: flex; justify-content: space-between; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 10px; font-weight: bold; }
+        
+        /* 🎨 假 UI 佔位符：SaaS 校區客製化 */
+        .mock-app-icon { width: 100px; height: 100px; background: linear-gradient(135deg, #2ecc71, #27ae60); border-radius: 25px; display: flex; align-items: center; justify-content: center; font-size: 45px; box-shadow: 0 15px 30px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.3); margin-bottom: 20px; }
+
+        /* 🎨 假 UI 佔位符：任務排程日曆 */
+        .mock-gantt { width: 90%; margin-bottom: 15px; height: 20px; background: rgba(52, 152, 219, 0.4); border-radius: 10px; }
+        .mock-gantt.r { background: rgba(231, 76, 60, 0.4); width: 70%; margin-left: 20%; }
+        .mock-gantt.g { background: rgba(46, 204, 113, 0.4); width: 80%; margin-left: 10%; }
+
+        /* 🎨 假 UI 佔位符：電子報 */
+        .mock-email-header { width: 100%; height: 40px; background: #34495e; border-radius: 12px 12px 0 0; display: flex; align-items: center; padding: 0 15px; box-sizing: border-box; gap: 6px; }
+        .mock-email-dot { width: 10px; height: 10px; border-radius: 50%; background: #e74c3c; }
+        .mock-email-dot:nth-child(2) { background: #f1c40f; }
+        .mock-email-dot:nth-child(3) { background: #2ecc71; }
+        .mock-email-body { width: 100%; flex: 1; background: white; border-radius: 0 0 12px 12px; padding: 20px; box-sizing: border-box; }
+        .mock-line { height: 10px; background: #eee; border-radius: 5px; margin-bottom: 12px; }
 
         /* ========================================= */
         /* 🎬 滾動動畫引擎 CSS 類別 */
@@ -145,12 +189,12 @@
             .hero-content { flex-direction: row; text-align: left; justify-content: space-between; gap: 60px; }
             .hero-text { flex: 1.2; }
             .login-card { flex: 0.8; }
-            .feature-row { flex-direction: row; margin: 120px 0; }
+            .feature-row { flex-direction: row; }
             .feature-row:nth-child(even) { flex-direction: row-reverse; } /* 偶數列左右反轉 */
             .feature-text { text-align: left; }
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         @keyframes breathe { to { transform: scale(1.1); box-shadow: 0 0 50px rgba(255,71,87,0.8); } }
         @keyframes jump { 0% { height: 20%; } 100% { height: 100%; } }
@@ -166,14 +210,14 @@
             <img src="/assets/logo.webp" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
             Tappie
         </div>
-        <div class="nav-btn" onclick="alert('這裡是校區後台管理入口')">校區管理</div>
+        <div class="nav-btn" onclick="alert('請聯繫總部申請校區代碼')">分校加盟申請</div>
     </nav>
 
     <section class="section">
         <div class="hero-content">
             <div class="hero-text reveal-up">
-                <h1>不再死背，<br>用 <span>說的</span> 贏得勝利。</h1>
-                <p>業界首創「實境對戰式」英語學習平台。融合微軟 Azure 醫療級語音診斷與 3D 盲盒抽卡系統。每天十分鐘，讓孩子沉浸在全英語的冒險世界中。</p>
+                <h1>不再死背，<br>用 <span>勝利</span> 驅動口說。</h1>
+                <p>業界首創「實境對戰式」英語學習 SaaS 平台。融合醫療級語音診斷、3D 盲盒抽卡與多租戶管理。每天十分鐘，打造沉浸式英語冒險。</p>
             </div>
 
             <div class="login-card reveal-up" style="transition-delay: 0.2s;" id="mainCard">
@@ -203,166 +247,291 @@
                     <input type="text" id="uid-input-field" class="uid-input" placeholder="例: TP01-S001" autocomplete="off">
                     <button class="btn-login primary" id="manual-submit-btn" style="width: 100%; font-size: 18px;" onclick="handleManualLogin()">驗證並進入系統</button>
                 </div>
-                
                 <input type="text" id="scanner" inputmode="none" autofocus style="opacity: 0; position: absolute; top: -100px;">
             </div>
         </div>
     </section>
 
-    <section class="section" style="justify-content: flex-start; padding-top: 50px;">
+    <div class="toggle-wrapper" id="audience-toggle">
+        <div class="toggle-btn active" onclick="switchAudience('student', this)">🧑‍🎓 給學生與家長</div>
+        <div class="toggle-btn" onclick="switchAudience('school', this)">🏫 給教育機構主管</div>
+    </div>
+
+    <div id="tab-student" class="audience-tab active">
         
-        <div class="feature-row">
-            <div class="feature-text reveal-left">
-                <span style="color: var(--primary-blue); font-weight: 900; letter-spacing: 3px; font-size: 14px;">AZURE NEURAL TTS</span>
-                <h2>醫療級口說診斷</h2>
-                <p>我們不只給分數，我們找病因。透過微軟 Azure 音素級切片分析，精準揪出漏音與連音錯誤。配合 Gemini AI 導師給予即時白話文指導，讓孩子每一次開口都在進步。</p>
-            </div>
-            <div class="feature-visual reveal-right">
-                <div class="mock-ui-box">
-                    <div class="mock-mic">🎤</div>
-                    <div class="mock-wave">
-                        <div class="mock-bar" style="height: 40%; animation-delay: 0.1s;"></div>
-                        <div class="mock-bar" style="height: 80%; animation-delay: 0.2s;"></div>
-                        <div class="mock-bar" style="height: 100%; animation-delay: 0.3s; background:#f1c40f;"></div>
-                        <div class="mock-bar" style="height: 60%; animation-delay: 0.4s;"></div>
-                        <div class="mock-bar" style="height: 30%; animation-delay: 0.5s;"></div>
+        <section class="section" style="padding-top: 0; min-height: auto;">
+            <div class="feature-row">
+                <div class="feature-text reveal-left">
+                    <span class="tag">Azure Neural TTS</span>
+                    <h2>醫療級口說診斷</h2>
+                    <p>我們不只給分數，我們找病因。透過微軟 Azure 音素級切片分析，精準揪出漏音與連音錯誤。配合 Gemini AI 導師給予即時白話文指導，讓孩子每一次開口都在進步。</p>
+                </div>
+                <div class="feature-visual reveal-right">
+                    <div class="mock-ui-box">
+                        <div class="mock-mic">🎤</div>
+                        <div class="mock-wave">
+                            <div class="mock-bar" style="height: 40%; animation-delay: 0.1s;"></div>
+                            <div class="mock-bar" style="height: 80%; animation-delay: 0.2s;"></div>
+                            <div class="mock-bar" style="height: 100%; animation-delay: 0.3s; background:#f1c40f;"></div>
+                            <div class="mock-bar" style="height: 60%; animation-delay: 0.4s;"></div>
+                            <div class="mock-bar" style="height: 30%; animation-delay: 0.5s;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="feature-row">
-            <div class="feature-text reveal-right">
-                <span style="color: var(--marian-gold); font-weight: 900; letter-spacing: 3px; font-size: 14px;">GAMIFICATION</span>
-                <h2>實境對戰與 3D 盲盒收藏</h2>
-                <p>學習不再是枯燥的作業。打敗不同難度的 AI 對手，累積戰利品點數！高質感的 3D 角色卡牌抽獎系統，讓孩子為了獲得傳說級 SSR 角色，自發性地不斷練習。</p>
-            </div>
-            <div class="feature-visual reveal-left">
-                <div class="mock-cards-container">
-                    <div class="mock-card mock-card-1">🤖</div>
-                    <div class="mock-card mock-card-2">🦸‍♂️</div>
-                    <div class="mock-card mock-card-3">✨</div>
+            <div class="feature-row">
+                <div class="feature-text reveal-right">
+                    <span class="tag">Learning Visualization</span>
+                    <h2>五維發音雷達圖</h2>
+                    <p>孩子的進步，一眼就看見。拋棄單一分數，透過「準確、流暢、穩定、完整、精熟」五大維度繪製專屬雷達圖。結合 PR 值常態分佈，清楚掌握學習落點。</p>
+                </div>
+                <div class="feature-visual reveal-left">
+                    <div class="mock-ui-box">
+                        <div class="radar-shape"></div>
+                        <div style="position: absolute; font-weight: bold; font-size: 13px; top: 10%;">準確度</div>
+                        <div style="position: absolute; font-weight: bold; font-size: 13px; right: 10%; top: 45%;">流暢度</div>
+                        <div style="position: absolute; font-weight: bold; font-size: 13px; bottom: 15%; right: 25%;">穩定度</div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-    </section>
+            <div class="feature-row">
+                <div class="feature-text reveal-left">
+                    <span class="tag">Gamification</span>
+                    <h2>實境對戰與 3D 盲盒</h2>
+                    <p>把枯燥練習變成熱血冒險！挑戰不同難度的 AI 對手贏取點數。首創「聲控解鎖」，必須唸對密語才能開啟 3D 盲盒寶箱，收集專屬 SSR 傳說角色。</p>
+                </div>
+                <div class="feature-visual reveal-right">
+                    <div class="mock-cards-container">
+                        <div class="mock-card mock-card-1">🤖</div>
+                        <div class="mock-card mock-card-2">🦸‍♂️</div>
+                        <div class="mock-card mock-card-3">✨</div>
+                    </div>
+                </div>
+            </div>
 
-    <footer style="text-align: center; padding: 40px; color: #64748b; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 50px;">
-        © 2026 Tappie Education System. All rights reserved.<br>
-        <span style="font-size: 12px; opacity: 0.6; display: block; margin-top: 10px;">Powered by Google Apps Script & Microsoft Azure</span>
+            <div class="feature-row">
+                <div class="feature-text reveal-right">
+                    <span class="tag">Achievement Driven</span>
+                    <h2>每日任務與榮譽榜</h2>
+                    <p>激發自主學習的榮譽心。透過破關點數累積與動態單元排行榜，讓同儕間形成良性競爭，孩子不知不覺中主動完成每天的口說訓練量。</p>
+                </div>
+                <div class="feature-visual reveal-left">
+                    <div class="mock-ui-box" style="justify-content: flex-start; padding: 30px;">
+                        <h3 style="margin:0 0 20px 0; color:var(--marian-gold);">🏆 單元榮譽榜</h3>
+                        <div class="mock-lb-row" style="border:1px solid var(--marian-gold);"><span>🥇 Leo</span><span style="color:var(--marian-gold);">980 pts</span></div>
+                        <div class="mock-lb-row"><span>🥈 Mia</span><span style="color:#bdc3c7;">850 pts</span></div>
+                        <div class="mock-lb-row"><span>🥉 Tom</span><span style="color:#e67e22;">720 pts</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="tab-school" class="audience-tab">
+        
+        <section class="section" style="padding-top: 0; min-height: auto;">
+            <div class="feature-row">
+                <div class="feature-text reveal-left">
+                    <span class="tag">Enterprise SaaS</span>
+                    <h2>專屬校區雲端口說大腦</h2>
+                    <p>隨開即用的數位轉型方案。每個校區擁有絕對隔離的資料庫與後台。透過智慧路由，一鍵為分校建立專屬入口，輕鬆實現連鎖體系的規模化管理。</p>
+                </div>
+                <div class="feature-visual reveal-right">
+                    <div class="mock-ui-box" style="padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-content: center;">
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; text-align: left; border-left: 4px solid var(--marian-green);">
+                            <div style="font-weight:900; margin-bottom:5px;">林口總校</div>
+                            <div style="font-size:12px; color:#a4b0be;">ID: TP01 • 數據獨立</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; text-align: left; border-left: 4px solid var(--primary-blue);">
+                            <div style="font-weight:900; margin-bottom:5px;">大安分校</div>
+                            <div style="font-size:12px; color:#a4b0be;">ID: TP02 • 數據獨立</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; text-align: left; border-left: 4px solid var(--marian-gold);">
+                            <div style="font-weight:900; margin-bottom:5px;">竹北校區</div>
+                            <div style="font-size:12px; color:#a4b0be;">ID: TP03 • 數據獨立</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; text-align: center; border: 2px dashed #64748b; display:flex; align-items:center; justify-content:center;">
+                            <span style="font-size:24px; color:#64748b;">+</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-row">
+                <div class="feature-text reveal-right">
+                    <span class="tag">White-label Branding</span>
+                    <h2>品牌白標客製化</h2>
+                    <p>打造您的專屬教育 App。支援自訂系統 Logo 與行動裝置桌面圖示 (Icon)。學生下載至桌面後，看到的就是貴校的專屬品牌，大幅提升機構專業形象。</p>
+                </div>
+                <div class="feature-visual reveal-left">
+                    <div class="mock-ui-box">
+                        <div class="mock-app-icon">🏫</div>
+                        <div style="font-weight: 900; font-size: 18px; letter-spacing: 2px;">YOUR BRAND</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-row">
+                <div class="feature-text reveal-left">
+                    <span class="tag">Task Management</span>
+                    <h2>無縫客製化教材與排程</h2>
+                    <p>完美貼合您的實體課程。全圖形化的日曆排程系統，各班級可自由匯入專屬的單字與句型，獨立安排學習進度，讓線上口說成為實體課程的最強輔助。</p>
+                </div>
+                <div class="feature-visual reveal-right">
+                    <div class="mock-ui-box" style="justify-content: center; padding: 30px;">
+                        <div style="width: 100%; display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; color:#a4b0be;">
+                            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span>
+                        </div>
+                        <div class="mock-gantt"></div>
+                        <div class="mock-gantt r"></div>
+                        <div class="mock-gantt g"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-row">
+                <div class="feature-text reveal-right">
+                    <span class="tag">Zero-effort Reporting</span>
+                    <h2>自動化家長週報與 AI 專欄</h2>
+                    <p>零成本的完美家長溝通。系統定時自動結算成績，並結合爬蟲技術一鍵生成「教育心理學專欄」，自動打包成高質感的學習週報發送，徹底解放老師的雙手。</p>
+                </div>
+                <div class="feature-visual reveal-left">
+                    <div class="mock-ui-box">
+                        <div style="width: 85%; height: 260px; border-radius: 12px; background: rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);">
+                            <div class="mock-email-header">
+                                <div class="mock-email-dot"></div><div class="mock-email-dot"></div><div class="mock-email-dot"></div>
+                            </div>
+                            <div class="mock-email-body">
+                                <div style="font-weight: 900; color: var(--primary-blue); margin-bottom: 15px; font-size: 16px;">本週學習進度報告</div>
+                                <div class="mock-line" style="width: 90%;"></div>
+                                <div class="mock-line" style="width: 70%;"></div>
+                                <div class="mock-line" style="width: 85%;"></div>
+                                <div style="margin-top: 25px; height: 35px; background: var(--marian-green); border-radius: 8px; display:flex; justify-content:center; align-items:center; color:white; font-weight:bold; font-size:12px;">閱讀 AI 教養專欄</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer style="text-align: center; padding: 60px 40px; color: #64748b; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.05);">
+        © 2026 Tappie Education SaaS Platform. <br>
+        致力於為教育機構提供最先進的 AI 口說訓練方案。
     </footer>
 
     <script>
         // =======================================================
+        // 🎛️ 分眾切換引擎 (Tab Switcher)
+        // =======================================================
+        function switchAudience(type, btnElement) {
+            // 切換按鈕狀態
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            // 切換區段狀態
+            document.querySelectorAll('.audience-tab').forEach(tab => tab.classList.remove('active'));
+            const targetTab = document.getElementById(`tab-${type}`);
+            targetTab.classList.add('active');
+
+            // 🚀 重新喚醒動畫：把目標區段內所有的 reveal 元素重置，並重新 Observe
+            const elements = targetTab.querySelectorAll('.reveal-up, .reveal-left, .reveal-right');
+            elements.forEach(el => {
+                el.classList.remove('is-visible'); // 拔掉舊的，讓他準備重新飛入
+                scrollObserver.observe(el);        // 重新交給觀察器
+            });
+            
+            // 如果畫面太靠下，微調滾動條讓使用者看到新內容的第一個區塊
+            const togglePos = document.getElementById('audience-toggle').getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({ top: togglePos - 80, behavior: 'smooth' });
+        }
+
+        // =======================================================
         // 🎬 滾動偵測引擎 (Intersection Observer API)
         // =======================================================
+        const scrollObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target); // 播過一次就解除觀察
+                }
+            });
+        }, { threshold: 0.15 });
+
         document.addEventListener("DOMContentLoaded", function() {
-            // 抓出畫面上所有帶有 reveal-up, reveal-left, reveal-right 的元素
-            const animatedElements = document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right');
-
-            const observerOptions = {
-                root: null, // 代表使用瀏覽器視窗作為觀察範圍
-                rootMargin: '0px',
-                threshold: 0.2 // 當元素有 20% 進入畫面時，就觸發動畫
-            };
-
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        // 元素進入畫面，加上 is-visible 觸發 CSS 動畫
-                        entry.target.classList.add('is-visible');
-                        // 觸發後就解除觀察，讓動畫只播一次，節省效能
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
-
-            // 把所有的元素餵給觀察器
-            animatedElements.forEach(el => observer.observe(el));
+            // 初始化：先把第一區段 (學生) 的元素餵給觀察器
+            const activeElements = document.querySelectorAll('#tab-student .reveal-up, #tab-student .reveal-left, #tab-student .reveal-right, .hero-text, .login-card');
+            activeElements.forEach(el => scrollObserver.observe(el));
         });
 
         // =======================================================
-        // 🗃️ 登入邏輯 (與舊版完全相容)
+        // 🗃️ 登入邏輯 (完整保留您的核心代碼)
         // =======================================================
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwK3b9vyc9g0w_nloyltFNJNc2C8iaSxEKqH6KU3OPUJpgzP9Zz7ZUpWt-xpb5uqT4F/exec";
         
         function toggleManualInput() {
             const home = document.getElementById('login-home');
             const manual = document.getElementById('manual-input-zone');
-            if (manual.style.display === 'block') {
-                manual.style.display = 'none';
-                home.style.display = 'block';
-            } else {
-                manual.style.display = 'block';
-                home.style.display = 'none';
-                document.getElementById('uid-input-field').focus();
-            }
+            manual.style.display = (manual.style.display === 'block') ? 'none' : 'block';
+            home.style.display = (manual.style.display === 'block') ? 'none' : 'block';
+            if (manual.style.display === 'block') document.getElementById('uid-input-field').focus();
         }
 
         function handleManualLogin() {
             const uid = document.getElementById('uid-input-field').value.trim().toUpperCase();
-            if (uid.length < 4) { alert("請輸入完整的 UID 序號！"); return; }
+            if (uid.length < 4) { alert("請輸入正確序號"); return; }
+            
             const btn = document.getElementById('manual-submit-btn');
-            btn.innerText = "⏳ 驗證中...";
-            btn.style.pointerEvents = "none";
+            btn.innerText = "⏳ 驗證中..."; btn.style.pointerEvents = "none";
             window.location.href = `dashboard.html?id=${uid}`;
         }
 
-        // 🚀 無痕 NFC 掃描系統 (背景隱形攔截)
+        // 🚀 無痕 NFC 監聽
         let rawBuffer = "";
         let lastPressTime = Date.now();
         const focusHunter = document.getElementById('scanner');
-
-        setInterval(() => { 
-            // 只有當焦點不在手動輸入框時，才把焦點搶回隱形吸鐵
-            if (document.activeElement.id !== 'uid-input-field') { 
-                focusHunter.focus(); 
-            }
-        }, 500);
+        setInterval(() => { if (document.activeElement.id !== 'uid-input-field') focusHunter.focus(); }, 500);
 
         focusHunter.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') e.preventDefault(); 
-
-            const now = Date.now();
-            if (now - lastPressTime > 300 && e.key !== 'Enter') rawBuffer = "";
-            lastPressTime = now;
-
-            if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                rawBuffer += e.key;
-            }
-
             if (e.key === 'Enter') {
+                e.preventDefault();
                 let inputStr = rawBuffer.trim();
-                rawBuffer = ""; focusHunter.value = "";
-                
+                rawBuffer = "";
                 if (inputStr.length < 4) return;
-
+                
                 document.getElementById('msg').innerText = "🚀 讀取中...";
                 document.getElementById('msg').style.color = "#f1c40f";
-                
+
                 let extractedUid = null;
                 if (inputStr.includes("uid=")) extractedUid = inputStr.split("uid=")[1].split("&")[0];
                 else if (inputStr.includes("id=")) extractedUid = inputStr.split("id=")[1].split("&")[0];
 
-                if (extractedUid) {
-                    window.location.href = `dashboard.html?id=${extractedUid}`;
-                } else {
+                if (extractedUid) window.location.href = `dashboard.html?id=${extractedUid}`;
+                else {
                     fetch(`${GAS_URL}?action=verify_card&cardId=${encodeURIComponent(inputStr)}`)
                         .then(res => res.json())
-                        .then(data => {
-                            if (data.success) window.location.href = `dashboard.html?id=${data.uid}`;
+                        .then(data => { 
+                            if (data.success) window.location.href = `dashboard.html?id=${data.uid}`; 
                             else {
                                 document.getElementById('msg').innerText = "❌ 查無此卡";
                                 document.getElementById('msg').style.color = "#e74c3c";
                                 setTimeout(() => { document.getElementById('msg').innerText = "請感應學生專屬 NFC 卡片"; document.getElementById('msg').style.color = "#fff"; }, 2000);
                             }
-                        }).catch(err => {
+                        })
+                        .catch(err => {
                             document.getElementById('msg').innerText = "⚠️ 網路異常";
                             document.getElementById('msg').style.color = "#e74c3c";
                             setTimeout(() => { document.getElementById('msg').innerText = "請感應學生專屬 NFC 卡片"; document.getElementById('msg').style.color = "#fff"; }, 2000);
                         });
                 }
+            }
+            if (e.key.length === 1) {
+                const now = Date.now();
+                if (now - lastPressTime > 300) rawBuffer = "";
+                rawBuffer += e.key;
+                lastPressTime = now;
             }
         });
     </script>
