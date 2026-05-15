@@ -295,20 +295,52 @@
         .mock-line { height: 10px; background: #eee; border-radius: 5px; margin-bottom: 12px; }
 
         /* ========================================= */
-        /* 🚀 動態 UI 引擎 1：逼卡即戰 (5秒循環) */
+        /* 🚀 動態 UI 引擎 1：逼卡即戰 (6秒真實情境版) */
         /* ========================================= */
-        .anim-nfc-screen { position: absolute; inset: 0; background: radial-gradient(circle at center, #1a365d, #050914); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; animation: screenBoot 6s infinite ease-in-out; z-index: 5; border-radius: 35px; }
-        .anim-nfc-logo { font-size: 32px; font-weight: 900; color: var(--marian-gold); transform: scale(0); animation: logoPop 6s infinite cubic-bezier(0.175, 0.885, 0.32, 1.275); text-shadow: 0 0 20px rgba(241,196,15,0.5); }
-        .anim-nfc-text { font-size: 14px; color: #2ecc71; margin-top: 10px; font-family: 'Courier New', Courier, monospace; font-weight: bold; animation: textBlink 6s infinite; }
-        .anim-nfc-card-move { animation: nfcTap 6s infinite ease-in-out; z-index: 10; }
-        .nfc-wave-1 { animation: nfcWaveSync 6s infinite; border-color: rgba(46,204,113,0.8); z-index: 8; }
-        .nfc-wave-2 { animation: nfcWaveSync 6s infinite; animation-delay: 0.2s; border-color: rgba(46,204,113,0.4); z-index: 8; }
+        .anim-nfc-stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; border-radius: inherit; }
+        
+        /* 實體卡片從畫面上方飛入，停在邊緣 */
+        .anim-card-drop { position: absolute; top: -100px; left: 50%; z-index: 20; transform: translate(-50%, -150px) rotateX(45deg) scale(0.8); animation: cardDrop 6s infinite cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        /* 綠色感應波紋從頂部邊緣發出 */
+        .nfc-wave-top { position: absolute; top: 0; left: 50%; width: 150px; height: 150px; border: 3px solid var(--marian-green); border-radius: 50%; opacity: 0; z-index: 15; animation: waveTop 6s infinite ease-out; transform: translate(-50%, -50%) scale(0.2); pointer-events: none; }
+        .nfc-w2 { animation-delay: 0.2s; border-color: rgba(46,204,113,0.5); border-width: 2px; }
+        
+        /* 手機畫面上滑與開機漸層 */
+        .anim-nfc-screen { position: absolute; inset: 0; background: radial-gradient(circle at center, #1a365d, #050914); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; animation: screenBoot 6s infinite cubic-bezier(0.16, 1, 0.3, 1); z-index: 5; border-radius: inherit; }
+        .anim-nfc-logo-img { width: 90px; filter: drop-shadow(0 10px 20px rgba(241,196,15,0.4)); transform: scale(0); animation: logoPop 6s infinite cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-bottom: 15px; }
+        .anim-nfc-text { font-size: 14px; color: #2ecc71; font-family: 'Courier New', Courier, monospace; font-weight: bold; animation: textBlink 6s infinite; }
 
-        @keyframes nfcTap { 0%, 10% { transform: translateY(-150px) rotateX(30deg) scale(0.9); } 20%, 30% { transform: translateY(0px) rotateX(0deg) scale(1); } 40%, 100% { transform: translateY(-200px) rotateX(45deg) scale(0.8); opacity: 0; } }
-        @keyframes nfcWaveSync { 0%, 19% { transform: scale(0.5); opacity: 0; } 20% { transform: scale(0.5); opacity: 1; } 35% { transform: scale(2.5); opacity: 0; } 100% { opacity: 0; } }
-        @keyframes screenBoot { 0%, 25% { opacity: 0; } 30%, 85% { opacity: 1; } 90%, 100% { opacity: 0; } }
-        @keyframes logoPop { 0%, 30% { transform: scale(0); } 40%, 85% { transform: scale(1); } 90%, 100% { transform: scale(0); } }
+        @keyframes cardDrop { 0%, 5% { transform: translate(-50%, -150px) rotateX(45deg) scale(0.8); opacity: 0; } 15%, 25% { transform: translate(-50%, -20px) rotateX(10deg) scale(1); opacity: 1; } 35%, 100% { transform: translate(-50%, -150px) rotateX(45deg) scale(0.8); opacity: 0; } }
+        @keyframes waveTop { 0%, 14% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; } 15% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; } 30% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; } 100% { opacity: 0; } }
+        @keyframes screenBoot { 0%, 25% { opacity: 0; transform: translateY(50px); } 30%, 85% { opacity: 1; transform: translateY(0); } 90%, 100% { opacity: 0; transform: translateY(50px); } }
+        @keyframes logoPop { 0%, 32% { transform: scale(0); } 40%, 85% { transform: scale(1); } 90%, 100% { transform: scale(0); } }
         @keyframes textBlink { 0%, 40% { opacity: 0; } 45%, 85% { opacity: 1; } 50%, 60%, 70%, 80% { opacity: 0.5; } 100% { opacity: 0; } }
+
+        /* ========================================= */
+        /* 🚀 動態 UI 引擎 4：榮譽榜超車 (6秒循環) */
+        /* ========================================= */
+        .lb-container { position: relative; width: 100%; height: 180px; }
+        .lb-container .mock-lb-row { position: absolute; width: 100%; box-sizing: border-box; margin: 0; }
+        .lb-p1 { animation: rankMove1 6s infinite cubic-bezier(0.25, 1, 0.5, 1); z-index: 3; }
+        .lb-p2 { animation: rankMove2 6s infinite cubic-bezier(0.25, 1, 0.5, 1); z-index: 2; }
+        .lb-p3 { animation: rankMove3 6s infinite cubic-bezier(0.25, 1, 0.5, 1); z-index: 1; }
+
+        @keyframes rankMove1 { 
+            0%, 25% { top: 0; background: rgba(241,196,15,0.15); border: 1px solid var(--marian-gold); transform: scale(1); }
+            35%, 65% { top: 60px; background: rgba(255,255,255,0.05); border: 1px solid transparent; transform: scale(0.95); z-index: 2; }
+            75%, 100% { top: 120px; background: rgba(255,255,255,0.05); border: 1px solid transparent; transform: scale(0.95); z-index: 1; }
+        }
+        @keyframes rankMove2 { 
+            0%, 25% { top: 60px; background: rgba(255,255,255,0.05); border: 1px solid transparent; transform: scale(0.95); }
+            35%, 65% { top: 0; background: rgba(241,196,15,0.15); border: 1px solid var(--marian-gold); transform: scale(1); z-index: 3; }
+            75%, 100% { top: 0; background: rgba(241,196,15,0.15); border: 1px solid var(--marian-gold); transform: scale(1); z-index: 3; }
+        }
+        @keyframes rankMove3 { 
+            0%, 25% { top: 120px; background: rgba(255,255,255,0.05); border: 1px solid transparent; transform: scale(0.95); }
+            35%, 65% { top: 120px; background: rgba(255,255,255,0.05); border: 1px solid transparent; transform: scale(0.95); }
+            75%, 100% { top: 60px; background: rgba(255,255,255,0.05); border: 1px solid transparent; transform: scale(0.95); z-index: 2; }
+        }
 
         /* ========================================= */
         /* 🚀 動態 UI 引擎 2：醫療級診斷 (8秒循環) */
@@ -600,14 +632,18 @@
                 </div>
                 <div class="feature-visual reveal-left">
                     <div class="mock-ui-box" style="justify-content: center; background: #000; position: relative;">
-                        <div class="anim-nfc-screen">
-                            <div class="anim-nfc-logo">Tappie</div>
-                            <div class="anim-nfc-text">System Online...</div>
-                        </div>
-                        <div class="mock-nfc-waves nfc-wave-1"></div>
-                        <div class="mock-nfc-waves nfc-wave-2"></div>
-                        <div class="mock-nfc-card anim-nfc-card-move">
-                            <div class="mock-nfc-chip"></div>
+                        <div class="anim-nfc-stage">
+                            <div class="nfc-wave-top nfc-w1"></div>
+                            <div class="nfc-wave-top nfc-w2"></div>
+                            
+                            <div class="mock-nfc-card anim-card-drop">
+                                <div class="mock-nfc-chip"></div>
+                            </div>
+                            
+                            <div class="anim-nfc-screen">
+                                <img src="/assets/logo.webp" class="anim-nfc-logo-img" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
+                                <div class="anim-nfc-text">System Online...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -741,10 +777,12 @@
                 </div>
                 <div class="feature-visual reveal-left">
                     <div class="mock-ui-box" style="justify-content: flex-start; padding: 30px;">
-                        <h3 style="margin:0 0 20px 0; color:var(--marian-gold);">🏆 單元榮譽榜</h3>
-                        <div class="mock-lb-row" style="border:1px solid var(--marian-gold);"><span>🥇 Leo</span><span style="color:var(--marian-gold);">980 pts</span></div>
-                        <div class="mock-lb-row"><span>🥈 Mia</span><span style="color:#bdc3c7;">850 pts</span></div>
-                        <div class="mock-lb-row"><span>🥉 Tom</span><span style="color:#e67e22;">720 pts</span></div>
+                        <h3 style="margin:0 0 20px 0; color:var(--marian-gold); z-index: 10; position: relative;">🏆 單元榮譽榜</h3>
+                        <div class="lb-container">
+                            <div class="mock-lb-row lb-p1"><span>🥇 Leo</span><span style="color:var(--marian-gold);">980 pts</span></div>
+                            <div class="mock-lb-row lb-p2"><span>🥈 Mia</span><span style="color:#bdc3c7;">850 pts</span></div>
+                            <div class="mock-lb-row lb-p3"><span>🥉 Tom</span><span style="color:#e67e22;">720 pts</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -896,12 +934,20 @@
             <div class="sticky-layout">
                 <div class="sticky-visual-container">
                     <div class="mock-big-phone">
-                        <div class="phone-screen active" id="screen-1">
-                            <div class="mock-nfc-waves" style="border-color:#3498db;"></div>
-                            <div class="mock-nfc-card" style="transform: rotate(0); scale: 0.8; box-shadow: 0 0 40px rgba(0,102,204,0.6);">
-                                <div class="mock-nfc-chip"></div>
+                        <div class="phone-screen active" id="screen-1" style="background: #000;">
+                            <div class="anim-nfc-stage">
+                                <div class="nfc-wave-top nfc-w1"></div>
+                                <div class="nfc-wave-top nfc-w2"></div>
+                                
+                                <div class="mock-nfc-card anim-card-drop">
+                                    <div class="mock-nfc-chip"></div>
+                                </div>
+                                
+                                <div class="anim-nfc-screen">
+                                    <img src="/assets/logo.webp" class="anim-nfc-logo-img" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
+                                    <div class="anim-nfc-text">System Online...</div>
+                                </div>
                             </div>
-                            <h3 style="color: white; z-index: 10; margin-top: 30px; text-shadow: 0 2px 10px #000;">感應成功</h3>
                         </div>
                         <div class="phone-screen" id="screen-2" style="background: radial-gradient(circle, #1a2235, #050914);">
                             <div style="font-size: 80px; filter: drop-shadow(0 0 20px #e74c3c); margin-bottom: 20px;">🎤</div>
