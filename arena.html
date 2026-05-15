@@ -2261,15 +2261,15 @@
     if (charCount > 20) {
         // 中長句子：字體微微放大，並給予極大的行高 (2.0) 來容納小燈泡
         wordDisplay.style.fontSize = "clamp(28px, 6vw, 42px)";  
-        wordDisplay.style.lineHeight = "1.4"; 
+        wordDisplay.style.lineHeight = "1.6"; 
     } else if (charCount > 10) {
         // 短句子：字體再放大，行高也適度撐開 (1.8)
         wordDisplay.style.fontSize = "clamp(36px, 7vw, 54px)";  
-        wordDisplay.style.lineHeight = "1.4"; 
+        wordDisplay.style.lineHeight = "1.6"; 
     } else {
         // 單字：視覺中心，霸氣大字，單行不需要擔心擋字問題
         wordDisplay.style.fontSize = "clamp(48px, 9vw, 72px)";  
-        wordDisplay.style.lineHeight = "1.4"; 
+        wordDisplay.style.lineHeight = "1.6"; 
     }
 
 
