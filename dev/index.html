@@ -1008,19 +1008,16 @@
                 <div class="sticky-visual-container">
                     <div class="mock-big-phone">
                         
+                        <div class="mock-nfc-card anim-card-big-phone scrub" id="big-nfc-card">
+                            <div class="mock-nfc-chip"></div>
+                        </div>
+
                         <div class="phone-screen active" id="screen-1" style="background: radial-gradient(circle at center, #1a365d, #050914); overflow: visible;">
                             <div class="anim-nfc-stage" style="overflow: visible;"> 
-                                
-                                <img src="/assets/logo.webp" class="anim-mini-logo scrub" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
-                                <div class="anim-mini-text scrub">System Online...</div>
-
+                                <img src="/assets/logo.webp" class="anim-mini-logo scrub" style="width: 100px; margin-bottom: 10px;" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
+                                <div class="anim-mini-text scrub" style="font-size: 14px;">System Online...</div>
                                 <div class="nfc-real-waves scrub"></div>
                                 <div class="nfc-real-waves w2 scrub"></div>
-                                
-                                <div class="mock-nfc-card anim-card-big-phone scrub">
-                                    <div class="mock-nfc-chip"></div>
-                                </div>
-                                
                             </div>
                         </div>
 
@@ -1044,7 +1041,6 @@
                         </div>
 
                         <div class="phone-screen" id="screen-3" style="background: var(--bg-dark);">
-                            
                             <div style="margin-top: 40px; margin-bottom: 10px; text-align: center; z-index: 50; width: 100%;">
                                 <div style="display: inline-block; padding: 6px 16px; background: rgba(255,255,255,0.1); border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 12px; font-weight: 900; letter-spacing: 2px; backdrop-filter: blur(10px);">本週口說診斷報告</div>
                             </div>
@@ -1316,6 +1312,12 @@
                     if (screen) {
                         // 將計算好的進度餵給 CSS！
                         screen.style.setProperty('--p', p);
+                        
+                        // 🚀 終極修復：如果是第一個畫面，也要同步把信號傳給「移到外層的浮空大卡片」！
+                        if (index === 0) {
+                            const bigCard = document.getElementById('big-nfc-card');
+                            if (bigCard) bigCard.style.setProperty('--p', p);
+                        }
                     }
                 });
             });
