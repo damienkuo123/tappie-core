@@ -299,12 +299,13 @@
         /* ========================================= */
         .anim-nfc-stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; perspective: 1000px; z-index: 10; }
         
-        /* 手機內部螢幕亮起 */
-        .anim-mini-logo { width: 110px; transform: scale(0); animation: logoPop 8s infinite cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-bottom: 20px; filter: drop-shadow(0 5px 25px rgba(241,196,15,0.6)); z-index: 5; }
-        .anim-mini-text { font-size: 16px; color: #2ecc71; font-family: 'Courier New', Courier, monospace; font-weight: bold; animation: textBlink 8s infinite; z-index: 5; letter-spacing: 1px; }
+        /* 手機內部螢幕亮起 (🚀 修復：恢復小尺寸預設值，大手機依靠 HTML 內的 inline style 撐大，互不干擾！) */
+        .anim-mini-logo { width: 60px; transform: scale(0); animation: logoPop 8s infinite cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-bottom: 10px; filter: drop-shadow(0 5px 25px rgba(241,196,15,0.6)); z-index: 5; }
+        .anim-mini-text { font-size: 11px; color: #2ecc71; font-family: 'Courier New', Courier, monospace; font-weight: bold; animation: textBlink 8s infinite; z-index: 5; letter-spacing: 1px; }
 
         /* 實體卡片從上方飛入，精準點擊大手機頂部瀏海 */
-        .anim-card-big-phone { position: absolute; top: 0; z-index: 40; animation: cardTapBig 8s infinite cubic-bezier(0.25, 1, 0.5, 1); transform-origin: bottom center; }
+        /* 🚀 修復：將卡片的層級拉高到 60，確保它降落時絕對壓在瀏海 (z-index: 50) 的上方！ */
+        .anim-card-big-phone { position: absolute; top: 0; z-index: 60; animation: cardTapBig 8s infinite cubic-bezier(0.25, 1, 0.5, 1); transform-origin: bottom center; }
         
         /* 感應波紋對準手機頂端 */
         .nfc-real-waves { position: absolute; top: -30px; left: 50%; margin-left: -60px; width: 120px; height: 120px; border: 3px solid var(--marian-green); border-radius: 50%; opacity: 0; z-index: 15; animation: waveReal 8s infinite ease-out; transform: scale(0.2); pointer-events: none; }
@@ -422,12 +423,18 @@
         @keyframes labelFade2 { 0%, 28% { opacity: 0; transform: translateY(10px); } 33%, 61% { opacity: 1; transform: translateY(0); } 65%, 100% { opacity: 0; transform: translateY(-10px); } }
         @keyframes labelFade3 { 0%, 61% { opacity: 0; transform: translateY(10px); } 66%, 95% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-10px); } }
 
-        /* 多邊形變形魔法 (Top, RightTop, RightBottom, LeftBottom, LeftTop) */
+        /* 🚀 修復：多邊形變形魔法，重新計算所有頂點座標，確保絕對錨定於中心點 (50%, 50%)，解決圖形偏移走位問題！ */
         @keyframes radarMorphing {
-            0%, 28% { clip-path: polygon(50% 10%, 90% 40%, 75% 90%, 25% 90%, 10% 40%); background: rgba(0, 123, 255, 0.4); border-color: var(--primary-blue); }
-            33%, 61% { clip-path: polygon(50% 15%, 55% 60%, 45% 85%, 15% 85%, 25% 45%); background: rgba(231, 76, 60, 0.4); border-color: var(--marian-red); }
-            66%, 95% { clip-path: polygon(50% 30%, 100% 20%, 80% 70%, 10% 80%, 20% 30%); background: rgba(46, 204, 113, 0.4); border-color: var(--marian-green); }
-            100% { clip-path: polygon(50% 10%, 90% 40%, 75% 90%, 25% 90%, 10% 40%); background: rgba(0, 123, 255, 0.4); border-color: var(--primary-blue); }
+            /* 1. Leo 進階型：整體均勻外擴 */
+            0%, 28% { clip-path: polygon(50% 10%, 88% 38%, 75% 90%, 25% 90%, 12% 38%); background: rgba(0, 123, 255, 0.4); border-color: var(--primary-blue); }
+            
+            /* 2. Mia 偏科型：流暢(右上) / 穩定(右下) 特高，其他特低 */
+            33%, 61% { clip-path: polygon(50% 35%, 93% 36%, 75% 90%, 41% 65%, 36% 45%); background: rgba(231, 76, 60, 0.4); border-color: var(--marian-red); }
+            
+            /* 3. Tom 衝刺型：準確(上) / 精熟(左上) 特高，其他偏低 */
+            66%, 95% { clip-path: polygon(50% 5%, 69% 44%, 62% 70%, 38% 70%, 7% 36%); background: rgba(46, 204, 113, 0.4); border-color: var(--marian-green); }
+            
+            100% { clip-path: polygon(50% 10%, 88% 38%, 75% 90%, 25% 90%, 12% 38%); background: rgba(0, 123, 255, 0.4); border-color: var(--primary-blue); }
         }
 
         /* ========================================= */
