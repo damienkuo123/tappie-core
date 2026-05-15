@@ -2258,9 +2258,7 @@
     const charCount = current.en.length; // 🚀 計算包含空格與符號的總字數
 
     // 🧠 智慧縮放核心：使用 CSS clamp 確保在手機與平板上都能完美顯示
-    if (charCount > 35) {
-        wordDisplay.style.fontSize = "clamp(18px, 4vw, 26px)";  // 超長句子
-    } else if (charCount > 20) {
+    if (charCount > 20) {
         wordDisplay.style.fontSize = "clamp(24px, 5vw, 36px)";  // 中長句子
     } else if (charCount > 10) {
         wordDisplay.style.fontSize = "clamp(32px, 6vw, 48px)";  // 短句子
