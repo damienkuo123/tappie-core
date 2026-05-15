@@ -191,81 +191,77 @@
         .mock-slider-thumb { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; right: -8px; top: -4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 
         /* ========================================= */
-        /* 🚀 動態 UI 引擎：AI 溫柔教練動畫 */
+        /* 🚀 動態 UI 引擎：AI 溫柔教練動畫 (12秒電影級慢節奏) */
         /* ========================================= */
         .anim-coach-stage { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 35px; }
         
-        /* 🚀 讓單字變成絕對的視覺重心 */
-        .anim-word-box { font-size: 55px; font-weight: 900; letter-spacing: 4px; z-index: 10; color: #bdc3c7; animation: wordColorize 6s infinite; margin-top: 20px; }
+        .anim-word-box { font-size: 55px; font-weight: 900; letter-spacing: 4px; z-index: 10; color: #bdc3c7; animation: wordColorize 12s infinite; margin-top: 20px; }
         .anim-phoneme-th { position: relative; transition: 0.3s; }
-        .anim-phoneme-th::after { content: '💡'; position: absolute; top: -45px; left: 50%; transform: translateX(-50%) scale(0); font-size: 32px; filter: drop-shadow(0 0 15px #f1c40f); animation: lightbulbPop 6s infinite; }
+        .anim-phoneme-th::after { content: '💡'; position: absolute; top: -45px; left: 50%; transform: translateX(-50%) scale(0); font-size: 32px; filter: drop-shadow(0 0 15px #f1c40f); animation: lightbulbPop 12s infinite; }
         
-        /* 🚀 限縮對話框寬度，讓版面更好看 */
-        .anim-chat-bubble { background: rgba(255,255,255,0.95); color: #1a252f; padding: 18px 25px; border-radius: 20px 20px 20px 5px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); width: 85%; max-width: 280px; text-align: left; position: relative; z-index: 10; font-size: 14px; font-weight: bold; transform-origin: bottom left; transform: scale(0); animation: bubblePop 6s infinite; border: 1px solid rgba(0,0,0,0.05); }
+        .anim-chat-bubble { background: rgba(255,255,255,0.95); color: #1a252f; padding: 18px 25px; border-radius: 20px 20px 20px 5px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); width: 85%; max-width: 280px; text-align: left; position: relative; z-index: 10; font-size: 14px; font-weight: bold; transform-origin: bottom left; transform: scale(0); animation: bubblePop 12s infinite; border: 1px solid rgba(0,0,0,0.05); }
         .anim-chat-bubble::after { content: '✨ AI 教練'; position: absolute; top: -12px; left: 15px; background: var(--marian-gold); color: #000; font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 8px; }
         
-        /* 🚀 重新計算手指的精準座標 */
-        .anim-hand-cursor { position: absolute; font-size: 35px; z-index: 20; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); opacity: 0; animation: handClick 6s infinite; pointer-events: none; }
+        /* 🚀 加入 margin-top 和 margin-left 負值，把 Emoji 的「指尖」對齊到絕對座標點 */
+        .anim-hand-cursor { position: absolute; font-size: 35px; z-index: 20; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); opacity: 0; animation: handClick 12s infinite; pointer-events: none; margin-top: -5px; margin-left: -15px; }
         
-        /* 🚀 讓導讀彈窗完美置中，並蓋住後方元素 */
-        .anim-guide-popup { position: absolute; top: 50%; left: 50%; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--primary-blue); color: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 280px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); z-index: 30; transform: translate(-50%, -50%) scale(0); opacity: 0; animation: guidePop 6s infinite; text-align: left; backdrop-filter: blur(5px); }
+        .anim-guide-popup { position: absolute; top: 50%; left: 50%; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--primary-blue); color: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 280px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); z-index: 30; transform: translate(-50%, -50%) scale(0); opacity: 0; animation: guidePop 12s infinite; text-align: left; backdrop-filter: blur(5px); }
         
-        @keyframes wordColorize { 0%, 10% { color: #bdc3c7; } 15%, 85% { color: var(--marian-green); } 95%, 100% { color: #bdc3c7; } }
-        @keyframes lightbulbPop { 0%, 15% { transform: translateX(-50%) scale(0); } 20%, 85% { transform: translateX(-50%) scale(1); } 90%, 100% { transform: translateX(-50%) scale(0); } }
-        @keyframes bubblePop { 0%, 25% { transform: scale(0); } 30%, 85% { transform: scale(1); } 90%, 100% { transform: scale(0); } }
-        /* 🚀 鎖定小燈泡的絕對座標：top: 22%, left: 59% */
+        /* ⏳ 時間軸重新分配：留給觀眾充足的閱讀時間 */
+        @keyframes wordColorize { 0%, 5% { color: #bdc3c7; } 10%, 85% { color: var(--marian-green); } 90%, 100% { color: #bdc3c7; } }
+        @keyframes lightbulbPop { 0%, 12% { transform: translateX(-50%) scale(0); } 15%, 85% { transform: translateX(-50%) scale(1); } 90%, 100% { transform: translateX(-50%) scale(0); } }
+        @keyframes bubblePop { 0%, 18% { transform: scale(0); } 22%, 85% { transform: scale(1); } 90%, 100% { transform: scale(0); } }
         @keyframes handClick { 
             0%, 25% { opacity: 0; top: 80%; left: 80%; transform: scale(1); } 
-            30% { opacity: 1; top: 22%; left: 59%; transform: scale(1); } 
-            35% { opacity: 1; top: 22%; left: 59%; transform: scale(0.85); } 
-            40%, 85% { opacity: 0; top: 25%; left: 62%; transform: scale(1); } 
+            33% { opacity: 1; top: 18%; left: 56%; transform: scale(1); } /* 瞄準燈泡 */
+            36% { opacity: 1; top: 18%; left: 56%; transform: scale(0.85); } /* 點擊 */
+            42%, 85% { opacity: 0; top: 22%; left: 60%; transform: scale(1); } 
             100% { opacity: 0; } 
         }
-        @keyframes guidePop { 0%, 45% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50%, 85% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 90%, 100% { transform: translate(-50%, -50%) scale(0); opacity: 0; } }
+        @keyframes guidePop { 0%, 36% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 40%, 85% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 90%, 100% { transform: translate(-50%, -50%) scale(0); opacity: 0; } }
 
         /* ========================================= */
-        /* 🚀 動態 UI 引擎：手遊營運後台拉桿動畫 */
+        /* 🚀 動態 UI 引擎：手遊營運後台拉桿動畫 (10秒順暢節奏) */
         /* ========================================= */
-        /* 加大拉桿間距，讓排版更清爽 */
         .anim-liveops-stage { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 25px; padding: 20px; box-sizing: border-box; }
         
-        .virtual-mouse { position: absolute; width: 28px; height: 28px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231a252f" stroke="%23ffffff" stroke-width="1.5"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.42c.45 0 .67-.54.35-.85L6.35 2.85a.5.5 0 0 0-.85.36z"/></svg>'); z-index: 50; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); animation: mouseMove 6s infinite; pointer-events: none; }
+        /* 🚀 加入 margin 偏移，讓 SVG 的「正中心」對準座標點 */
+        .virtual-mouse { position: absolute; width: 28px; height: 28px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231a252f" stroke="%23ffffff" stroke-width="1.5"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.42c.45 0 .67-.54.35-.85L6.35 2.85a.5.5 0 0 0-.85.36z"/></svg>'); z-index: 50; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); animation: mouseMove 10s infinite; pointer-events: none; margin-top: 8px; margin-left: 8px; }
         
-        /* 移除底部的 margin，改用 stage 的 gap 控制 */
         .mock-slider-group { width: 85%; margin-bottom: 0; text-align: left; }
         
-        .mock-slider-fill.anim-track-1 { animation: slider1Move 6s infinite; }
-        .mock-slider-fill.anim-track-2 { animation: slider2Move 6s infinite; }
-        .mock-slider-fill.anim-track-3 { animation: slider3Move 6s infinite; }
+        .mock-slider-fill.anim-track-1 { animation: slider1Move 10s infinite; }
+        .mock-slider-fill.anim-track-2 { animation: slider2Move 10s infinite; }
+        .mock-slider-fill.anim-track-3 { animation: slider3Move 10s infinite; }
         
-        /* 🚀 精準座標校正：根據拉桿軌道 85% 寬度計算游標起迄點 */
+        /* ⏳ 時間軸重新分配：讓拖曳動作有停留感 */
         @keyframes mouseMove {
             0%, 5% { top: 90%; left: 80%; opacity: 0; transform: scale(1); }
             
-            /* 拉桿 1：Y 軸 26%，X 軸從 12% (起點 5%) 拖到 37% (終點 35%) */
-            10% { top: 26%; left: 12%; opacity: 1; transform: scale(1); }
-            15% { top: 26%; left: 12%; transform: scale(0.85); } 
-            25% { top: 26%; left: 37%; transform: scale(0.85); } 
-            30% { top: 26%; left: 37%; transform: scale(1); }    
+            /* 拉桿 1：Y 軸 28%，拖曳起訖 12% -> 37% */
+            10% { top: 28%; left: 12%; opacity: 1; transform: scale(1); }
+            13% { top: 28%; left: 12%; transform: scale(0.85); } 
+            20% { top: 28%; left: 37%; transform: scale(0.85); } 
+            23% { top: 28%; left: 37%; transform: scale(1); }    
             
-            /* 拉桿 2：Y 軸 52%，X 軸從 58% (起點 60%) 拖到 80% (終點 85%) */
-            35% { top: 52%; left: 58%; transform: scale(1); opacity: 1; }
-            40% { top: 52%; left: 58%; transform: scale(0.85); } 
-            50% { top: 52%; left: 80%; transform: scale(0.85); } 
-            55% { top: 52%; left: 80%; transform: scale(1); }    
+            /* 拉桿 2：Y 軸 55%，拖曳起訖 58% -> 80% */
+            30% { top: 55%; left: 58%; transform: scale(1); opacity: 1; }
+            33% { top: 55%; left: 58%; transform: scale(0.85); } 
+            40% { top: 55%; left: 80%; transform: scale(0.85); } 
+            43% { top: 55%; left: 80%; transform: scale(1); }    
             
-            /* 拉桿 3：Y 軸 78%，X 軸從 24% (起點 20%) 拖回 12% (終點 5%) */
-            60% { top: 78%; left: 24%; transform: scale(1); }
-            65% { top: 78%; left: 24%; transform: scale(0.85); } 
-            75% { top: 78%; left: 12%; transform: scale(0.85); } 
-            80% { top: 78%; left: 12%; transform: scale(1); }    
+            /* 拉桿 3：Y 軸 82%，拖曳起訖 24% -> 12% */
+            50% { top: 82%; left: 24%; transform: scale(1); }
+            53% { top: 82%; left: 24%; transform: scale(0.85); } 
+            60% { top: 82%; left: 12%; transform: scale(0.85); } 
+            63% { top: 82%; left: 12%; transform: scale(1); }    
             
-            90%, 100% { top: 90%; left: 80%; opacity: 0; transform: scale(1); }
+            70%, 100% { top: 90%; left: 80%; opacity: 0; transform: scale(1); }
         }
         
-        @keyframes slider1Move { 0%, 15% { width: 5%; } 25%, 85% { width: 35%; background: var(--marian-gold); } 100% { width: 5%; } }
-        @keyframes slider2Move { 0%, 40% { width: 60%; } 50%, 85% { width: 85%; background: var(--marian-green); } 100% { width: 60%; } }
-        @keyframes slider3Move { 0%, 65% { width: 20%; } 75%, 85% { width: 5%; background: var(--marian-red); } 100% { width: 20%; } }
+        @keyframes slider1Move { 0%, 13% { width: 5%; } 20%, 85% { width: 35%; background: var(--marian-gold); } 100% { width: 5%; } }
+        @keyframes slider2Move { 0%, 33% { width: 60%; } 40%, 85% { width: 85%; background: var(--marian-green); } 100% { width: 60%; } }
+        @keyframes slider3Move { 0%, 53% { width: 20%; } 60%, 85% { width: 5%; background: var(--marian-red); } 100% { width: 20%; } }
         
         /* 🎨 假 UI 佔位符：任務排程日曆 */
         .mock-gantt { width: 90%; margin-bottom: 15px; height: 20px; background: rgba(52, 152, 219, 0.4); border-radius: 10px; }
