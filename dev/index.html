@@ -287,15 +287,15 @@
             backdrop-filter: blur(10px); box-sizing: border-box;
         }
         
-        /* 🚀 滑鼠懸停狀態：解除灰階、恢復全彩、上浮並亮起專屬品牌光暈！ */
-        .tech-card:hover { filter: grayscale(0%) opacity(1); transform: translateY(-10px); }
+        /* 🚀 滑鼠懸停 或 手機滾動觸發(.active) 時：解除灰階、恢復全彩、上浮並亮起專屬品牌光暈！ */
+        .tech-card:hover, .tech-card.active { filter: grayscale(0%) opacity(1); transform: translateY(-10px); }
         
         /* 微軟 Azure 專屬藍色光暈 */
-        .tech-card.azure:hover { box-shadow: 0 20px 50px rgba(0, 120, 212, 0.3); border-color: rgba(0, 120, 212, 0.5); }
+        .tech-card.azure:hover, .tech-card.azure.active { box-shadow: 0 20px 50px rgba(0, 120, 212, 0.3); border-color: rgba(0, 120, 212, 0.5); }
         /* Google Gemini 專屬漸層星空光暈 */
-        .tech-card.gemini:hover { box-shadow: 0 20px 50px rgba(142, 68, 173, 0.3); border-color: rgba(142, 68, 173, 0.5); }
+        .tech-card.gemini:hover, .tech-card.gemini.active { box-shadow: 0 20px 50px rgba(142, 68, 173, 0.3); border-color: rgba(142, 68, 173, 0.5); }
         /* Google Cloud 專屬科技藍光暈 */
-        .tech-card.gcp:hover { box-shadow: 0 20px 50px rgba(66, 133, 244, 0.3); border-color: rgba(66, 133, 244, 0.5); }
+        .tech-card.gcp:hover, .tech-card.gcp.active { box-shadow: 0 20px 50px rgba(66, 133, 244, 0.3); border-color: rgba(66, 133, 244, 0.5); }
 
         .tech-logo { height: 35px; margin-bottom: 25px; display: flex; align-items: center; justify-content: flex-start; }
         .tech-logo svg { height: 100%; width: auto; }
@@ -913,6 +913,24 @@
 
             scrollSteps.forEach(step => stepObserver.observe(step));
         });
+        
+        // ==========================================
+            // 🚀 科技權威卡片滾動感應 (手機版免滑鼠自動通電)
+            // ==========================================
+            const techCards = document.querySelectorAll('.tech-card');
+            const techObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    // 當卡片進入螢幕中央區域 (上下保留 25% 邊距) 時通電亮起
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    } else {
+                        // 離開螢幕中央就自動斷電變回灰階
+                        entry.target.classList.remove('active'); 
+                    }
+                });
+            }, { rootMargin: '-25% 0px -25% 0px', threshold: 0 });
+
+            techCards.forEach(card => techObserver.observe(card));
 
         // =======================================================
         // 🗃️ 登入邏輯 (完整保留您的核心代碼)
