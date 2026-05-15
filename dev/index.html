@@ -191,42 +191,56 @@
         .mock-slider-thumb { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; right: -8px; top: -4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 
         /* ========================================= */
-        /* 🚀 動態 UI 引擎：AI 溫柔教練動畫 (12秒電影級慢節奏) */
+        /* 🚀 動態 UI 引擎：AI 溫柔教練動畫 (12秒緊湊節奏版) */
         /* ========================================= */
         .anim-coach-stage { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 35px; }
         
-        .anim-word-box { font-size: 55px; font-weight: 900; letter-spacing: 4px; z-index: 10; color: #bdc3c7; animation: wordColorize 12s infinite; margin-top: 20px; }
-        .anim-phoneme-th { position: relative; transition: 0.3s; }
+        /* 單字與音素同步變色 */
+        .anim-word-box { font-size: 50px; font-weight: 900; letter-spacing: 4px; z-index: 10; color: #bdc3c7; animation: wordBaseColor 12s infinite; margin-top: 20px; }
+        .anim-phoneme-th { position: relative; color: #bdc3c7; animation: thColor 12s infinite; }
         .anim-phoneme-th::after { content: '💡'; position: absolute; top: -45px; left: 50%; transform: translateX(-50%) scale(0); font-size: 32px; filter: drop-shadow(0 0 15px #f1c40f); animation: lightbulbPop 12s infinite; }
         
         .anim-chat-bubble { background: rgba(255,255,255,0.95); color: #1a252f; padding: 18px 25px; border-radius: 20px 20px 20px 5px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); width: 85%; max-width: 280px; text-align: left; position: relative; z-index: 10; font-size: 14px; font-weight: bold; transform-origin: bottom left; transform: scale(0); animation: bubblePop 12s infinite; border: 1px solid rgba(0,0,0,0.05); }
         .anim-chat-bubble::after { content: '✨ AI 教練'; position: absolute; top: -12px; left: 15px; background: var(--marian-gold); color: #000; font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 8px; }
         
-        /* 🚀 加入 margin-top 和 margin-left 負值，把 Emoji 的「指尖」對齊到絕對座標點 */
+        /* 🚀 手指像素級對位：使用 calc 對準中間小燈泡 */
         .anim-hand-cursor { position: absolute; font-size: 35px; z-index: 20; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); opacity: 0; animation: handClick 12s infinite; pointer-events: none; margin-top: -5px; margin-left: -15px; }
         
-        .anim-guide-popup { position: absolute; top: 50%; left: 50%; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--primary-blue); color: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 280px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); z-index: 30; transform: translate(-50%, -50%) scale(0); opacity: 0; animation: guidePop 12s infinite; text-align: left; backdrop-filter: blur(5px); }
+        /* 🚀 真實版導讀彈窗樣式 */
+        .anim-guide-popup { position: absolute; top: 50%; left: 50%; background: #ffffff; color: #1a252f; padding: 30px 20px 20px; border-radius: 20px; width: 85%; max-width: 320px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); z-index: 30; transform: translate(-50%, -50%) scale(0); opacity: 0; animation: guidePop 12s infinite; text-align: center; }
+        .guide-avatar { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); width: 50px; height: 50px; background: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; border: 3px solid var(--marian-gold); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .mock-ktv-reading { font-size: 22px; font-weight: 900; color: #bdc3c7; margin-bottom: 20px; letter-spacing: 1px; }
+        .ktv-1, .ktv-2, .ktv-3 { opacity: 0.2; transition: opacity 0.2s; }
+        .ktv-1 { animation: ktvRead1 12s infinite; }
+        .ktv-2 { animation: ktvRead2 12s infinite; }
+        .ktv-3 { animation: ktvRead3 12s infinite; }
+        .guide-alert { background: rgba(231,76,60,0.05); border: 1px dashed rgba(231,76,60,0.4); border-radius: 12px; padding: 10px; font-size: 11px; color: #c0392b; display: flex; gap: 8px; align-items: center; line-height: 1.5; font-weight: bold; }
         
-        /* ⏳ 時間軸重新分配：留給觀眾充足的閱讀時間 */
-        @keyframes wordColorize { 0%, 5% { color: #bdc3c7; } 10%, 85% { color: var(--marian-green); } 90%, 100% { color: #bdc3c7; } }
+        /* ⏳ 電影級分鏡時間軸 */
+        @keyframes wordBaseColor { 0%, 5% { color: #bdc3c7; } 10%, 85% { color: var(--marian-green); } 90%, 100% { color: #bdc3c7; } }
+        @keyframes thColor { 0%, 5% { color: #bdc3c7; } 10%, 85% { color: var(--marian-red); } 90%, 100% { color: #bdc3c7; } }
         @keyframes lightbulbPop { 0%, 12% { transform: translateX(-50%) scale(0); } 15%, 85% { transform: translateX(-50%) scale(1); } 90%, 100% { transform: translateX(-50%) scale(0); } }
         @keyframes bubblePop { 0%, 18% { transform: scale(0); } 22%, 85% { transform: scale(1); } 90%, 100% { transform: scale(0); } }
         @keyframes handClick { 
             0%, 25% { opacity: 0; top: 80%; left: 80%; transform: scale(1); } 
-            33% { opacity: 1; top: 18%; left: 56%; transform: scale(1); } /* 瞄準燈泡 */
-            36% { opacity: 1; top: 18%; left: 56%; transform: scale(0.85); } /* 點擊 */
-            42%, 85% { opacity: 0; top: 22%; left: 60%; transform: scale(1); } 
+            31% { opacity: 1; top: calc(50% - 70px); left: calc(50% + 5px); transform: scale(1); } 
+            34% { opacity: 1; top: calc(50% - 70px); left: calc(50% + 5px); transform: scale(0.85); } 
+            38%, 85% { opacity: 0; top: calc(50% - 50px); left: calc(50% + 15px); transform: scale(1); } 
             100% { opacity: 0; } 
         }
-        @keyframes guidePop { 0%, 36% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 40%, 85% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 90%, 100% { transform: translate(-50%, -50%) scale(0); opacity: 0; } }
+        @keyframes guidePop { 0%, 35% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 38%, 70% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 75%, 100% { transform: translate(-50%, -50%) scale(0); opacity: 0; } }
+        /* KTV 導讀逐字亮起動畫 */
+        @keyframes ktvRead1 { 0%, 40% { opacity: 0.2; } 41%, 46% { opacity: 1; } 47%, 100% { opacity: 0.2; } }
+        @keyframes ktvRead2 { 0%, 46% { opacity: 0.2; } 47%, 52% { opacity: 1; } 53%, 100% { opacity: 0.2; } }
+        @keyframes ktvRead3 { 0%, 52% { opacity: 0.2; } 53%, 65% { opacity: 1; } 66%, 100% { opacity: 0.2; } }
 
         /* ========================================= */
-        /* 🚀 動態 UI 引擎：手遊營運後台拉桿動畫 (10秒順暢節奏) */
+        /* 🚀 動態 UI 引擎：手遊營運後台拉桿動畫 (10秒絕對定位版) */
         /* ========================================= */
         .anim-liveops-stage { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 25px; padding: 20px; box-sizing: border-box; }
         
-        /* 🚀 加入 margin 偏移，讓 SVG 的「正中心」對準座標點 */
-        .virtual-mouse { position: absolute; width: 28px; height: 28px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231a252f" stroke="%23ffffff" stroke-width="1.5"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.42c.45 0 .67-.54.35-.85L6.35 2.85a.5.5 0 0 0-.85.36z"/></svg>'); z-index: 50; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); animation: mouseMove 10s infinite; pointer-events: none; margin-top: 8px; margin-left: 8px; }
+        /* 🚀 移除 margin 補償，我們直接算游標尖端的絕對位置！ */
+        .virtual-mouse { position: absolute; width: 28px; height: 28px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231a252f" stroke="%23ffffff" stroke-width="1.5"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.42c.45 0 .67-.54.35-.85L6.35 2.85a.5.5 0 0 0-.85.36z"/></svg>'); z-index: 50; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); animation: mouseMove 10s infinite; pointer-events: none; }
         
         .mock-slider-group { width: 85%; margin-bottom: 0; text-align: left; }
         
@@ -234,27 +248,31 @@
         .mock-slider-fill.anim-track-2 { animation: slider2Move 10s infinite; }
         .mock-slider-fill.anim-track-3 { animation: slider3Move 10s infinite; }
         
-        /* ⏳ 時間軸重新分配：讓拖曳動作有停留感 */
+        /* 🚀 終極對位：
+           拉桿總長 85%，左右留白各 7.5%。
+           所以 5% 的起點 = left: calc(7.5% + (85% * 0.05) - 6px);
+           這保證了不管螢幕怎麼縮放，游標尖端絕對黏在小白球正中心！
+        */
         @keyframes mouseMove {
             0%, 5% { top: 90%; left: 80%; opacity: 0; transform: scale(1); }
             
-            /* 拉桿 1：Y 軸 28%，拖曳起訖 12% -> 37% */
-            10% { top: 28%; left: 12%; opacity: 1; transform: scale(1); }
-            13% { top: 28%; left: 12%; transform: scale(0.85); } 
-            20% { top: 28%; left: 37%; transform: scale(0.85); } 
-            23% { top: 28%; left: 37%; transform: scale(1); }    
+            /* 拉桿 1：Y 軸在總高 31% 處。 X 從 5% 拖到 35% */
+            10% { top: 31%; left: calc(7.5% + (85% * 0.05) - 6px); opacity: 1; transform: scale(1); }
+            13% { top: 31%; left: calc(7.5% + (85% * 0.05) - 6px); transform: scale(0.85); } 
+            20% { top: 31%; left: calc(7.5% + (85% * 0.35) - 6px); transform: scale(0.85); } 
+            23% { top: 31%; left: calc(7.5% + (85% * 0.35) - 6px); transform: scale(1); }    
             
-            /* 拉桿 2：Y 軸 55%，拖曳起訖 58% -> 80% */
-            30% { top: 55%; left: 58%; transform: scale(1); opacity: 1; }
-            33% { top: 55%; left: 58%; transform: scale(0.85); } 
-            40% { top: 55%; left: 80%; transform: scale(0.85); } 
-            43% { top: 55%; left: 80%; transform: scale(1); }    
+            /* 拉桿 2：Y 軸在總高 52% 處。 X 從 60% 拖到 85% */
+            30% { top: 52%; left: calc(7.5% + (85% * 0.60) - 6px); transform: scale(1); opacity: 1; }
+            33% { top: 52%; left: calc(7.5% + (85% * 0.60) - 6px); transform: scale(0.85); } 
+            40% { top: 52%; left: calc(7.5% + (85% * 0.85) - 6px); transform: scale(0.85); } 
+            43% { top: 52%; left: calc(7.5% + (85% * 0.85) - 6px); transform: scale(1); }    
             
-            /* 拉桿 3：Y 軸 82%，拖曳起訖 24% -> 12% */
-            50% { top: 82%; left: 24%; transform: scale(1); }
-            53% { top: 82%; left: 24%; transform: scale(0.85); } 
-            60% { top: 82%; left: 12%; transform: scale(0.85); } 
-            63% { top: 82%; left: 12%; transform: scale(1); }    
+            /* 拉桿 3：Y 軸在總高 73% 處。 X 從 20% 拖回 5% */
+            50% { top: 73%; left: calc(7.5% + (85% * 0.20) - 6px); transform: scale(1); }
+            53% { top: 73%; left: calc(7.5% + (85% * 0.20) - 6px); transform: scale(0.85); } 
+            60% { top: 73%; left: calc(7.5% + (85% * 0.05) - 6px); transform: scale(0.85); } 
+            63% { top: 73%; left: calc(7.5% + (85% * 0.05) - 6px); transform: scale(1); }    
             
             70%, 100% { top: 90%; left: 80%; opacity: 0; transform: scale(1); }
         }
@@ -529,15 +547,32 @@
                     <div class="mock-ui-box" style="padding: 0;">
                         <div class="anim-coach-stage">
                             <div class="anim-word-box">
-                                br<span class="anim-phoneme-th" style="color: var(--marian-red);">th</span>er
+                                bro<span class="anim-phoneme-th">th</span>er
                             </div>
                             <div class="anim-chat-bubble">
                                 太棒了！你的語氣充滿自信。接下來我們把 "th" 的音輕輕咬住舌尖，就會完美囉！
                             </div>
                             <div class="anim-hand-cursor">👆</div>
+                            
                             <div class="anim-guide-popup">
-                                <div style="font-size: 12px; color: var(--primary-blue); font-weight: 900; margin-bottom: 5px;">💡 KTV 導讀模式</div>
-                                <div style="font-size: 14px; font-weight: bold; line-height: 1.5;">發音秘訣：<br><span style="color:#a4b0be; font-size:13px;">上下門牙輕輕咬住舌尖，吹氣發出摩擦音～</span></div>
+                                <div class="guide-avatar">👩‍🏫</div>
+                                <h4 style="color: var(--primary-blue); margin: 0 0 15px 0; text-align: center; font-size: 16px;">引導發音示範</h4>
+                                
+                                <div class="mock-ktv-reading">
+                                    <span class="ktv-1">th... </span>
+                                    <span class="ktv-2" style="color: var(--marian-gold);">th... </span>
+                                    <span class="ktv-3">brother</span>
+                                </div>
+                                
+                                <div class="guide-alert">
+                                    <span style="font-size: 18px;">🔔</span>
+                                    <div style="flex: 1; text-align: left;">聽不到聲音嗎？<br>請確認手機是否關閉<span style="color:var(--marian-red);">靜音開關</span>，並調高音量喔！</div>
+                                </div>
+                                
+                                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                    <div style="flex: 1; background: var(--primary-blue); color: white; padding: 10px; border-radius: 12px; text-align: center; font-size: 13px; font-weight: bold;">🔄 重聽</div>
+                                    <div style="flex: 1; background: var(--marian-green); color: white; padding: 10px; border-radius: 12px; text-align: center; font-size: 13px; font-weight: bold;">我知道了</div>
+                                </div>
                             </div>
                         </div>
                     </div>
