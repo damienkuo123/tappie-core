@@ -488,7 +488,7 @@
         .mock-big-phone::before {
             content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
             width: 100px; height: 20px; background: #e2e8f0; border-radius: 0 0 15px 15px; 
-            z-index: 50; /* 永遠鎮壓住底下的螢幕畫面！ */
+            z-index: 20; /* 🚀 降回合理的層級，把最上層讓給獨立的大卡片 */
         }
         
         /* 手機內畫面切換 */
@@ -1016,16 +1016,15 @@
             
             <div class="sticky-layout">
                 <div class="sticky-visual-container">
+                    
                     <div class="mock-big-phone">
                         
-                        <div class="mock-nfc-card anim-card-big-phone scrub" id="big-nfc-card">
-                            <div class="mock-nfc-chip"></div>
-                        </div>
-
                         <div class="phone-screen active" id="screen-1" style="background: radial-gradient(circle at center, #1a365d, #050914); overflow: visible;">
                             <div class="anim-nfc-stage" style="overflow: visible;"> 
+                                
                                 <img src="/assets/logo.webp" class="anim-mini-logo scrub" style="width: 100px; margin-bottom: 10px;" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
                                 <div class="anim-mini-text scrub" style="font-size: 14px;">System Online...</div>
+
                                 <div class="nfc-real-waves scrub"></div>
                                 <div class="nfc-real-waves w2 scrub"></div>
                             </div>
@@ -1079,6 +1078,11 @@
                         </div>
 
                     </div>
+                    
+                    <div class="mock-nfc-card anim-card-big-phone scrub" id="big-nfc-card">
+                        <div class="mock-nfc-chip"></div>
+                    </div>
+
                 </div>
                 
                 <div class="scroll-text-container">
