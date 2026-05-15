@@ -1216,6 +1216,10 @@
                         
                         // 切換左邊大手機的畫面
                         const stepNum = entry.target.getAttribute('data-step');
+                        
+                        // 🚀 關鍵：在父層標記目前的 Step，讓 CSS 知道什麼時候要叫出飛天 NFC 卡片！
+                        document.getElementById('sticky-phone-mockup').setAttribute('data-step', stepNum);
+
                         phoneScreens.forEach(screen => screen.classList.remove('active'));
                         const targetScreen = document.getElementById(`screen-${stepNum}`);
                         if (targetScreen) targetScreen.classList.add('active');
