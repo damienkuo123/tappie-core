@@ -465,6 +465,19 @@
             opacity: 0; transition: opacity 0.5s ease-in-out;
         }
         .phone-screen.active { opacity: 1; z-index: 5; }
+        
+        /* 🚀 解決 NFC 卡片被「手機瀏海」擋住的層級問題 */
+        #screen-1.active { z-index: 25; }
+
+        /* 🚀 滾動驅動動畫引擎：暫停原生時間軸，交由 JS 的 --p 變數控制進度 */
+        .scrub {
+            animation-play-state: paused !important; /* 凍結原本的無限循環 */
+            animation-duration: 1s !important;       /* 把原本 8秒 的動畫壓縮到 1秒 的比例尺 */
+            animation-iteration-count: 1 !important;
+            animation-fill-mode: both !important;
+            /* 負的時間延遲 = 直接快進到該時間點！這就是 CSS 最強的魔法 */
+            animation-delay: calc(var(--p, 0) * -0.999s) !important; 
+        }
 
         /* 🚀 大手機專屬的逼卡動畫 (從極高空飛入，精準點擊頂部) */
         .anim-card-big-phone { position: absolute; top: -15px; z-index: 30; animation: cardTapBig 8s infinite cubic-bezier(0.25, 1, 0.5, 1); }
@@ -969,32 +982,67 @@
             <div class="sticky-layout">
                 <div class="sticky-visual-container">
                     <div class="mock-big-phone">
+                        
                         <div class="phone-screen active" id="screen-1" style="background: transparent; overflow: visible;">
                             <div class="anim-nfc-stage" style="overflow: visible;"> 
-                                
-                                <div class="anim-mini-screen" style="border-radius: 30px; overflow: hidden; z-index: 5;">
-                                    <img src="/assets/logo.webp" class="anim-mini-logo" style="width: 100px;" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
-                                    <div class="anim-mini-text" style="font-size: 16px;">System Online...</div>
+                                <div class="anim-mini-phone scrub">
+                                    <div class="anim-mini-screen scrub">
+                                        <img src="/assets/logo.webp" class="anim-mini-logo scrub" style="width: 80px;" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
+                                        <div class="anim-mini-text scrub" style="font-size: 14px;">System Online...</div>
+                                    </div>
+                                    <div class="nfc-real-waves scrub" style="top: 0; margin-top: -15px; z-index: 15;"></div>
+                                    <div class="nfc-real-waves w2 scrub" style="top: 0; margin-top: -15px; z-index: 15;"></div>
                                 </div>
-
-                                <div class="nfc-real-waves" style="top: 0; margin-top: -15px; z-index: 15;"></div>
-                                <div class="nfc-real-waves w2" style="top: 0; margin-top: -15px; z-index: 15;"></div>
-                                
-                                <div class="mock-nfc-card anim-card-big-phone">
+                                <div class="mock-nfc-card anim-card-big-phone scrub">
                                     <div class="mock-nfc-chip"></div>
                                 </div>
-                                
                             </div>
                         </div>
-                        <div class="phone-screen" id="screen-2" style="background: radial-gradient(circle, #1a2235, #050914);">
-                            <div style="font-size: 80px; filter: drop-shadow(0 0 20px #e74c3c); margin-bottom: 20px;">🎤</div>
-                            <div style="color: #f1c40f; font-size: 30px; font-weight: 900;">2495 PTS</div>
-                            <div style="color: #2ecc71; font-weight: bold; margin-top: 10px;">✅ 發音判定成功</div>
+
+                        <div class="phone-screen" id="screen-2" style="background: var(--bg-dark);">
+                            <div class="anim-diag-stage" style="transform: scale(0.85);">
+                                <div class="anim-diag-mic-wrapper scrub">
+                                    <div class="mock-mic anim-diag-mic scrub">🎤</div>
+                                    <div class="mock-wave anim-diag-waves">
+                                        <div class="mock-bar scrub"></div><div class="mock-bar scrub"></div><div class="mock-bar scrub"></div><div class="mock-bar scrub"></div><div class="mock-bar scrub"></div>
+                                    </div>
+                                </div>
+                                <div class="anim-diag-finger scrub">👆</div>
+                                <div class="anim-diag-sentence scrub">
+                                    I like to play 
+                                    <span class="diag-word scrub">
+                                        <span class="diag-green">bas</span><span class="diag-green">ket</span><span class="diag-red">ball</span>
+                                        <div class="diag-tooltip scrub">/bɔːl/ ➔ 母音偏移</div>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="phone-screen" id="screen-3" style="background: white;">
-                            <div style="width: 80%; padding: 15px; background: #f8fafc; border-radius: 15px; margin-bottom: 10px; border: 1px solid #e2e8f0; color: #1a252f; font-weight: 900;">本週口說診斷報告</div>
-                            <div class="radar-shape" style="width: 150px; height: 150px; border-color: var(--primary-blue); background: rgba(0,102,204,0.1);"></div>
+
+                        <div class="phone-screen" id="screen-3" style="background: var(--bg-dark);">
+                            <div style="width: 80%; padding: 15px; background: #f8fafc; border-radius: 15px; margin-bottom: 20px; border: 1px solid #e2e8f0; color: #1a252f; font-weight: 900; z-index: 50;">本週口說診斷報告</div>
+                            <div class="anim-radar-stage" style="transform: scale(0.85);">
+                                <div class="anim-radar-header">
+                                    <span class="radar-label l-1 scrub">Student: Leo (進階)</span>
+                                    <span class="radar-label l-2 scrub">Student: Mia (偏科)</span>
+                                    <span class="radar-label l-3 scrub">Student: Tom (衝刺)</span>
+                                </div>
+                                <div class="radar-container">
+                                    <div class="radar-bg"></div>
+                                    <div class="anim-radar-morph scrub"></div>
+                                    <div style="position: absolute; font-weight: bold; font-size: 13px; top: -10%; left: 50%; transform: translateX(-50%);">準確度</div>
+                                    <div style="position: absolute; font-weight: bold; font-size: 13px; right: -25%; top: 35%;">流暢度</div>
+                                    <div style="position: absolute; font-weight: bold; font-size: 13px; bottom: -10%; right: 5%;">穩定度</div>
+                                    <div style="position: absolute; font-weight: bold; font-size: 13px; bottom: -10%; left: 5%;">完整度</div>
+                                    <div style="position: absolute; font-weight: bold; font-size: 13px; left: -25%; top: 35%;">精熟度</div>
+                                </div>
+                                <div class="radar-score">
+                                    <span class="s-1 scrub">PR 85</span>
+                                    <span class="s-2 scrub">PR 42</span>
+                                    <span class="s-3 scrub">PR 68</span>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
                 </div>
                 
@@ -1219,6 +1267,29 @@
             }, stepObserverOptions);
 
             scrollSteps.forEach(step => stepObserver.observe(step));
+            // 🚀 終極殺招：計算右側文字的滾動進度 (0.0 到 1.0)，並映射到 CSS 變數 (--p)
+            window.addEventListener('scroll', () => {
+                const windowHeight = window.innerHeight;
+                
+                scrollSteps.forEach((step, index) => {
+                    const rect = step.getBoundingClientRect();
+                    // 定義文字塊的「作動區間」：
+                    // 從距離畫面頂端 80% 處開始計算 (0%)，滑到距離頂端 20% 處結束 (100%)
+                    const startY = windowHeight * 0.8;
+                    const endY = windowHeight * 0.2;
+                    
+                    let p = (startY - rect.top) / (startY - endY);
+                    
+                    // 把數值鎖死在 0 到 1 之間
+                    p = Math.max(0, Math.min(1, p)); 
+                    
+                    const screen = document.getElementById(`screen-${index + 1}`);
+                    if (screen) {
+                        // 將計算好的進度餵給 CSS！
+                        screen.style.setProperty('--p', p);
+                    }
+                });
+            });
         });
         
         // ==========================================
