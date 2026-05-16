@@ -151,12 +151,85 @@
         .mock-wave { display: flex; gap: 8px; align-items: flex-end; height: 50px; }
         .mock-bar { width: 8px; background: #2ed573; border-radius: 4px; animation: jump 1s infinite alternate; }
         
-        /* 🎨 假 UI 佔位符：抽卡展示 */
-        .mock-cards-container { position: relative; width: 300px; height: 400px; }
-        .mock-card { position: absolute; width: 220px; height: 320px; border-radius: 20px; background: linear-gradient(135deg, #1e272e, #2c3e50); border: 2px solid; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-size: 60px; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .mock-card-1 { border-color: #3498db; transform: rotate(-15deg) translate(-40px, 40px); z-index: 1; }
-        .mock-card-2 { border-color: #9b59b6; transform: rotate(15deg) translate(40px, 40px); z-index: 2; }
-        .mock-card-3 { border-color: var(--marian-gold); transform: rotate(0deg) translate(0, 0) scale(1.1); z-index: 3; box-shadow: 0 0 40px rgba(241,196,15,0.4); background: linear-gradient(135deg, #e67e22, #f1c40f); }
+        /* ========================================= */
+        /* 🚀 動態 UI 引擎 5：3D 全息盲盒引擎 (移植自 Lobby) */
+        /* ========================================= */
+        .showcase-interactive {
+            position: relative; width: 100%; max-width: 260px; aspect-ratio: 0.718;
+            perspective: 1000px; z-index: 10; margin: 0 auto;
+            /* 導入 SSR 專屬環境變數 */
+            --card-radius: 4.55% / 3.5%; --imgsize: 33%; --space: 5%; --angle: 133deg;
+            --foil: url("/assets/illusion.png");
+            --sunpillar-1: hsl(2, 100%, 73%); --sunpillar-2: hsl(53, 100%, 69%); --sunpillar-3: hsl(93, 100%, 69%);
+            --sunpillar-4: hsl(176, 100%, 76%); --sunpillar-5: hsl(228, 100%, 74%); --sunpillar-6: hsl(283, 100%, 73%);
+        }
+
+        .holo-instruction {
+            position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: var(--marian-gold); padding: 8px 20px;
+            border-radius: 20px; font-size: 12px; font-weight: 900; letter-spacing: 2px;
+            border: 1px solid rgba(241,196,15,0.5); box-shadow: 0 8px 15px rgba(0,0,0,0.6);
+            white-space: nowrap; pointer-events: none; animation: bounce 2s infinite alternate; z-index: 20;
+        }
+
+        .showcase-interactive .card {
+            width: 100%; height: 100%; position: relative;
+            transform: translate3d(0px, 0px, 0.01px); transform-style: preserve-3d;
+            --pointer-x: 50%; --pointer-y: 50%; --pointer-from-center: 0;
+            --rotate-x: 0deg; --rotate-y: 0deg;
+            cursor: pointer;
+        }
+
+        .showcase-interactive .card__rotator {
+            width: 100%; height: 100%; display: grid; perspective: 600px; transform-origin: center;
+            transform-style: preserve-3d; transform: rotateY(var(--rotate-x)) rotateX(var(--rotate-y));
+            box-shadow: 0px 30px 50px -10px rgba(0,0,0,0.6), 0 5px 20px rgba(241,196,15,0.3);
+            border-radius: var(--card-radius);
+            transition: transform 0.15s ease-out; /* 讓幽靈滑鼠與真實滑鼠的接軌更絲滑 */
+        }
+        
+        .showcase-interactive .card__rotator * { transform-style: preserve-3d; }
+        
+        .showcase-interactive .card__front { 
+            display: grid !important; grid-template-columns: 1fr; grid-template-rows: 1fr; 
+            width: 100%; height: 100%; border-radius: var(--card-radius); 
+            transform-style: preserve-3d !important; transform: translate3d(0px, 0px, 0.01px);
+        }
+        
+        .showcase-interactive .card__bg, .showcase-interactive .card__shine, .showcase-interactive .card__glare { 
+            grid-area: 1/1; width: 100%; height: 100%; border-radius: var(--card-radius); 
+            box-sizing: border-box; pointer-events: none; transform-style: preserve-3d !important;
+        }
+
+        .showcase-interactive .card__bg {
+            background-size: cover; background-position: center; border: 2px solid var(--marian-gold);
+            transform: translateZ(0px); z-index: 1; box-shadow: inset 0 0 15px rgba(241,196,15,0.5);
+            background-color: #2c3e50; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* 恢復 Z 軸景深與光學混合模式 */
+        .showcase-interactive .card__glare {
+            transform: translateZ(1.41px); z-index: 3; mix-blend-mode: overlay;
+            background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y), hsla(0, 0%, 100%, 0.8) 10%, hsla(0, 0%, 100%, 0.65) 20%, hsla(0, 0%, 0%, 0.5) 90%);
+            opacity: calc(var(--pointer-from-center) * 0.8); 
+        }
+
+        .showcase-interactive .card__shine {
+            display: grid; transform: translateZ(1px); z-index: 4; transform-style: preserve-3d;
+            background: transparent; background-size: cover; background-position: center;
+            filter: brightness(.85) contrast(2.75) saturate(.65); mix-blend-mode: color-dodge;
+            background-image: var(--foil), repeating-linear-gradient( 0deg, var(--sunpillar-1) calc(var(--space)*1), var(--sunpillar-2) calc(var(--space)*2), var(--sunpillar-3) calc(var(--space)*3), var(--sunpillar-4) calc(var(--space)*4), var(--sunpillar-5) calc(var(--space)*5), var(--sunpillar-6) calc(var(--space)*6), var(--sunpillar-1) calc(var(--space)*7) ), repeating-linear-gradient( var(--angle), #0e152e 0%, hsl(180, 10%, 60%) 3.8%, hsl(180, 29%, 66%) 4.5%, hsl(180, 10%, 60%) 5.2%, #0e152e 10% , #0e152e 12% ), radial-gradient( farthest-corner circle at var(--pointer-x) var(--pointer-y), hsla(0, 0%, 0%, 0.1) 12%, hsla(0, 0%, 0%, 0.15) 20%, hsla(0, 0%, 0%, 0.25) 120% );
+            background-position: center center, 0% var(--pointer-y), calc( var(--pointer-x) + (var(--pointer-y)*0.2) ) var(--pointer-y), var(--pointer-x) var(--pointer-y);
+            background-blend-mode: soft-light, hue, hard-light; background-size: var(--imgsize), 200% 700%, 300% 100%, 200% 100%;
+        }
+        .showcase-interactive .card__shine:after {
+            content: ""; display: block; grid-area: 1/1; border-radius: var(--card-radius); transform: translateZ(1.6px);
+            background-image: inherit;
+            background-position: center center, 0% var(--pointer-y), calc( (var(--pointer-x) + (var(--pointer-y)*0.2)) * -1) calc( var(--pointer-y) * -1), var(--pointer-x) var(--pointer-y);
+            background-size: var(--imgsize), 200% 400%, 195% 100%, 200% 100%;
+            filter: brightness(calc((var(--pointer-from-center)*.5) + .8)) contrast(1.6) saturate(1.4);
+            mix-blend-mode: exclusion;
+        }
 
         /* 🎨 假 UI 佔位符：雷達圖 */
         .radar-shape { width: 60%; height: 60%; background: rgba(0, 102, 204, 0.2); border: 2px solid var(--primary-blue); clip-path: polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%); animation: radarRotate 10s infinite linear; }
@@ -840,10 +913,19 @@
                     <p>把枯燥練習變成熱血冒險！挑戰不同難度的 AI 對手贏取點數。首創「聲控解鎖」，必須唸對密語才能開啟 3D 盲盒寶箱，收集專屬 SSR 傳說角色。</p>
                 </div>
                 <div class="feature-visual reveal-right">
-                    <div class="mock-cards-container">
-                        <div class="mock-card mock-card-1">🤖</div>
-                        <div class="mock-card mock-card-2">🦸‍♂️</div>
-                        <div class="mock-card mock-card-3">✨</div>
+                    <div class="showcase-interactive" id="holo-showcase">
+                        <div class="card">
+                            <div class="card__rotator">
+                                <div class="card__front">
+                                    <div class="card__bg" style="background-image: url('/assets/Marian%20%E7%91%AA%E9%BA%97%E5%AE%89.webp'), linear-gradient(135deg, #1e272e, #2c3e50);">
+                                        <div style="font-size: 100px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">🦸‍♂️</div>
+                                    </div>
+                                    <div class="card__shine"></div>
+                                    <div class="card__glare"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="holo-instruction">👆 觸摸並把玩 3D 盲盒</div>
                     </div>
                 </div>
             </div>
@@ -1356,6 +1438,80 @@
             }, { rootMargin: '-25% 0px -25% 0px', threshold: 0 });
 
             techCards.forEach(card => techObserver.observe(card));
+
+        // ==========================================
+        // 🚀 3D 全息盲盒互動引擎 (Auto-Attract & Touch)
+        // ==========================================
+        const holoShowcase = document.getElementById('holo-showcase');
+        const holoCard = holoShowcase ? holoShowcase.querySelector('.card') : null;
+        
+        if (holoCard) {
+            let isHoloHovering = false;
+            let holoBounds;
+
+            // 核心：把游標(或幽靈手)的 X, Y 座標轉成 CSS 的角度與光線變數
+            function updateHoloCard(x, y) {
+                if (!holoBounds) holoBounds = holoCard.getBoundingClientRect();
+                if(holoBounds.width === 0) return; // 防呆
+                
+                const leftX = x / holoBounds.width;
+                const topY = y / holoBounds.height;
+                const center = { x: leftX - 0.5, y: topY - 0.5 };
+                const distance = Math.sqrt(center.x**2 + center.y**2);
+
+                holoCard.style.setProperty('--pointer-x', `${leftX * 100}%`);
+                holoCard.style.setProperty('--pointer-y', `${topY * 100}%`);
+                holoCard.style.setProperty('--pointer-from-center', Math.min(Math.max(distance * 2, 0), 1));
+                
+                // 根據座標計算傾斜角度，最大傾斜 25 度
+                holoCard.style.setProperty('--rotate-x', `${center.y * -25}deg`);
+                holoCard.style.setProperty('--rotate-y', `${center.x * 25}deg`);
+            }
+
+            function rotateHoloToMouse(e) {
+                if (!holoBounds) holoBounds = holoCard.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const mouseX = clientX - holoBounds.left;
+                const mouseY = clientY - holoBounds.top;
+                updateHoloCard(mouseX, mouseY);
+            }
+
+            // 玩家接管控制權！
+            holoCard.addEventListener('pointerenter', () => {
+                isHoloHovering = true;
+                holoBounds = holoCard.getBoundingClientRect();
+                holoCard.querySelector('.card__rotator').style.transition = "none";
+            });
+            
+            holoCard.addEventListener('pointermove', rotateHoloToMouse);
+            
+            // 玩家放手，恢復自動模式
+            holoCard.addEventListener('pointerleave', () => {
+                isHoloHovering = false;
+                holoCard.querySelector('.card__rotator').style.transition = "transform 0.15s ease-out";
+            });
+
+            // 🚀 獨家巧思：Auto-Attract Mode (八字形自動展示光暈)
+            function autoAttract() {
+                if (!isHoloHovering) {
+                    const time = Date.now() * 0.0015; // 控制轉動速度
+                    
+                    // 用三角函數計算出完美的「八字形(Figure-8)」軌跡
+                    const px = Math.sin(time) * 0.4 + 0.5; 
+                    const py = Math.sin(time * 2) * 0.4 + 0.5; 
+                    
+                    holoBounds = holoCard.getBoundingClientRect();
+                    if(holoBounds.width > 0) {
+                        const fakeMouseX = px * holoBounds.width;
+                        const fakeMouseY = py * holoBounds.height;
+                        updateHoloCard(fakeMouseX, fakeMouseY);
+                    }
+                }
+                requestAnimationFrame(autoAttract);
+            }
+            autoAttract(); // 啟動幽靈手
+        }
 
         // =======================================================
         // 🗃️ 登入邏輯 (完整保留您的核心代碼)
