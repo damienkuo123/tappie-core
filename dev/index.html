@@ -844,7 +844,7 @@
                     <h3 style="margin: 0; letter-spacing: 2px; font-size: 22px;">STUDENT LOGIN</h3>
                     <p style="color: #94a3b8; font-size: 13px; margin: 5px 0 30px 0; font-weight: bold;">數位學習平台</p>
 
-                    <button class="btn-login" onclick="toggleManualInput()" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
+                    <button class="btn-login" onclick="toggleManualInput()">
                         <span style="font-size: 20px;">⌨️</span> <span style="flex:1; text-align: left;">手動輸入校區與學號</span> <span>➔</span>
                     </button>
                     <button class="btn-login line" onclick="alert('LIFF 靜默登入開發中，敬請期待！')">
@@ -857,10 +857,10 @@
                     <h3 style="margin-bottom: 25px; letter-spacing: 2px;">遠端手動登入</h3>
                     
                     <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: var(--marian-gold); padding-left: 10px;">校區代碼 (Class Code)</div>
-                    <input type="text" id="class-input-field" class="uid-input" placeholder="請輸入校區代碼" autocomplete="off" style="margin-bottom: 15px; letter-spacing: 5px;">
+                    <input type="text" id="class-input-field" class="uid-input" placeholder="輸入代碼" autocomplete="off" style="margin-bottom: 15px; letter-spacing: 5px;">
                     
                     <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: var(--marian-gold); padding-left: 10px;">學生代號 (Student UID)</div>
-                    <input type="text" id="uid-input-field" class="uid-input" placeholder="請輸入學生學號" autocomplete="off" style="margin-bottom: 25px;">
+                    <input type="text" id="uid-input-field" class="uid-input" placeholder="輸入學號" autocomplete="off" style="margin-bottom: 25px;">
                     
                     <button class="btn-login primary" id="manual-submit-btn" style="width: 100%; font-size: 18px;" onclick="handleManualLogin()">驗證並進入系統</button>
                 </div>
@@ -1647,31 +1647,42 @@
             const manual = document.getElementById('manual-input-zone');
             manual.style.display = (manual.style.display === 'block') ? 'none' : 'block';
             home.style.display = (manual.style.display === 'block') ? 'none' : 'block';
-            // 焦點自動跳到第一個輸入框
             if (manual.style.display === 'block') document.getElementById('class-input-field').focus();
         }
 
         function handleManualLogin() {
-            // 🚀 抓取雙欄位的值，並轉大寫去頭尾空白
             const classCode = document.getElementById('class-input-field').value.trim().toUpperCase();
             const studentUid = document.getElementById('uid-input-field').value.trim().toUpperCase();
             
-            // 基礎防呆檢查
-            if (!classCode || !studentUid) { 
-                alert("⚠️ 請完整輸入「校區代碼」與「學生代號」！"); 
-                return; 
-            }
+            if (!classCode || !studentUid) { alert("⚠️ 請完整輸入「校區代碼」與「學生代號」！"); return; }
             
-            // 🚀 合併成系統需要的格式：TP01-1608442884
-            // 如果使用者在學號裡已經自己打了橫線 (例如 TP01-S001)，我們就不要重複加橫線
+            // 自動組合：如果家長自己打了 TP01-1344109060，就不再重複加
             let combinedUid = studentUid.includes('-') ? studentUid : `${classCode}-${studentUid}`;
 
             const btn = document.getElementById('manual-submit-btn');
-            btn.innerText = "⏳ 驗證中..."; 
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ 驗證大腦中..."; 
             btn.style.pointerEvents = "none";
             
-            // 🚀 傳送到 Dashboard
-            window.location.href = `dashboard.html?id=${combinedUid}`;
+            // 🚀 向 GAS 發送驗證請求，不再直接跳轉！
+            fetch(`${GAS_URL}?action=verify_manual_login&id=${encodeURIComponent(combinedUid)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        btn.innerText = "✅ 驗證成功，傳送中...";
+                        btn.style.background = "linear-gradient(135deg, #2ecc71, #27ae60)";
+                        setTimeout(() => { window.location.href = `dashboard.html?id=${combinedUid}`; }, 500);
+                    } else {
+                        alert(data.msg); // GAS 會回傳「沒有這個校區」或「查無此帳號」
+                        btn.innerText = originalText;
+                        btn.style.pointerEvents = "auto";
+                    }
+                })
+                .catch(err => {
+                    alert("⚠️ 網路異常，驗證無效，請稍後再試！");
+                    btn.innerText = originalText;
+                    btn.style.pointerEvents = "auto";
+                });
         }
 
         // =======================================================
