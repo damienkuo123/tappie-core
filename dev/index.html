@@ -842,15 +842,10 @@
                     </div>
                     
                     <h3 style="margin: 0; letter-spacing: 2px; font-size: 22px;">STUDENT LOGIN</h3>
-                    <p style="color: #94a3b8; font-size: 13px; margin: 5px 0 20px 0; font-weight: bold;">多平台無縫登入</p>
+                    <p style="color: #94a3b8; font-size: 13px; margin: 5px 0 30px 0; font-weight: bold;">數位學習平台</p>
 
-                    <div class="btn-login" style="cursor: default; border: 2px dashed var(--primary-blue); background: rgba(0, 123, 255, 0.1); overflow: hidden;">
-                        <span style="font-size: 20px; flex: none;">🪪</span> 
-                        <span style="flex:1; text-align: left; white-space: nowrap;">NFC 實體感應</span> 
-                        <span style="font-size: 12px; color: #2ecc71; white-space: nowrap; flex: none;">偵測中...</span>
-                    </div>
-                    <button class="btn-login" onclick="toggleManualInput()">
-                        <span style="font-size: 20px;">⌨️</span> <span style="flex:1; text-align: left;">手動輸入 UID 序號</span> <span>➔</span>
+                    <button class="btn-login" onclick="toggleManualInput()" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
+                        <span style="font-size: 20px;">⌨️</span> <span style="flex:1; text-align: left;">手動輸入校區與學號</span> <span>➔</span>
                     </button>
                     <button class="btn-login line" onclick="alert('LIFF 靜默登入開發中，敬請期待！')">
                         <span style="font-size: 20px;">💬</span> <span style="flex:1; text-align: left;">使用 Line 快速進入</span> <span>➔</span>
@@ -858,9 +853,15 @@
                 </div>
 
                 <div id="manual-input-zone">
-                    <div style="text-align: left; margin-bottom: 20px; color: #94a3b8; font-size: 14px; cursor: pointer; font-weight: bold;" onclick="toggleManualInput()">❮ 返回方式選擇</div>
+                    <div style="text-align: left; margin-bottom: 20px; color: #94a3b8; font-size: 14px; cursor: pointer; font-weight: bold;" onclick="toggleManualInput()">❮ 返回感應模式</div>
                     <h3 style="margin-bottom: 25px; letter-spacing: 2px;">遠端手動登入</h3>
-                    <input type="text" id="uid-input-field" class="uid-input" placeholder="例: TP01-S001" autocomplete="off">
+                    
+                    <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: var(--marian-gold); padding-left: 10px;">校區代碼 (Class Code)</div>
+                    <input type="text" id="class-input-field" class="uid-input" placeholder="例: TP01" autocomplete="off" style="margin-bottom: 15px; letter-spacing: 5px;">
+                    
+                    <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: var(--marian-gold); padding-left: 10px;">學生代號 (Student UID)</div>
+                    <input type="text" id="uid-input-field" class="uid-input" placeholder="例: S001 或 1608442884" autocomplete="off" style="margin-bottom: 25px;">
+                    
                     <button class="btn-login primary" id="manual-submit-btn" style="width: 100%; font-size: 18px;" onclick="handleManualLogin()">驗證並進入系統</button>
                 </div>
             </div>
@@ -1646,16 +1647,31 @@
             const manual = document.getElementById('manual-input-zone');
             manual.style.display = (manual.style.display === 'block') ? 'none' : 'block';
             home.style.display = (manual.style.display === 'block') ? 'none' : 'block';
-            if (manual.style.display === 'block') document.getElementById('uid-input-field').focus();
+            // 焦點自動跳到第一個輸入框
+            if (manual.style.display === 'block') document.getElementById('class-input-field').focus();
         }
 
         function handleManualLogin() {
-            const uid = document.getElementById('uid-input-field').value.trim().toUpperCase();
-            if (uid.length < 4) { alert("請輸入正確序號"); return; }
+            // 🚀 抓取雙欄位的值，並轉大寫去頭尾空白
+            const classCode = document.getElementById('class-input-field').value.trim().toUpperCase();
+            const studentUid = document.getElementById('uid-input-field').value.trim().toUpperCase();
             
+            // 基礎防呆檢查
+            if (!classCode || !studentUid) { 
+                alert("⚠️ 請完整輸入「校區代碼」與「學生代號」！"); 
+                return; 
+            }
+            
+            // 🚀 合併成系統需要的格式：TP01-1608442884
+            // 如果使用者在學號裡已經自己打了橫線 (例如 TP01-S001)，我們就不要重複加橫線
+            let combinedUid = studentUid.includes('-') ? studentUid : `${classCode}-${studentUid}`;
+
             const btn = document.getElementById('manual-submit-btn');
-            btn.innerText = "⏳ 驗證中..."; btn.style.pointerEvents = "none";
-            window.location.href = `dashboard.html?id=${uid}`;
+            btn.innerText = "⏳ 驗證中..."; 
+            btn.style.pointerEvents = "none";
+            
+            // 🚀 傳送到 Dashboard
+            window.location.href = `dashboard.html?id=${combinedUid}`;
         }
 
         // =======================================================
