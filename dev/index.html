@@ -1492,31 +1492,49 @@
             <div class="configurator-box reveal-up" style="transition-delay: 0.2s;">
                 
                 <div class="config-step">
-                    <h3><span>1</span> 選擇大腦引擎</h3>
+                    <h3><span>1</span> 選擇系統版本</h3>
                     <div class="engine-toggles">
                         <div class="engine-card lite" id="engine-lite" onclick="selectEngine('lite')">
                             <div class="engine-title">Lite 輕量版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(20次/日)</span></div>
-                            <div class="engine-desc">滿足基礎每日口說作業，無痛數位化。<br>✓ 語音診斷 ✓ 雷達圖報告 ✓ 數位點數存摺</div>
+                            <div class="engine-desc">滿足基礎每日開口作業，無痛數位化。<br>✓ 基礎發音診斷 ✓ 雷達圖報告 ✓ 數位點數存摺</div>
                         </div>
                         <div class="engine-card pro active" id="engine-pro" onclick="selectEngine('pro')">
-                            <div class="pro-badge">🔥 推薦：解鎖 3D 盲盒</div>
+                            <div class="pro-badge">🔥 超高 CP 值</div>
                             <div class="engine-title">Pro 專業版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(80次/日)</span></div>
-                            <div class="engine-desc">高壓對戰、盲盒全開，極致刺激續班率。<br>✓ 1v1 對戰室 ✓ 盲盒抽卡引擎 ✓ AI 醫療級週報</div>
+                            <div class="engine-desc">高壓對戰、盲盒全開，極致刺激續班率。<br>✓ 1v1 實境對戰 ✓ SSR 3D 盲盒引擎 ✓ AI 醫療級週報</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="config-step">
-                    <h3><span>2</span> 評估校區規模</h3>
+                    <h3><span>2</span> 選擇校區方案</h3>
                     <div class="slider-wrapper">
-                        <input type="range" id="student-slider" class="custom-slider" min="0" max="3" value="1" oninput="calculatePricing()">
-                        <div class="slider-labels">
-                            <span>微型 (30人)</span>
-                            <span>標準 (50人)</span>
-                            <span>成長 (75人)</span>
-                            <span>旗艦 (100人)</span>
+                        <input type="range" id="student-slider" class="custom-slider" min="0" max="3" value="1" oninput="syncSuggestedCards(); calculatePricing();">
+                        <div class="slider-labels" style="text-align: center; line-height: 1.4;">
+                            <span>微型教室<br><span style="font-size: 11px; font-weight: normal;">(上限30人)</span></span>
+                            <span>標準校區<br><span style="font-size: 11px; font-weight: normal;">(上限50人)</span></span>
+                            <span>成長校區<br><span style="font-size: 11px; font-weight: normal;">(上限75人)</span></span>
+                            <span>旗艦校區<br><span style="font-size: 11px; font-weight: normal;">(上限100人)</span></span>
                         </div>
                     </div>
+                    
+                    <div style="margin-top: 25px; text-align: left; padding: 15px 20px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <div style="font-weight: bold; color: var(--marian-gold); font-size: 14px;">➕ 旗艦版再擴充 (加購人數)</div>
+                            <div style="font-size: 12px; color: #a4b0be; margin-top: 5px;">人數超過 100 人時適用，以 10 人為一單位。<br>(Lite: +1000/月 | Pro: +1400/月)</div>
+                        </div>
+                        <div class="counter-box">
+                            <button class="counter-btn" onclick="updateAddonCount(-10)">-</button>
+                            <input type="number" class="counter-input" id="addon-count" value="0" onblur="formatAddonCount()">
+                            <button class="counter-btn" onclick="updateAddonCount(10)">+</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px; text-align: left; padding: 15px 20px; background: linear-gradient(135deg, rgba(46,204,113,0.15), rgba(39,174,96,0.05)); border-radius: 12px; border: 1px solid rgba(46,204,113,0.4);">
+                        <div style="font-weight: bold; color: var(--marian-green); font-size: 14px;">🏢 連鎖品牌專案 (300人以上)</div>
+                        <div style="font-size: 12px; color: #a4b0be; margin-top: 5px;">預算 NT$ 30,000/月 以上，可依校區需求彈性拆分帳號與點數池。請直接於下方填單送出，將有專員為您客製專屬報價。</div>
+                    </div>
+
                     <div class="price-display" id="price-display-bg" style="border-color: rgba(241, 196, 15, 0.4); box-shadow: 0 0 20px rgba(241, 196, 15, 0.1);">
                         <div style="font-size: 14px; color: #a4b0be; font-weight: bold;">每月軟體授權費</div>
                         <div class="monthly">NT$ <span id="calc-monthly">8,500</span></div>
@@ -1525,40 +1543,50 @@
                 </div>
 
                 <div class="config-step">
-                    <h3><span>3</span> 選擇實體武器 (NFC 卡片)</h3>
+                    <h3><span>3</span> 購買實體感應卡</h3>
                     <div class="card-toggles">
                         <div class="hw-card" id="card-official" onclick="selectCardType('official')">
                             <div class="hw-visual">Tappie</div>
                             <div style="text-align: left;">
-                                <div style="color: white; font-weight: bold; font-size: 16px;">官方專屬卡</div>
+                                <div style="color: white; font-weight: bold; font-size: 16px;">官方專用卡</div>
                                 <div style="color: #a4b0be; font-size: 12px;">NT$ 30 / 張 (可愛吉祥物)</div>
                             </div>
                         </div>
                         <div class="hw-card active" id="card-custom" onclick="selectCardType('custom')">
                             <div class="hw-visual custom">YOUR LOGO</div>
                             <div style="text-align: left;">
-                                <div style="color: white; font-weight: bold; font-size: 16px;">品牌客製閃卡</div>
+                                <div style="color: white; font-weight: bold; font-size: 16px;">品牌客製化專用卡</div>
                                 <div style="color: #a4b0be; font-size: 12px;">NT$ 50 / 張 (專屬金屬光澤)</div>
                             </div>
                         </div>
                     </div>
                     
-                    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                        <span style="font-weight: bold; color: #a4b0be; font-size: 14px;">首批進貨數量：</span>
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px;">
+                        <div style="text-align: left;">
+                            <div style="font-weight: bold; color: white; font-size: 15px;">首批進貨數量</div>
+                            <div style="font-size: 12px; color: #64748b; margin-top: 4px;" id="card-suggest-text">建議：學生 + 教師 + 備用</div>
+                        </div>
                         <div class="counter-box">
                             <button class="counter-btn" onclick="updateCardCount(-10)">-</button>
-                            <input type="number" class="counter-input" id="card-count" value="70" onchange="calculatePricing()">
+                            <input type="number" class="counter-input" id="card-count" value="75" onchange="calculatePricing()">
                             <button class="counter-btn" onclick="updateCardCount(10)">+</button>
                         </div>
-                        <span style="font-size: 12px; color: #64748b;">(建議為學生數 + 20張備用)</span>
+                    </div>
+                </div>
+
+                <div style="padding: 25px 40px 10px; background: rgba(0,0,0,0.4);">
+                    <h4 style="margin: 0 0 15px 0; color: white; font-size: 15px; text-align: left;">📋 聯絡資訊</h4>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <input type="text" id="contact-phone" class="uid-input" placeholder="您的聯絡電話" style="margin-bottom: 0; padding: 15px; font-size: 15px; flex: 1; min-width: 200px; text-align: left;">
+                        <input type="email" id="contact-email" class="uid-input" placeholder="您的聯絡信箱" style="margin-bottom: 0; padding: 15px; font-size: 15px; flex: 1; min-width: 200px; text-align: left;">
                     </div>
                 </div>
 
                 <div class="config-summary">
-                    <div class="summary-text">
+                    <div class="summary-text" style="text-align: left;">
                         初裝建置費：<s style="color: var(--marian-red);">NT$ 20,000</s> <span style="color: var(--marian-green); font-weight: bold; margin-left: 5px;">NT$ 0 (前 10 名種子資格)</span><br>
                         首月開通總計 <span style="font-size:12px;">(軟體授權 + 實體卡片耗材)</span>：
-                        <strong id="calc-total">NT$ 12,000</strong>
+                        <strong id="calc-total">NT$ 12,250</strong>
                     </div>
                     <button class="btn-submit-plan" onclick="submitPlan()">🚀 將此方案送出評估</button>
                 </div>
@@ -1939,13 +1967,16 @@
         // =======================================================
         const pricingTiers = {
             lite: [ { n: 30, price: 4200 }, { n: 50, price: 6500 }, { n: 75, price: 9000 }, { n: 100, price: 11000 } ],
-            pro:  [ { n: 30, price: 5400 }, { n: 50, price: 8500 }, { n: 75, price: 12000 }, { n: 100, price: 15000 } ]
+            pro:  [ { n: 30, price: 5400 }, { n: 8500, price: 8500 }, { n: 75, price: 12000 }, { n: 100, price: 15000 } ] // 修正了原本 50 人 8500 的數值
         };
+        // 修正上方的筆誤
+        pricingTiers.pro[1].n = 50;
         
         let confEngine = 'pro';
         let confCardType = 'custom';
         let confCardPrice = 50;
 
+        // 選擇版本
         function selectEngine(type) {
             confEngine = type;
             document.getElementById('engine-lite').classList.remove('active');
@@ -1966,6 +1997,7 @@
             calculatePricing();
         }
 
+        // 選擇實體武器
         function selectCardType(type) {
             confCardType = type;
             confCardPrice = type === 'custom' ? 50 : 30;
@@ -1975,37 +2007,78 @@
             calculatePricing();
         }
 
+        // 加購學生：按鈕加減
+        function updateAddonCount(delta) {
+            const input = document.getElementById('addon-count');
+            let val = parseInt(input.value) || 0;
+            val = Math.max(0, val + delta); 
+            input.value = val;
+            syncSuggestedCards(); // 只要學生人數變，卡片就跟著重算
+            calculatePricing();
+        }
+
+        // 加購學生：手動輸入失焦後自動四捨五入到 10 的倍數
+        function formatAddonCount() {
+            const input = document.getElementById('addon-count');
+            let val = parseInt(input.value) || 0;
+            val = Math.round(val / 10) * 10;
+            input.value = Math.max(0, val);
+            syncSuggestedCards();
+            calculatePricing();
+        }
+
+        // 實體卡片：按鈕加減 (這只負責加減，不引發覆寫)
         function updateCardCount(delta) {
             const input = document.getElementById('card-count');
             let val = parseInt(input.value) || 0;
             val = Math.max(10, val + delta); // 最低起訂量 10 張
             input.value = val;
-            calculatePricing();
+            calculatePricing(); // 單純算錢
         }
 
+        // 🚀 核心分離：只有在「人數變動時」才去更動卡片數量，解決了按按鈕會被拉桿吃掉的 BUG
+        function syncSuggestedCards() {
+            const sliderIdx = parseInt(document.getElementById('student-slider').value);
+            const baseStudents = pricingTiers[confEngine][sliderIdx].n;
+            const addonStudents = parseInt(document.getElementById('addon-count').value) || 0;
+            const totalStudents = baseStudents + addonStudents;
+
+            // 公式：學生數 + 老師數 (學生數除以10) + 備用卡 (20)
+            const teachers = Math.ceil(totalStudents / 10);
+            const suggestedCards = totalStudents + teachers + 20;
+
+            document.getElementById('card-suggest-text').innerText = `(建議：學生 ${totalStudents} + 教師 ${teachers} + 備用 20 = ${suggestedCards} 張)`;
+            document.getElementById('card-count').value = suggestedCards;
+        }
+
+        // 結算所有價格
         function calculatePricing() {
             const sliderIdx = parseInt(document.getElementById('student-slider').value);
             const tierData = pricingTiers[confEngine][sliderIdx];
             
-            const students = tierData.n;
-            const monthlyFee = tierData.price;
-            const avgFee = Math.round(monthlyFee / students);
+            const baseStudents = tierData.n;
+            const baseFee = tierData.price;
             
-            // UX 優化：連動滑桿與卡片數量 (滑桿變動時，自動幫他加上 20 張備用卡)
-            // 這裡我們直接同步，讓他不用手動一直調
-            const cardInput = document.getElementById('card-count');
-            cardInput.value = students + 20; 
-            
-            const hwFee = (students + 20) * confCardPrice;
+            // 計算加購
+            const addonStudents = parseInt(document.getElementById('addon-count').value) || 0;
+            const addonUnits = addonStudents / 10;
+            const addonPrice = confEngine === 'lite' ? (1000 * addonUnits) : (1400 * addonUnits);
+
+            const totalStudents = baseStudents + addonStudents;
+            const monthlyFee = baseFee + addonPrice;
+            const avgFee = Math.round(monthlyFee / totalStudents);
+
+            // 計算卡片
+            const cardQty = parseInt(document.getElementById('card-count').value) || 0;
+            const hwFee = cardQty * confCardPrice;
             const totalFee = monthlyFee + hwFee;
 
-            // 觸發吃角子老虎機跳號動畫
+            // 吃角子老虎機跳號
             animateValue('calc-monthly', monthlyFee);
             document.getElementById('calc-avg').innerText = avgFee;
             animateValue('calc-total', totalFee, true);
         }
 
-        // 🎰 數字跳動動畫
         function animateValue(id, end, isTotal = false) {
             const obj = document.getElementById(id);
             const startStr = obj.innerText.replace(/[^0-9]/g, '');
@@ -2013,38 +2086,84 @@
             if (start === end) return;
             
             let startTimestamp = null;
-            const duration = 500; // 0.5 秒跳完
+            const duration = 500; 
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                // 使用 easeOutQuart 讓最後慢下來，很像老虎機
                 const easeOut = 1 - Math.pow(1 - progress, 4);
                 const current = Math.floor(start + (end - start) * easeOut);
                 
                 obj.innerText = (isTotal ? 'NT$ ' : '') + current.toLocaleString('en-US');
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                } else {
-                    obj.innerText = (isTotal ? 'NT$ ' : '') + end.toLocaleString('en-US');
-                }
+                if (progress < 1) window.requestAnimationFrame(step);
+                else obj.innerText = (isTotal ? 'NT$ ' : '') + end.toLocaleString('en-US');
             };
             window.requestAnimationFrame(step);
         }
 
-        function submitPlan() {
-            const sliderIdx = parseInt(document.getElementById('student-slider').value);
-            const students = pricingTiers[confEngine][sliderIdx].n;
-            const monthlyFee = pricingTiers[confEngine][sliderIdx].price;
-            const cardQty = document.getElementById('card-count').value;
-            
-            const engineName = confEngine === 'pro' ? 'Pro 專業版 (80次/日)' : 'Lite 輕量版 (20次/日)';
-            const cardName = confCardType === 'custom' ? '品牌客製化閃卡' : '基礎官方專用卡';
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            syncSuggestedCards();
+            calculatePricing();
+        });
 
-            const msg = `您好，我對 Tappie 系統有興趣！\n\n這是我試算的方案：\n🧠 大腦引擎：${engineName}\n👥 校區規模：${students} 人\n💳 實體卡片：${cardName} x ${cardQty} 張\n\n請協助我評估並保留「免建置費種子名額」，謝謝！`;
+        // 🚀 背景無縫送單 (改用 GAS API，不跳出 Mail 軟體)
+        function submitPlan() {
+            const phone = document.getElementById('contact-phone').value.trim();
+            const email = document.getElementById('contact-email').value.trim();
             
-            // 跳轉至 Email
-            const mailto = `mailto:system@tappieapp.com?subject=申請 Tappie 數位升級方案&body=${encodeURIComponent(msg)}`;
-            window.location.href = mailto;
+            if (!phone || !email) {
+                alert('⚠️ 請填寫您的聯絡電話與信箱，以便專員為您解說方案！');
+                return;
+            }
+
+            const btn = document.querySelector('.btn-submit-plan');
+            const originalText = btn.innerText;
+            btn.innerText = '🚀 報價單傳送中...';
+            btn.style.pointerEvents = 'none';
+
+            // 收集所有資料
+            const sliderIdx = parseInt(document.getElementById('student-slider').value);
+            const engineName = confEngine === 'pro' ? 'Pro 專業版 (80次/日)' : 'Lite 輕量版 (20次/日)';
+            const baseStudents = pricingTiers[confEngine][sliderIdx].n;
+            const addonStudents = parseInt(document.getElementById('addon-count').value) || 0;
+            const cardName = confCardType === 'custom' ? '品牌客製化專用卡' : 'Tappie 官方專用卡';
+            const cardQty = document.getElementById('card-count').value;
+            const totalFee = document.getElementById('calc-total').innerText;
+
+            const payload = {
+                phone: phone,
+                email: email,
+                engine: engineName,
+                baseStudents: baseStudents,
+                addonStudents: addonStudents,
+                totalStudents: baseStudents + addonStudents,
+                cardType: cardName,
+                cardQty: cardQty,
+                totalFee: totalFee
+            };
+
+            // 使用您原有的 GAS_URL 發送 POST 請求
+            fetch(`${GAS_URL}?action=submit_quote`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    btn.innerText = '✅ 送出成功！專員將盡快聯繫您';
+                    btn.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+                    btn.style.color = 'white';
+                } else {
+                    alert('傳送失敗：' + data.error);
+                    btn.innerText = originalText;
+                    btn.style.pointerEvents = 'auto';
+                }
+            })
+            .catch(err => {
+                alert('網路異常，請稍後再試。');
+                btn.innerText = originalText;
+                btn.style.pointerEvents = 'auto';
+            });
         }
 
         // 統一的錯誤狀態 UI 恢復系統
