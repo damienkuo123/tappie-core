@@ -812,6 +812,10 @@
 </head>
 <body>
 
+    <div id="dev-scanner-zone" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 12px; z-index: 99999; border: 1px solid #f1c40f; backdrop-filter: blur(10px);">
+        <p style="margin: 0 0 10px 0; color: #f1c40f; font-size: 12px; font-weight: bold;">🛠️ 讀卡機模擬器</p>
+        <input type="text" id="dev-sim-input" placeholder="貼上完整網址後按 Enter" style="width: 250px; padding: 10px; border-radius: 8px; border: none; outline: none; font-family: monospace; background: rgba(255,255,255,0.9);">
+    </div>
     <div class="ambient-orb orb-1"></div>
     <div class="ambient-orb orb-2"></div>
 
@@ -859,7 +863,6 @@
                     <input type="text" id="uid-input-field" class="uid-input" placeholder="例: TP01-S001" autocomplete="off">
                     <button class="btn-login primary" id="manual-submit-btn" style="width: 100%; font-size: 18px;" onclick="handleManualLogin()">驗證並進入系統</button>
                 </div>
-                <input type="text" id="scanner" inputmode="none" autofocus style="opacity: 0; position: fixed; top: -10px; left: -100px; width: 1px; height: 1px;">
             </div>
         </div>
     </section>
@@ -1655,58 +1658,184 @@
             window.location.href = `dashboard.html?id=${uid}`;
         }
 
-        // 🚀 無痕 NFC 監聽
+        // =======================================================
+        // 🚀 終極無痕掃描系統 (SaaS 萬能萃取版 + 焦點霸體鎖定)
+        // =======================================================
+        const msg = document.getElementById('msg');
+        const statusDot = document.querySelector('.status-dot');
+        
         let rawBuffer = "";
         let lastPressTime = Date.now();
-        const focusHunter = document.getElementById('scanner');
-        
-        // 🚀 修復：加入 { preventScroll: true }，警告瀏覽器奪回焦點時絕對不准滾動畫面！
+
+        // 1. 動態建立隱形吸鐵 (更安全、不干擾原生 DOM)
+        const focusHunter = document.createElement('input');
+        focusHunter.type = "text";
+        focusHunter.setAttribute('inputmode', 'none'); // 絕對禁止虛擬小鍵盤
+        focusHunter.style.position = "fixed";
+        focusHunter.style.top = "-500px"; 
+        focusHunter.style.opacity = "0";
+        document.body.appendChild(focusHunter);
+
+        // 2. 焦點霸體：每 0.5 秒強制奪回焦點
         setInterval(() => { 
-            if (document.activeElement.id !== 'uid-input-field') {
+            const active = document.activeElement;
+            // 只要不是在手動輸入框、也不是在模擬器，就強制奪回！
+            if (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA') { 
                 focusHunter.focus({ preventScroll: true }); 
             }
         }, 500);
 
         focusHunter.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                let inputStr = rawBuffer.trim();
-                rawBuffer = "";
-                if (inputStr.length < 4) return;
-                
-                document.getElementById('msg').innerText = "🚀 讀取中...";
-                document.getElementById('msg').style.color = "#f1c40f";
+            if (e.key === 'Enter') e.preventDefault(); // 防止瀏覽器預設跳轉
 
+            const now = Date.now();
+            // 讀卡機輸入極快，超過 300ms 視為人類誤觸，清空緩衝區
+            if (now - lastPressTime > 300 && e.key !== 'Enter') {
+                rawBuffer = "";
+            }
+            lastPressTime = now;
+
+            if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                rawBuffer += e.key;
+            }
+
+            if (e.key === 'Enter') {
+                let inputStr = rawBuffer.trim();
+                rawBuffer = ""; 
+                focusHunter.value = ""; 
+                
+                if (inputStr.length < 4) return;
+
+                // UI 變成讀取中 (相容新版面設計)
+                msg.innerText = "🚀 驗證資料中...";
+                msg.style.color = "var(--marian-gold)";
+                statusDot.style.background = "var(--marian-gold)";
+                statusDot.style.boxShadow = "0 0 10px var(--marian-gold)";
+                statusDot.style.animation = "none";
+
+                // 🚀 萬能萃取器：挖出 UID
                 let extractedUid = null;
                 if (inputStr.includes("uid=")) extractedUid = inputStr.split("uid=")[1].split("&")[0];
                 else if (inputStr.includes("id=")) extractedUid = inputStr.split("id=")[1].split("&")[0];
 
-                if (extractedUid) window.location.href = `dashboard.html?id=${extractedUid}`;
-                else {
+                // 🚀 主管無縫攔截器
+                const adminAuth = localStorage.getItem('tappie_admin_key');
+
+                if (extractedUid) {
+                    msg.innerText = "✅ 驗證成功，傳送中...";
+                    msg.style.color = "var(--marian-green)";
+                    statusDot.style.background = "var(--marian-green)";
+                    statusDot.style.boxShadow = "0 0 10px var(--marian-green)";
+                    setTimeout(() => {
+                        if (adminAuth) window.location.replace(`admin.html?id=${extractedUid}`);
+                        else window.location.href = `dashboard.html?id=${extractedUid}`;
+                    }, 300);
+                } else {
                     fetch(`${GAS_URL}?action=verify_card&cardId=${encodeURIComponent(inputStr)}`)
                         .then(res => res.json())
-                        .then(data => { 
-                            if (data.success) window.location.href = `dashboard.html?id=${data.uid}`; 
-                            else {
-                                document.getElementById('msg').innerText = "❌ 查無此卡";
-                                document.getElementById('msg').style.color = "#e74c3c";
-                                setTimeout(() => { document.getElementById('msg').innerText = "請感應學生專屬 NFC 卡片"; document.getElementById('msg').style.color = "#fff"; }, 2000);
+                        .then(data => {
+                            if (data.success) {
+                                msg.innerText = "✅ 驗證成功，傳送中...";
+                                msg.style.color = "var(--marian-green)";
+                                statusDot.style.background = "var(--marian-green)";
+                                statusDot.style.boxShadow = "0 0 10px var(--marian-green)";
+                                setTimeout(() => {
+                                    if (adminAuth) window.location.replace(`admin.html?id=${data.uid}`);
+                                    else window.location.href = `dashboard.html?id=${data.uid}`;
+                                }, 300);
+                            } else {
+                                showError();
                             }
                         })
                         .catch(err => {
-                            document.getElementById('msg').innerText = "⚠️ 網路異常";
-                            document.getElementById('msg').style.color = "#e74c3c";
-                            setTimeout(() => { document.getElementById('msg').innerText = "請感應學生專屬 NFC 卡片"; document.getElementById('msg').style.color = "#fff"; }, 2000);
+                            showError("⚠️ 網路異常，請重試");
                         });
                 }
             }
-            if (e.key.length === 1) {
-                const now = Date.now();
-                if (now - lastPressTime > 300) rawBuffer = "";
-                rawBuffer += e.key;
-                lastPressTime = now;
+        });
+
+        // 統一的錯誤狀態 UI 恢復系統
+        function showError(text = "❌ 查無此卡，請重試") {
+            msg.innerText = text;
+            msg.style.color = "var(--marian-red)";
+            statusDot.style.background = "var(--marian-red)";
+            statusDot.style.boxShadow = "0 0 10px var(--marian-red)";
+            
+            setTimeout(() => {
+                msg.innerText = "請感應學生專屬 NFC 卡片";
+                msg.style.color = "white";
+                statusDot.style.background = "var(--marian-gold)";
+                statusDot.style.boxShadow = "0 0 10px var(--marian-gold)";
+                statusDot.style.animation = "blink 1.5s infinite";
+                focusHunter.focus({ preventScroll: true });
+            }, 2000);
+        }
+
+        // =======================================================
+        // 🛠️ 開發者專用：讀卡機模擬器 (Simulator)
+        // =======================================================
+        document.addEventListener('dblclick', function(e) {
+            // 避免點到其他按鈕誤觸
+            if (!e.target.closest('.login-card') && !e.target.closest('.toggle-wrapper')) {
+                const devZone = document.getElementById('dev-scanner-zone');
+                if(devZone) {
+                    devZone.style.display = devZone.style.display === 'none' ? 'block' : 'none';
+                    if (devZone.style.display === 'block') document.getElementById('dev-sim-input').focus();
+                }
             }
         });
+
+        const simInput = document.getElementById('dev-sim-input');
+        if(simInput) {
+            simInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const inputStr = this.value.trim();
+                    if (!inputStr) return;
+
+                    msg.innerText = "🛠️ 模擬器驗證中...";
+                    msg.style.color = "var(--marian-gold)";
+                    statusDot.style.background = "var(--marian-gold)";
+                    statusDot.style.boxShadow = "0 0 10px var(--marian-gold)";
+                    statusDot.style.animation = "none";
+
+                    let extractedUid = null;
+                    if (inputStr.includes("uid=")) extractedUid = inputStr.split("uid=")[1].split("&")[0];
+                    else if (inputStr.includes("id=")) extractedUid = inputStr.split("id=")[1].split("&")[0];
+                    
+                    const adminAuth = localStorage.getItem('tappie_admin_key');
+
+                    if (extractedUid) {
+                        msg.innerText = "✅ 模擬萃取成功！";
+                        msg.style.color = "var(--marian-green)";
+                        statusDot.style.background = "var(--marian-green)";
+                        setTimeout(() => {
+                            if (adminAuth) window.location.replace(`admin.html?id=${extractedUid}`);
+                            else window.location.href = `dashboard.html?id=${extractedUid}`;
+                        }, 500);
+                    } else {
+                        fetch(`${GAS_URL}?action=verify_card&cardId=${encodeURIComponent(inputStr)}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    msg.innerText = "✅ 舊卡搜索成功！";
+                                    msg.style.color = "var(--marian-green)";
+                                    statusDot.style.background = "var(--marian-green)";
+                                    setTimeout(() => {
+                                        if (adminAuth) window.location.replace(`admin.html?id=${data.uid}`);
+                                        else window.location.href = `dashboard.html?id=${data.uid}`;
+                                    }, 500);
+                                } else {
+                                    showError("❌ GAS 找不到這張卡！");
+                                }
+                            })
+                            .catch(err => {
+                                showError("⚠️ 連線 GAS 失敗！");
+                            });
+                    }
+                    this.value = ""; 
+                }
+            });
+        }
     </script>
 </body>
 </html>
