@@ -557,6 +557,65 @@
         }
 
         /* ========================================= */
+        /* 🚀 動態 UI 引擎 6：品牌白標客製化無限 Loop */
+        /* ========================================= */
+        
+        /* 💳 實體卡片背景與邊框切換 */
+        @keyframes customCardTheme {
+            0%, 14% { background: linear-gradient(135deg, var(--primary-blue), #1e3799); border-color: var(--primary-blue); box-shadow: 0 20px 50px rgba(0,123,255,0.4); transform: rotate(10deg) scale(1.1); }
+            15% { transform: rotate(10deg) scale(0.9); opacity: 0.5; }
+            
+            16%, 31% { background: linear-gradient(135deg, #e67e22, #d35400); border-color: #e67e22; box-shadow: 0 20px 50px rgba(230,126,34,0.4); transform: rotate(10deg) scale(1.1); opacity: 1; }
+            32% { transform: rotate(10deg) scale(0.9); opacity: 0.5; }
+            
+            33%, 48% { background: linear-gradient(135deg, #e74c3c, #c0392b); border-color: #e74c3c; box-shadow: 0 20px 50px rgba(231,76,60,0.4); transform: rotate(10deg) scale(1.1); opacity: 1; }
+            49% { transform: rotate(10deg) scale(0.9); opacity: 0.5; }
+            
+            50%, 64% { background: linear-gradient(135deg, #9b59b6, #8e44ad); border-color: #9b59b6; box-shadow: 0 20px 50px rgba(155,89,182,0.4); transform: rotate(10deg) scale(1.1); opacity: 1; }
+            65% { transform: rotate(10deg) scale(0.9); opacity: 0.5; }
+            
+            66%, 81% { background: linear-gradient(135deg, #00ced1, #0097e6); border-color: #00ced1; box-shadow: 0 20px 50px rgba(0,206,209,0.4); transform: rotate(10deg) scale(1.1); opacity: 1; }
+            82% { transform: rotate(10deg) scale(0.9); opacity: 0.5; }
+            
+            83%, 98% { background: linear-gradient(135deg, var(--marian-gold), #f39c12); border-color: var(--marian-gold); box-shadow: 0 20px 50px rgba(241,196,15,0.4); transform: rotate(10deg) scale(1.1); opacity: 1; }
+            99% { transform: rotate(10deg) scale(0.9); opacity: 0.5; }
+            
+            100% { background: linear-gradient(135deg, var(--primary-blue), #1e3799); border-color: var(--primary-blue); box-shadow: 0 20px 50px rgba(0,123,255,0.4); transform: rotate(10deg) scale(1.1); opacity: 1; }
+        }
+
+        /* 📱 App 圖示背景切換 */
+        @keyframes customIconTheme {
+            0%, 14% { background: linear-gradient(135deg, var(--marian-green), #27ae60); transform: scale(1); }
+            15% { transform: scale(0.8); opacity: 0.5; }
+            16%, 31% { background: linear-gradient(135deg, #e67e22, #d35400); transform: scale(1); opacity: 1; }
+            32% { transform: scale(0.8); opacity: 0.5; }
+            33%, 48% { background: linear-gradient(135deg, #e74c3c, #c0392b); transform: scale(1); opacity: 1; }
+            49% { transform: scale(0.8); opacity: 0.5; }
+            50%, 64% { background: linear-gradient(135deg, #9b59b6, #8e44ad); transform: scale(1); opacity: 1; }
+            65% { transform: scale(0.8); opacity: 0.5; }
+            66%, 81% { background: linear-gradient(135deg, #00ced1, #0097e6); transform: scale(1); opacity: 1; }
+            82% { transform: scale(0.8); opacity: 0.5; }
+            83%, 98% { background: linear-gradient(135deg, var(--marian-gold), #f39c12); transform: scale(1); opacity: 1; }
+            99% { transform: scale(0.8); opacity: 0.5; }
+            100% { background: linear-gradient(135deg, var(--marian-green), #27ae60); transform: scale(1); opacity: 1; }
+        }
+
+        /* 📝 卡片文字與 App 品牌名稱切換 */
+        @keyframes customLogoText { 0%, 15% { content: "YOUR LOGO"; } 16%, 32% { content: "GIRAFFE ENG"; } 33%, 49% { content: "HAPPY APPLE"; } 50%, 66% { content: "SMART OWL"; } 67%, 83% { content: "FUTURE KIDS"; } 84%, 100% { content: "ELITE EDU"; } }
+        @keyframes customBrandText { 0%, 15% { content: "YOUR BRAND"; } 16%, 32% { content: "GIRAFFE ENG"; } 33%, 49% { content: "HAPPY APPLE"; } 50%, 66% { content: "SMART OWL"; } 67%, 83% { content: "FUTURE KIDS"; } 84%, 100% { content: "ELITE ACADEMY"; } }
+        @keyframes customIconEmoji { 0%, 15% { content: "🏫"; } 16%, 32% { content: "🦁"; } 33%, 49% { content: "🍎"; } 50%, 66% { content: "🦉"; } 67%, 83% { content: "🚀"; } 84%, 100% { content: "👑"; } }
+
+        /* 🔌 綁定動畫類別 */
+        .anim-custom-card { animation: customCardTheme 12s infinite; }
+        .anim-custom-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 22px; font-weight: 900; opacity: 0.9; text-align: center; width: 100%; letter-spacing: 1px; }
+        .anim-custom-logo::after { content: "YOUR LOGO"; animation: customLogoText 12s infinite; }
+
+        .anim-custom-icon { animation: customIconTheme 12s infinite; }
+        .anim-custom-icon::after { content: "🏫"; animation: customIconEmoji 12s infinite; }
+        .anim-custom-brand { font-weight: 900; font-size: 18px; letter-spacing: 2px; text-align: center; height: 25px; margin-top: 5px; color: #fff; }
+        .anim-custom-brand::after { content: "YOUR BRAND"; animation: customBrandText 12s infinite; }
+
+        /* ========================================= */
         /* 🚀 擴充區塊：場景、權威、方案、FAQ */
         /* ========================================= */
         /* 🌟 亮色白玉毛玻璃視覺斷點 (Visual Break) */
@@ -999,9 +1058,9 @@
                     <p>Tappie 不只是軟體，更是貴校的科技名片。客製化印有您校區 Logo 的 NFC 學習卡，不僅是登入鑰匙，更是孩子帶去學校向同儕炫耀的最佳實體行銷利器。</p>
                 </div>
                 <div class="feature-visual reveal-left">
-                    <div class="mock-ui-box" style="justify-content: center; background: radial-gradient(circle at center, rgba(241,196,15,0.1), transparent);">
-                        <div class="mock-nfc-card" style="transform: rotate(10deg); scale: 1.1; border-color: var(--marian-gold); box-shadow: 0 20px 50px rgba(241,196,15,0.4);">
-                            <div style="position:absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; font-weight: 900; opacity: 0.8;">YOUR LOGO</div>
+                    <div class="mock-ui-box" style="justify-content: center; background: radial-gradient(circle at center, rgba(255,255,255,0.05), transparent);">
+                        <div class="mock-nfc-card anim-custom-card">
+                            <div class="anim-custom-logo"></div>
                         </div>
                     </div>
                 </div>
@@ -1072,8 +1131,8 @@
                 </div>
                 <div class="feature-visual reveal-left">
                     <div class="mock-ui-box">
-                        <div class="mock-app-icon">🏫</div>
-                        <div style="font-weight: 900; font-size: 18px; letter-spacing: 2px;">YOUR BRAND</div>
+                        <div class="mock-app-icon anim-custom-icon"></div>
+                        <div class="anim-custom-brand"></div>
                     </div>
                 </div>
             </div>
