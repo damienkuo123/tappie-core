@@ -2038,14 +2038,34 @@
             calculatePricing();
         }
 
-        // 🚀 大客戶點擊連鎖品牌專案時的監聽
+        // 🚀 大客戶點擊連鎖品牌專案時的監聽 (升級：支援點擊取消恢復原狀)
         function selectBrandPlan() {
-            isBrandPlan = true;
-            document.getElementById('brand-block').classList.add('active-brand');
-            document.getElementById('slider-block').classList.add('slider-disabled-fade');
-            document.getElementById('addon-block').style.display = 'none';
-            document.getElementById('addon-count').value = 0;
+            // 1. 反轉目前的狀態 (原本是 false 就變 true，true 就變 false)
+            isBrandPlan = !isBrandPlan;
             
+            const brandBlock = document.getElementById('brand-block');
+            const sliderBlock = document.getElementById('slider-block');
+            const addonBlock = document.getElementById('addon-block');
+            const sliderVal = parseInt(document.getElementById('student-slider').value);
+
+            if (isBrandPlan) {
+                // 🟢 開啟大客戶模式：亮起綠燈、鎖死滑桿、隱藏加購
+                brandBlock.classList.add('active-brand');
+                sliderBlock.classList.add('slider-disabled-fade');
+                addonBlock.style.display = 'none';
+                document.getElementById('addon-count').value = 0;
+            } else {
+                // 🔴 取消大客戶模式：熄滅綠燈、解鎖滑桿
+                brandBlock.classList.remove('active-brand');
+                sliderBlock.classList.remove('slider-disabled-fade');
+                
+                // 智慧判斷：如果取消時，滑桿剛好停在「旗艦校區(100人)」，就把加購區還給他
+                if (sliderVal === 3) {
+                    addonBlock.style.display = 'flex';
+                }
+            }
+            
+            // 重新計算卡片與價格
             syncSuggestedCards();
             calculatePricing();
         }
