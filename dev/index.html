@@ -531,8 +531,11 @@
             padding-top: 45vh; 
         }
         .scroll-step {
-            min-height: 25vh; margin-bottom: 30vh; 
+            /* 🚀 修復：手機版把高度與間距縮小，讓文字接得更緊密，消除乾滑的空窗期 */
+            min-height: 35vh; margin-bottom: 10vh; 
             display: flex; flex-direction: column; justify-content: flex-start;
+            opacity: 0; transform: translateY(40px); transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
             /* 🚀 將 opacity 改為 0，並改為往下降 (translateY)，只要脫離雷達區就會瞬間消失並掉下去！ */
             opacity: 0; transform: translateY(40px); transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -1277,57 +1280,58 @@
             const scrollSteps = document.querySelectorAll('.scroll-step');
             const phoneScreens = document.querySelectorAll('.phone-screen');
             
-            // 🚀 設定觸發線：將感應區大幅往下壓！
-            // rootMargin: '-80% 0px -10% 0px' 代表感應區只有在螢幕「底部 10% ~ 20%」這個極窄的區間。
-            // 這樣文字的頂部一碰到大手機下緣 (螢幕高度 45% 處)，它的底部就會徹底離開感應區，觸發消失機制！
+            // 🚀 判斷當前是否為大螢幕 (電腦版)
+            const isDesktop = window.innerWidth >= 992;
+
+            // 🚀 智慧雷達區間設定：
+            // 手機版：維持 '-55% 0px -15% 0px'，文字碰到手機底緣就消失，避免重疊。
+            // 電腦版：改成 '-30% 0px -30% 0px'，讓文字可以長時間停留在畫面中央，不提早消失！
             const stepObserverOptions = {
                 root: null,
-                rootMargin: '-80% 0px -10% 0px', 
+                rootMargin: isDesktop ? '-30% 0px -30% 0px' : '-55% 0px -15% 0px', 
                 threshold: 0
             };
 
             const stepObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        // 進入感應區：點亮文字
                         entry.target.classList.add('active');
                         
-                        // 切換左邊大手機的畫面
                         const stepNum = entry.target.getAttribute('data-step');
                         phoneScreens.forEach(screen => screen.classList.remove('active'));
                         const targetScreen = document.getElementById(`screen-${stepNum}`);
                         if (targetScreen) targetScreen.classList.add('active');
                     } else {
-                        // 🚀 關鍵修復：一旦離開感應區，立刻讓這段文字變透明消失！
-                        // 這樣它就絕對沒有機會活著滑進大手機的背後！
                         entry.target.classList.remove('active');
                     }
                 });
             }, stepObserverOptions);
 
             scrollSteps.forEach(step => stepObserver.observe(step));
-            // 🚀 終極殺招：計算右側文字的滾動進度 (0.0 到 1.0)，並映射到 CSS 變數 (--p)
+            
+            // 🚀 智慧動畫時間軸：動態調整播放速率
             window.addEventListener('scroll', () => {
                 const windowHeight = window.innerHeight;
+                // 即時判斷螢幕寬度，確保旋轉手機或縮放視窗時依然準確
+                const currentIsDesktop = window.innerWidth >= 992;
                 
                 scrollSteps.forEach((step, index) => {
                     const rect = step.getBoundingClientRect();
-                    // 定義文字塊的「作動區間」：
-                    // 從距離畫面頂端 80% 處開始計算 (0%)，滑到距離頂端 20% 處結束 (100%)
-                    const startY = windowHeight * 0.8;
-                    const endY = windowHeight * 0.2;
+                    
+                    // 🚀 重新定義物理作動區間 (決定動畫播多快)：
+                    // 電腦版：拉長距離 (75% -> 25%)，滑動時間變長，動畫變慢且對齊文字。
+                    // 手機版：拉長距離 (85% -> 35%)，讓動畫慢慢播完，不會一閃而過。
+                    const startY = windowHeight * (currentIsDesktop ? 0.75 : 0.85);
+                    const endY = windowHeight * (currentIsDesktop ? 0.25 : 0.35);
                     
                     let p = (startY - rect.top) / (startY - endY);
                     
-                    // 把數值鎖死在 0 到 1 之間
                     p = Math.max(0, Math.min(1, p)); 
                     
                     const screen = document.getElementById(`screen-${index + 1}`);
                     if (screen) {
-                        // 將計算好的進度餵給 CSS！
                         screen.style.setProperty('--p', p);
                         
-                        // 🚀 終極修復：如果是第一個畫面，也要同步把信號傳給「移到外層的浮空大卡片」！
                         if (index === 0) {
                             const bigCard = document.getElementById('big-nfc-card');
                             if (bigCard) bigCard.style.setProperty('--p', p);
