@@ -1508,12 +1508,12 @@
                     <h3><span>1</span> 選擇系統版本</h3>
                     <div class="engine-toggles">
                         <div class="engine-card lite" id="engine-lite" onclick="selectEngine('lite')">
-                            <div class="engine-title">Lite 輕量版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(20次/日)</span></div>
+                            <div class="engine-title">Lite 輕量版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(每日 20次 語音功能/人)</span></div>
                             <div class="engine-desc">滿足基礎每日開口作業，無痛數位化。</div>
                         </div>
                         <div class="engine-card pro active" id="engine-pro" onclick="selectEngine('pro')">
                             <div class="pro-badge">🔥 超高 CP 值</div>
-                            <div class="engine-title">Pro 專業版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(80次/日)</span></div>
+                            <div class="engine-title">Pro 專業版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(每日 80次 語音功能/人)</span></div>
                             <div class="engine-desc">高可操控性，極致刺激續班率。</div>
                         </div>
                     </div>
@@ -2212,7 +2212,7 @@
             btn.style.pointerEvents = 'none';
 
             const sliderIdx = document.getElementById('student-slider').value;
-            const engineName = confEngine === 'pro' ? 'Pro 專業版 (80次/日)' : 'Lite 輕量版 (20次/日)';
+            const engineName = confEngine === 'pro' ? 'Pro 專業版 (每日 80次 語音功能/人)' : 'Lite 輕量版 (每日 20次 語音功能/人)';
             const cardName = confCardType === 'custom' ? '品牌客製化專用卡' : 'Tappie 官方專用卡';
             const cardQty = document.getElementById('card-count').value;
             const totalFee = document.getElementById('calc-total').innerText;
