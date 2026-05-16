@@ -204,7 +204,7 @@
         .showcase-interactive .card__bg {
             background-size: cover; background-position: center; border: 2px solid var(--marian-gold);
             transform: translateZ(0px); z-index: 1; box-shadow: inset 0 0 15px rgba(241,196,15,0.5);
-            background-color: #2c3e50; display: flex; align-items: center; justify-content: center;
+            background-color: #2c3e50;
         }
 
         /* 恢復 Z 軸景深與光學混合模式 */
@@ -229,6 +229,25 @@
             background-size: var(--imgsize), 200% 400%, 195% 100%, 200% 100%;
             filter: brightness(calc((var(--pointer-from-center)*.5) + .8)) contrast(1.6) saturate(1.4);
             mix-blend-mode: exclusion;
+        }
+
+        /* 🚀 移植 Lobby 的 Masking 遮罩魔法 (絕對強制挖空) */
+        .showcase-interactive .card.masked .card__shine, 
+        .showcase-interactive .card.masked .card__shine:before, 
+        .showcase-interactive .card.masked .card__shine:after {
+            -webkit-mask-image: linear-gradient(white, white), var(--mask) !important;
+            -webkit-mask-composite: destination-out !important;
+            mask-image: linear-gradient(white, white), var(--mask) !important;
+            mask-composite: exclude !important;
+            -webkit-mask-size: cover !important; mask-size: cover !important;
+            -webkit-mask-position: center center !important; mask-position: center center !important;
+        }
+
+        /* 微調卡片底圖，拔除之前為了放 Emoji 的置中設定 */
+        .showcase-interactive .card__bg {
+            background-size: cover; background-position: center; border: 2px solid var(--marian-gold);
+            transform: translateZ(0px); z-index: 1; box-shadow: inset 0 0 15px rgba(241,196,15,0.5);
+            background-color: #2c3e50;
         }
 
         /* 🎨 假 UI 佔位符：雷達圖 */
@@ -914,12 +933,10 @@
                 </div>
                 <div class="feature-visual reveal-right">
                     <div class="showcase-interactive" id="holo-showcase">
-                        <div class="card">
+                        <div class="card masked" data-rarity="SSR" style="--mask: url('/assets/Montage%20%E8%92%99%E5%A4%AA%E5%A5%87_mask.webp');">
                             <div class="card__rotator">
                                 <div class="card__front">
-                                    <div class="card__bg" style="background-image: url('/assets/Marian%20%E7%91%AA%E9%BA%97%E5%AE%89.webp'), linear-gradient(135deg, #1e272e, #2c3e50);">
-                                        <div style="font-size: 100px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">🦸‍♂️</div>
-                                    </div>
+                                    <div class="card__bg" style="background-image: url('/assets/Montage%20%E8%92%99%E5%A4%AA%E5%A5%87.webp');"></div>
                                     <div class="card__shine"></div>
                                     <div class="card__glare"></div>
                                 </div>
