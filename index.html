@@ -956,7 +956,7 @@
                     <p style="color: #94a3b8; font-size: 13px; margin: 5px 0 30px 0; font-weight: bold;">數位學習平台</p>
 
                     <button class="btn-login" onclick="toggleManualInput()">
-                        <span style="font-size: 20px;">⌨️</span> <span style="flex:1; text-align: left;">手動輸入校區與學號</span> <span>➔</span>
+                        <span style="font-size: 20px;">⌨️</span> <span style="flex:1; text-align: left;">手動登入</span> <span>➔</span>
                     </button>
                     <button class="btn-login line" onclick="alert('LIFF 靜默登入開發中，敬請期待！')">
                         <span style="font-size: 20px;">💬</span> <span style="flex:1; text-align: left;">使用 Line 快速進入</span> <span>➔</span>
@@ -965,15 +965,15 @@
 
                 <div id="manual-input-zone">
                     <div style="text-align: left; margin-bottom: 20px; color: #94a3b8; font-size: 14px; cursor: pointer; font-weight: bold;" onclick="toggleManualInput()">❮ 返回感應模式</div>
-                    <h3 style="margin-bottom: 25px; letter-spacing: 2px;">遠端手動登入</h3>
+                    <h3 style="margin-bottom: 25px; letter-spacing: 2px;">手動登入</h3>
                     
-                    <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: var(--marian-gold); padding-left: 10px;">校區代碼 (Class Code)</div>
+                    <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: var(--marian-gold); padding-left: 10px;">校區代碼</div>
                     <input type="text" id="class-input-field" class="uid-input" placeholder="輸入代碼" autocomplete="off" style="margin-bottom: 15px; letter-spacing: 5px;">
                     
-                    <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: var(--marian-gold); padding-left: 10px;">學生代號 (Student UID)</div>
+                    <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: var(--marian-gold); padding-left: 10px;">學生代號</div>
                     <input type="text" id="uid-input-field" class="uid-input" placeholder="輸入學號" autocomplete="off" style="margin-bottom: 25px;">
                     
-                    <button class="btn-login primary" id="manual-submit-btn" style="width: 100%; font-size: 18px;" onclick="handleManualLogin()">驗證並進入系統</button>
+                    <button class="btn-login primary" id="manual-submit-btn" style="width: 100%; font-size: 18px;" onclick="handleManualLogin()">進入系統</button>
                 </div>
             </div>
         </div>
@@ -1614,7 +1614,7 @@
                 
                 <div class="faq-item" onclick="this.classList.toggle('active')">
                     <div class="faq-q">學生需要自備平板或手機嗎？ <span class="faq-icon">+</span></div>
-                    <div class="faq-a">不需要硬性規定！Tappie 為跨平台網頁架構。校區僅需於大廳準備 1-2 台公用平板作為「口說挑戰站」，學生下課嗶卡即可通關。回家後，也可直接使用家長的手機感應繼續練習，機構硬體零負擔。</div>
+                    <div class="faq-a">不需要硬性規定！Tappie 為跨平台網頁架構。校區可以準備 1-2 台公用平板作為「口說練習區」，學生下課嗶卡即可通關。回家後，也可直接使用家長的手機感應繼續練習，機構硬體零負擔。</div>
                 </div>
 
                 <div class="faq-item" onclick="this.classList.toggle('active')">
