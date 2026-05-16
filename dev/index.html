@@ -152,7 +152,7 @@
         .mock-bar { width: 8px; background: #2ed573; border-radius: 4px; animation: jump 1s infinite alternate; }
         
         /* ========================================= */
-        /* 🚀 動態 UI 引擎 5：3D 全息盲盒引擎 (100% 滿血移植) */
+        /* 🚀 動態 UI 引擎 5：3D 全息盲盒引擎 (100% 原汁原味移植版) */
         /* ========================================= */
         .showcase-interactive {
             position: relative; width: 100%; max-width: 260px; aspect-ratio: 0.718;
@@ -176,7 +176,7 @@
             width: 100%; height: 100%; position: relative;
             transform: translate3d(0px, 0px, 0.01px); transform-style: preserve-3d;
             --pointer-x: 50%; --pointer-y: 50%; --pointer-from-center: 0;
-            --rotate-x: 0deg; --rotate-y: 0deg;
+            --rotate-x: 0deg; --rotate-y: 0deg; --card-opacity: 1;
             cursor: pointer;
         }
 
@@ -190,12 +190,11 @@
         
         .showcase-interactive .card__rotator * { transform-style: preserve-3d; }
         
-        /* 🚀 核心修復：加上 overflow: hidden！強制切掉 Safari 遮罩爆框的毛邊！ */
+        /* 🚀 移除毀滅 Safari 3D 的 overflow: hidden */
         .showcase-interactive .card__front { 
             display: grid !important; grid-template-columns: 1fr; grid-template-rows: 1fr; 
             width: 100%; height: 100%; border-radius: var(--card-radius); 
             transform-style: preserve-3d !important; transform: translate3d(0px, 0px, 0.01px);
-            overflow: hidden; 
         }
         
         .showcase-interactive .card__bg, .showcase-interactive .card__shine, .showcase-interactive .card__glare { 
@@ -204,70 +203,67 @@
         }
 
         .showcase-interactive .card__bg {
-            background-size: cover; background-position: center; border: 2px solid var(--marian-gold);
-            transform: translateZ(0px); z-index: 1; box-shadow: inset 0 0 15px rgba(241,196,15,0.5);
-            background-color: #2c3e50;
+            background-size: cover; background-position: center; border: 2px solid transparent;
+            transform: translateZ(0px); z-index: 1;
         }
 
-        /* 🌟 滿血還原：SSR 專屬眩光 (Glare) */
         .showcase-interactive .card__glare {
             transform: translateZ(1.41px); z-index: 3;
-            background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y), hsl(0, 0%, 75%) 5%, hsl(200, 5%, 35%) 60%, hsl(320, 40%, 10%) 150%) !important;
-            background-size: 120% 150% !important; background-position: center center !important; 
-            mix-blend-mode: hard-light !important; filter: brightness(1) contrast(1.2) saturate(1) !important; 
-            opacity: calc(1 * .75 ) !important;
+            background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y), hsla(0, 0%, 100%, 0.8) 10%, hsla(0, 0%, 100%, 0.65) 20%, hsla(0, 0%, 0%, 0.5) 90%);
+            opacity: calc(var(--pointer-from-center) * 0.8); mix-blend-mode: overlay;
         }
 
-        /* 🌟 滿血還原：SSR 專屬光澤 (Shine) 與精準的顏色融合 (Blend Mode) */
         .showcase-interactive .card__shine {
             display: grid; transform: translateZ(1px); z-index: 4; transform-style: preserve-3d;
             background: transparent; background-size: cover; background-position: center;
+            filter: brightness(.85) contrast(2.75) saturate(.65); mix-blend-mode: color-dodge;
+        }
+        .showcase-interactive .card__shine:before, .showcase-interactive .card__shine:after { 
+            grid-area: 1/1; border-radius: var(--card-radius); content: ""; display: block !important; 
+        }
+        .showcase-interactive .card__shine:before { transform: translateZ(1.2px); }
+        .showcase-interactive .card__shine:after { transform: translateZ(1.6px); }
+
+        /* 🚀 Lobby 專屬遮罩魔法 (Masking) */
+        .showcase-interactive .card.masked .card__shine, 
+        .showcase-interactive .card.masked .card__shine:before, 
+        .showcase-interactive .card.masked .card__shine:after {
+            -webkit-mask-image: linear-gradient(white, white), var(--mask) !important;
+            -webkit-mask-composite: destination-out !important;
+            mask-image: linear-gradient(white, white), var(--mask) !important;
+            mask-composite: exclude !important;
+            -webkit-mask-size: cover !important; mask-size: cover !important;
+            -webkit-mask-position: center center !important; mask-position: center center !important;
+        }
+
+        /* 🌟 SSR 專屬滿血特效還原 (完全參照 Lobby 的設定) */
+        .showcase-interactive .card[data-rarity="SSR"] .card__shine, 
+        .showcase-interactive .card[data-rarity="SSR"] .card__shine:after {
+            background-blend-mode: exclusion, hue, hard-light !important;
+            filter: brightness(calc((var(--pointer-from-center)*.3) + .35)) contrast(2) saturate(1.5) !important;
+        }
+        .showcase-interactive .card[data-rarity="SSR"] .card__shine:before { display: none !important; }
+        .showcase-interactive .card[data-rarity="SSR"] .card__shine:after { 
+            content: "" !important; display: block !important; 
+            filter: brightness(calc((var(--pointer-from-center)*.5) + .8)) contrast(1.6) saturate(1.4) !important; 
+        }
+        
+        .showcase-interactive .card[data-rarity="SSR"] .card__shine {
             opacity: 1 !important;
             background-image: var(--foil), repeating-linear-gradient( 0deg, var(--sunpillar-1) calc(var(--space)*1), var(--sunpillar-2) calc(var(--space)*2), var(--sunpillar-3) calc(var(--space)*3), var(--sunpillar-4) calc(var(--space)*4), var(--sunpillar-5) calc(var(--space)*5), var(--sunpillar-6) calc(var(--space)*6), var(--sunpillar-1) calc(var(--space)*7) ), repeating-linear-gradient( var(--angle), #0e152e 0%, hsl(180, 10%, 60%) 3.8%, hsl(180, 29%, 66%) 4.5%, hsl(180, 10%, 60%) 5.2%, #0e152e 10% , #0e152e 12% ), radial-gradient( farthest-corner circle at var(--pointer-x) var(--pointer-y), hsla(0, 0%, 0%, 0.1) 12%, hsla(0, 0%, 0%, 0.15) 20%, hsla(0, 0%, 0%, 0.25) 120% ) !important;
             background-position: center center, 0% var(--pointer-y), calc( var(--pointer-x) + (var(--pointer-y)*0.2) ) var(--pointer-y), var(--pointer-x) var(--pointer-y) !important;
             background-blend-mode: soft-light, hue, hard-light !important; background-size: var(--imgsize), 200% 700%, 300% 100%, 200% 100% !important;
-            filter: brightness(calc((var(--pointer-from-center)*.3) + .35)) contrast(2) saturate(1.5) !important;
-            mix-blend-mode: color-dodge !important;
         }
-        .showcase-interactive .card__shine:after {
-            content: ""; display: block; grid-area: 1/1; border-radius: var(--card-radius); transform: translateZ(1.6px);
-            background-image: inherit;
+        .showcase-interactive .card[data-rarity="SSR"] .card__shine:after {
             background-position: center center, 0% var(--pointer-y), calc( (var(--pointer-x) + (var(--pointer-y)*0.2)) * -1) calc( var(--pointer-y) * -1), var(--pointer-x) var(--pointer-y) !important;
             background-size: var(--imgsize), 200% 400%, 195% 100%, 200% 100% !important;
-            filter: brightness(calc((var(--pointer-from-center)*.5) + .8)) contrast(1.6) saturate(1.4) !important;
-            mix-blend-mode: exclusion !important;
+            filter: brightness(calc((var(--pointer-from-center)*.4) + .8)) contrast(1.5) saturate(1.25) !important; mix-blend-mode: exclusion !important;
         }
-        
-        /* 🚀 Lobby 專屬 Masking 遮罩魔法 */
-        .showcase-interactive .card.masked .card__shine, 
-        .showcase-interactive .card.masked .card__shine:before, 
-        .showcase-interactive .card.masked .card__shine:after {
-            -webkit-mask-image: linear-gradient(white, white), var(--mask) !important;
-            -webkit-mask-composite: destination-out !important;
-            mask-image: linear-gradient(white, white), var(--mask) !important;
-            mask-composite: exclude !important;
-            -webkit-mask-size: cover !important; mask-size: cover !important;
-            -webkit-mask-position: center center !important; mask-position: center center !important;
+        .showcase-interactive .card[data-rarity="SSR"] .card__glare {
+            background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y), hsl(0, 0%, 75%) 5%, hsl(200, 5%, 35%) 60%, hsl(320, 40%, 10%) 150%) !important;
+            background-size: 120% 150% !important; background-position: center center !important; mix-blend-mode: hard-light !important; filter: brightness(1) contrast(1.2) saturate(1) !important; opacity: calc(1 * .75 ) !important;
         }
-
-        /* 🚀 移植 Lobby 的 Masking 遮罩魔法 (絕對強制挖空) */
-        .showcase-interactive .card.masked .card__shine, 
-        .showcase-interactive .card.masked .card__shine:before, 
-        .showcase-interactive .card.masked .card__shine:after {
-            -webkit-mask-image: linear-gradient(white, white), var(--mask) !important;
-            -webkit-mask-composite: destination-out !important;
-            mask-image: linear-gradient(white, white), var(--mask) !important;
-            mask-composite: exclude !important;
-            -webkit-mask-size: cover !important; mask-size: cover !important;
-            -webkit-mask-position: center center !important; mask-position: center center !important;
-        }
-
-        /* 微調卡片底圖，拔除之前為了放 Emoji 的置中設定 */
-        .showcase-interactive .card__bg {
-            background-size: cover; background-position: center; border: 2px solid var(--marian-gold);
-            transform: translateZ(0px); z-index: 1; box-shadow: inset 0 0 15px rgba(241,196,15,0.5);
-            background-color: #2c3e50;
-        }
+        .showcase-interactive .card[data-rarity="SSR"] .card__bg { border-color: var(--marian-gold) !important; box-shadow: inset 0 0 15px rgba(241,196,15,0.5) !important; }
 
         /* 🎨 假 UI 佔位符：雷達圖 */
         .radar-shape { width: 60%; height: 60%; background: rgba(0, 102, 204, 0.2); border: 2px solid var(--primary-blue); clip-path: polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%); animation: radarRotate 10s infinite linear; }
