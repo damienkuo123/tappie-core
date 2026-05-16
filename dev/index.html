@@ -671,6 +671,57 @@
         @keyframes floatUpTen { 0%, 48% { opacity: 0; transform: translateY(0) scale(0.5); } 52% { opacity: 1; transform: translateY(-25px) scale(1.2); } 65%, 100% { opacity: 0; transform: translateY(-40px) scale(1); } }
 
         /* ========================================= */
+        /* 🚀 動態 UI 引擎 8：SaaS 報價試算機 */
+        /* ========================================= */
+        .configurator-box { width: 100%; max-width: 900px; background: rgba(20, 25, 35, 0.7); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.5); margin: 0 auto; overflow: hidden; text-align: left; position: relative; }
+        .config-step { padding: 30px 40px; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
+        .config-step h3 { font-size: 18px; color: white; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; }
+        .config-step h3 span { background: var(--primary-blue); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; }
+        
+        .engine-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .engine-card { background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; }
+        .engine-card:active { transform: scale(0.98); }
+        .engine-card.active.lite { border-color: var(--marian-green); background: rgba(46, 204, 113, 0.1); box-shadow: 0 10px 30px rgba(46, 204, 113, 0.2); }
+        .engine-card.active.pro { border-color: var(--marian-gold); background: rgba(241, 196, 15, 0.1); box-shadow: 0 10px 30px rgba(241, 196, 15, 0.2); }
+        .engine-title { font-size: 20px; font-weight: 900; color: white; margin-bottom: 5px; }
+        .engine-desc { font-size: 13px; color: #a4b0be; line-height: 1.5; }
+        .pro-badge { position: absolute; top: 15px; right: 15px; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; font-size: 11px; padding: 4px 8px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 10px rgba(231,76,60,0.4); animation: breathe 2s infinite alternate; }
+        
+        .slider-wrapper { padding: 20px 10px 10px; }
+        .custom-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); outline: none; transition: 0.3s; }
+        .custom-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: var(--marian-gold); cursor: pointer; box-shadow: 0 0 15px rgba(241,196,15,0.6); border: 4px solid #fff; transition: 0.2s; }
+        .custom-slider::-webkit-slider-thumb:active { transform: scale(1.2); }
+        .slider-labels { display: flex; justify-content: space-between; margin-top: 15px; color: #64748b; font-size: 13px; font-weight: bold; }
+        
+        .price-display { background: rgba(0,0,0,0.5); padding: 20px; border-radius: 15px; text-align: center; margin-top: 20px; border: 1px dashed rgba(255,255,255,0.1); transition: 0.3s; }
+        .price-display .monthly { font-size: 44px; font-weight: 900; color: var(--marian-gold); margin: 5px 0; transition: color 0.3s; letter-spacing: 1px; }
+        
+        .card-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .hw-card { display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; cursor: pointer; transition: 0.3s; }
+        .hw-card.active { border-color: var(--primary-blue); background: rgba(0, 123, 255, 0.1); }
+        .hw-visual { width: 60px; height: 40px; border-radius: 6px; background: linear-gradient(135deg, #eee, #ccc); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #333; box-shadow: 0 5px 10px rgba(0,0,0,0.3); }
+        .hw-visual.custom { background: linear-gradient(135deg, #1e3799, #0c2461); color: var(--marian-gold); border: 1px solid var(--marian-gold); }
+        
+        .counter-box { display: inline-flex; align-items: center; background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .counter-btn { background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; font-size: 20px; cursor: pointer; transition: 0.2s; }
+        .counter-btn:active { background: rgba(255,255,255,0.2); }
+        .counter-input { width: 60px; height: 40px; background: transparent; border: none; color: var(--marian-gold); font-size: 18px; font-weight: bold; text-align: center; outline: none; }
+        
+        .config-summary { background: rgba(11, 15, 26, 0.95); padding: 25px 40px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); }
+        .summary-text { font-size: 14px; color: #a4b0be; line-height: 1.8; }
+        .summary-text strong { color: white; font-size: 28px; display: block; margin-top: 5px; color: var(--marian-gold); }
+        .btn-submit-plan { background: linear-gradient(135deg, var(--marian-gold), #f39c12); color: #000; border: none; padding: 18px 35px; border-radius: 100px; font-size: 18px; font-weight: 900; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(241,196,15,0.3); letter-spacing: 1px; }
+        .btn-submit-plan:active { transform: scale(0.96); box-shadow: 0 5px 15px rgba(241,196,15,0.3); }
+
+        @media (max-width: 768px) {
+            .engine-toggles, .card-toggles { grid-template-columns: 1fr; }
+            .config-summary { flex-direction: column; text-align: center; gap: 20px; }
+            .btn-submit-plan { width: 100%; }
+            .slider-labels span { font-size: 11px; }
+            .config-step { padding: 25px 20px; }
+        }
+
+        /* ========================================= */
         /* 🚀 擴充區塊：場景、權威、方案、FAQ */
         /* ========================================= */
         /* 🌟 亮色白玉毛玻璃視覺斷點 (Visual Break) */
@@ -1434,47 +1485,84 @@
             </div>
         </section>
 
-        <section class="section" style="padding-top: 80px; min-height: auto; text-align: center;">
-            <span style="color: var(--marian-gold); font-weight: 900; letter-spacing: 3px; font-size: 14px; text-transform: uppercase;" class="reveal-up">Pricing & Plans</span>
-            <h2 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin: 15px 0 20px; color: #fff;" class="reveal-up">選擇適合您的升級方案</h2>
+        <section class="section" style="padding-top: 80px; padding-bottom: 120px; min-height: auto; text-align: center;">
+            <span style="color: var(--marian-gold); font-weight: 900; letter-spacing: 3px; font-size: 14px; text-transform: uppercase;" class="reveal-up">Pricing Configurator</span>
+            <h2 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin: 15px 0 40px; color: #fff;" class="reveal-up">打造貴校專屬的數位升級方案</h2>
             
-            <div class="pricing-grid">
-                <div class="pricing-card reveal-left" style="transition-delay: 0.1s;">
-                    <div class="pricing-title">一般學生版</div>
-                    <div class="pricing-price">即將推出</div>
-                    <div class="pricing-desc">
-                        ✓ 每日 20 次語音診斷<br>
-                        ✓ 基礎 3D 角色卡池<br>
-                        ✓ 基礎雷達圖報告<br>
-                        <br><br><br>
-                    </div>
-                    <button class="btn-pricing outline" disabled>敬請期待</button>
-                </div>
+            <div class="configurator-box reveal-up" style="transition-delay: 0.2s;">
                 
-                <div class="pricing-card highlight reveal-up">
-                    <div class="pricing-title">首批種子校區計畫</div>
-                    <div class="pricing-price">免費建置</div>
-                    <div class="pricing-desc" style="color: #e2e8f0;">
-                        <span style="color:var(--marian-green);">✓ 免收初裝設定費 (現省3萬)</span><br>
-                        <span style="color:var(--marian-gold);">✓ 贈送首批 50 張客製化實體卡</span><br>
-                        ✓ 專屬分校獨立資料庫<br>
-                        ✓ 手遊級營運中控台權限<br>
-                        ✓ 自動化週報派發系統
+                <div class="config-step">
+                    <h3><span>1</span> 選擇大腦引擎</h3>
+                    <div class="engine-toggles">
+                        <div class="engine-card lite" id="engine-lite" onclick="selectEngine('lite')">
+                            <div class="engine-title">Lite 輕量版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(20次/日)</span></div>
+                            <div class="engine-desc">滿足基礎每日口說作業，無痛數位化。<br>✓ 語音診斷 ✓ 雷達圖報告 ✓ 數位點數存摺</div>
+                        </div>
+                        <div class="engine-card pro active" id="engine-pro" onclick="selectEngine('pro')">
+                            <div class="pro-badge">🔥 推薦：解鎖 3D 盲盒</div>
+                            <div class="engine-title">Pro 專業版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(80次/日)</span></div>
+                            <div class="engine-desc">高壓對戰、盲盒全開，極致刺激續班率。<br>✓ 1v1 對戰室 ✓ 盲盒抽卡引擎 ✓ AI 醫療級週報</div>
+                        </div>
                     </div>
-                    <button class="btn-pricing solid" onclick="alert('請聯繫官方 Line 申請名額！')">申請成為種子校區</button>
                 </div>
 
-                <div class="pricing-card reveal-right" style="transition-delay: 0.1s;">
-                    <div class="pricing-title">企業連鎖旗艦版</div>
-                    <div class="pricing-price">專案報價</div>
-                    <div class="pricing-desc">
-                        ✓ 無上限學生帳號擴充<br>
-                        ✓ 補習班專屬自訂題庫匯入<br>
-                        ✓ 多校區跨區成績排行榜<br>
-                        ✓ 專屬 API 系統串接<br><br>
+                <div class="config-step">
+                    <h3><span>2</span> 評估校區規模</h3>
+                    <div class="slider-wrapper">
+                        <input type="range" id="student-slider" class="custom-slider" min="0" max="3" value="1" oninput="calculatePricing()">
+                        <div class="slider-labels">
+                            <span>微型 (30人)</span>
+                            <span>標準 (50人)</span>
+                            <span>成長 (75人)</span>
+                            <span>旗艦 (100人)</span>
+                        </div>
                     </div>
-                    <button class="btn-pricing outline" onclick="alert('請寄信至商務信箱')">聯絡專員洽談</button>
+                    <div class="price-display" id="price-display-bg" style="border-color: rgba(241, 196, 15, 0.4); box-shadow: 0 0 20px rgba(241, 196, 15, 0.1);">
+                        <div style="font-size: 14px; color: #a4b0be; font-weight: bold;">每月軟體授權費</div>
+                        <div class="monthly">NT$ <span id="calc-monthly">8,500</span></div>
+                        <div style="font-size: 13px; color: #2ecc71; font-weight: bold; background: rgba(46,204,113,0.1); display: inline-block; padding: 6px 15px; border-radius: 20px; margin-top: 5px;">平均每位學生只需 NT$ <span id="calc-avg">170</span> / 月</div>
+                    </div>
                 </div>
+
+                <div class="config-step">
+                    <h3><span>3</span> 選擇實體武器 (NFC 卡片)</h3>
+                    <div class="card-toggles">
+                        <div class="hw-card" id="card-official" onclick="selectCardType('official')">
+                            <div class="hw-visual">Tappie</div>
+                            <div style="text-align: left;">
+                                <div style="color: white; font-weight: bold; font-size: 16px;">官方專屬卡</div>
+                                <div style="color: #a4b0be; font-size: 12px;">NT$ 30 / 張 (可愛吉祥物)</div>
+                            </div>
+                        </div>
+                        <div class="hw-card active" id="card-custom" onclick="selectCardType('custom')">
+                            <div class="hw-visual custom">YOUR LOGO</div>
+                            <div style="text-align: left;">
+                                <div style="color: white; font-weight: bold; font-size: 16px;">品牌客製閃卡</div>
+                                <div style="color: #a4b0be; font-size: 12px;">NT$ 50 / 張 (專屬金屬光澤)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                        <span style="font-weight: bold; color: #a4b0be; font-size: 14px;">首批進貨數量：</span>
+                        <div class="counter-box">
+                            <button class="counter-btn" onclick="updateCardCount(-10)">-</button>
+                            <input type="number" class="counter-input" id="card-count" value="70" onchange="calculatePricing()">
+                            <button class="counter-btn" onclick="updateCardCount(10)">+</button>
+                        </div>
+                        <span style="font-size: 12px; color: #64748b;">(建議為學生數 + 20張備用)</span>
+                    </div>
+                </div>
+
+                <div class="config-summary">
+                    <div class="summary-text">
+                        初裝建置費：<s style="color: var(--marian-red);">NT$ 20,000</s> <span style="color: var(--marian-green); font-weight: bold; margin-left: 5px;">NT$ 0 (前 10 名種子資格)</span><br>
+                        首月開通總計 <span style="font-size:12px;">(軟體授權 + 實體卡片耗材)</span>：
+                        <strong id="calc-total">NT$ 12,000</strong>
+                    </div>
+                    <button class="btn-submit-plan" onclick="submitPlan()">🚀 將此方案送出評估</button>
+                </div>
+                
             </div>
         </section>
 
@@ -1845,6 +1933,119 @@
                 }
             }
         });
+
+        // =======================================================
+        // 💰 SaaS 報價試算機引擎 (Interactive Configurator)
+        // =======================================================
+        const pricingTiers = {
+            lite: [ { n: 30, price: 4200 }, { n: 50, price: 6500 }, { n: 75, price: 9000 }, { n: 100, price: 11000 } ],
+            pro:  [ { n: 30, price: 5400 }, { n: 50, price: 8500 }, { n: 75, price: 12000 }, { n: 100, price: 15000 } ]
+        };
+        
+        let confEngine = 'pro';
+        let confCardType = 'custom';
+        let confCardPrice = 50;
+
+        function selectEngine(type) {
+            confEngine = type;
+            document.getElementById('engine-lite').classList.remove('active');
+            document.getElementById('engine-pro').classList.remove('active');
+            document.getElementById(`engine-${type}`).classList.add('active');
+            
+            const displayBg = document.getElementById('price-display-bg');
+            const monthlyText = document.querySelector('.price-display .monthly');
+            if(type === 'pro') {
+                displayBg.style.borderColor = 'rgba(241, 196, 15, 0.4)';
+                displayBg.style.boxShadow = '0 0 20px rgba(241, 196, 15, 0.1)';
+                monthlyText.style.color = 'var(--marian-gold)';
+            } else {
+                displayBg.style.borderColor = 'rgba(46, 204, 113, 0.4)';
+                displayBg.style.boxShadow = '0 0 20px rgba(46, 204, 113, 0.1)';
+                monthlyText.style.color = 'var(--marian-green)';
+            }
+            calculatePricing();
+        }
+
+        function selectCardType(type) {
+            confCardType = type;
+            confCardPrice = type === 'custom' ? 50 : 30;
+            document.getElementById('card-official').classList.remove('active');
+            document.getElementById('card-custom').classList.remove('active');
+            document.getElementById(`card-${type}`).classList.add('active');
+            calculatePricing();
+        }
+
+        function updateCardCount(delta) {
+            const input = document.getElementById('card-count');
+            let val = parseInt(input.value) || 0;
+            val = Math.max(10, val + delta); // 最低起訂量 10 張
+            input.value = val;
+            calculatePricing();
+        }
+
+        function calculatePricing() {
+            const sliderIdx = parseInt(document.getElementById('student-slider').value);
+            const tierData = pricingTiers[confEngine][sliderIdx];
+            
+            const students = tierData.n;
+            const monthlyFee = tierData.price;
+            const avgFee = Math.round(monthlyFee / students);
+            
+            // UX 優化：連動滑桿與卡片數量 (滑桿變動時，自動幫他加上 20 張備用卡)
+            // 這裡我們直接同步，讓他不用手動一直調
+            const cardInput = document.getElementById('card-count');
+            cardInput.value = students + 20; 
+            
+            const hwFee = (students + 20) * confCardPrice;
+            const totalFee = monthlyFee + hwFee;
+
+            // 觸發吃角子老虎機跳號動畫
+            animateValue('calc-monthly', monthlyFee);
+            document.getElementById('calc-avg').innerText = avgFee;
+            animateValue('calc-total', totalFee, true);
+        }
+
+        // 🎰 數字跳動動畫
+        function animateValue(id, end, isTotal = false) {
+            const obj = document.getElementById(id);
+            const startStr = obj.innerText.replace(/[^0-9]/g, '');
+            let start = parseInt(startStr) || 0;
+            if (start === end) return;
+            
+            let startTimestamp = null;
+            const duration = 500; // 0.5 秒跳完
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                // 使用 easeOutQuart 讓最後慢下來，很像老虎機
+                const easeOut = 1 - Math.pow(1 - progress, 4);
+                const current = Math.floor(start + (end - start) * easeOut);
+                
+                obj.innerText = (isTotal ? 'NT$ ' : '') + current.toLocaleString('en-US');
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    obj.innerText = (isTotal ? 'NT$ ' : '') + end.toLocaleString('en-US');
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        function submitPlan() {
+            const sliderIdx = parseInt(document.getElementById('student-slider').value);
+            const students = pricingTiers[confEngine][sliderIdx].n;
+            const monthlyFee = pricingTiers[confEngine][sliderIdx].price;
+            const cardQty = document.getElementById('card-count').value;
+            
+            const engineName = confEngine === 'pro' ? 'Pro 專業版 (80次/日)' : 'Lite 輕量版 (20次/日)';
+            const cardName = confCardType === 'custom' ? '品牌客製化閃卡' : '基礎官方專用卡';
+
+            const msg = `您好，我對 Tappie 系統有興趣！\n\n這是我試算的方案：\n🧠 大腦引擎：${engineName}\n👥 校區規模：${students} 人\n💳 實體卡片：${cardName} x ${cardQty} 張\n\n請協助我評估並保留「免建置費種子名額」，謝謝！`;
+            
+            // 跳轉至 Email
+            const mailto = `mailto:system@tappieapp.com?subject=申請 Tappie 數位升級方案&body=${encodeURIComponent(msg)}`;
+            window.location.href = mailto;
+        }
 
         // 統一的錯誤狀態 UI 恢復系統
         function showError(text = "❌ 查無此卡，請重試") {
