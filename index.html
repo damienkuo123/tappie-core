@@ -1508,12 +1508,12 @@
                     <h3><span>1</span> 選擇系統版本</h3>
                     <div class="engine-toggles">
                         <div class="engine-card lite" id="engine-lite" onclick="selectEngine('lite')">
-                            <div class="engine-title">Lite 輕量版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(每日 20次 語音功能/人)</span></div>
+                            <div class="engine-title">Lite 輕量版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(每日20次練習/人)</span></div>
                             <div class="engine-desc">滿足基礎每日開口作業，無痛數位化。</div>
                         </div>
                         <div class="engine-card pro active" id="engine-pro" onclick="selectEngine('pro')">
                             <div class="pro-badge">🔥 超高 CP 值</div>
-                            <div class="engine-title">Pro 專業版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(每日 80次 語音功能/人)</span></div>
+                            <div class="engine-title">Pro 專業版 <span style="font-size:12px; color:#a4b0be; font-weight:normal;">(每日80次練習/人)</span></div>
                             <div class="engine-desc">高可操控性，極致刺激續班率。</div>
                         </div>
                     </div>
@@ -1570,7 +1570,7 @@
                             <div class="hw-visual custom">YOUR LOGO</div>
                             <div style="text-align: left;">
                                 <div style="color: white; font-weight: bold; font-size: 16px;">品牌客製化專用卡</div>
-                                <div style="color: #a4b0be; font-size: 12px;">NT$ 50 / 張 (✓ 可客製化設計卡面)</div>
+                                <div style="color: #a4b0be; font-size: 12px;">NT$ 50 / 張 ( ✓ 可客製化設計卡面)</div>
                             </div>
                         </div>
                     </div>
@@ -1598,7 +1598,7 @@
 
                 <div class="config-summary">
                     <div class="summary-text" style="text-align: left;">
-                        初裝建置費：<s style="color: var(--marian-red);">NT$ 20,000</s> <span style="color: var(--marian-green); font-weight: bold; margin-left: 5px;">NT$ 0 (前 10 名種子資格)</span><br>
+                        初裝建置費：<s style="color: var(--marian-red);">NT$ 20,000</s> <span style="color: var(--marian-green); font-weight: bold; margin-left: 5px;">NT$ 0 (前 10 名種子校區資格)</span><br>
                         首月開通總計 <span style="font-size:12px;">(軟體授權 + 實體卡片耗材)</span>：
                         <strong id="calc-total">NT$ 12,250</strong>
                     </div>
@@ -2154,7 +2154,7 @@
             
             if (isCustomTextPrice) {
                 // 大客戶專案：強制改寫為「30,000 起」，數字呈現綠色
-                amtContainer.innerHTML = `NT$ <span id="calc-monthly" style="color: var(--marian-green);">30,000</span> 元起`;
+                amtContainer.innerHTML = `NT$ <span id="calc-monthly" style="color: var(--marian-green);">30,000`;
                 document.getElementById('calc-avg').innerText = "100";
                 avgBadge.style.display = 'none'; // 大客戶方案不需要均價顯示
             } else {
@@ -2212,7 +2212,7 @@
             btn.style.pointerEvents = 'none';
 
             const sliderIdx = document.getElementById('student-slider').value;
-            const engineName = confEngine === 'pro' ? 'Pro 專業版 (每日 80次 語音功能/人)' : 'Lite 輕量版 (每日 20次 語音功能/人)';
+            const engineName = confEngine === 'pro' ? 'Pro 專業版 (每日80次練習/人)' : 'Lite 輕量版 (每日20次練習/人)';
             const cardName = confCardType === 'custom' ? '品牌客製化專用卡' : 'Tappie 官方專用卡';
             const cardQty = document.getElementById('card-count').value;
             const totalFee = document.getElementById('calc-total').innerText;
