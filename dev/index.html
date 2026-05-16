@@ -615,6 +615,10 @@
         .anim-custom-brand { font-weight: 900; font-size: 18px; letter-spacing: 2px; text-align: center; height: 25px; margin-top: 5px; color: #fff; }
         .anim-custom-brand::after { content: "YOUR BRAND"; animation: customBrandText 12s infinite; }
 
+        /* 🚀 實體卡面的真實 Logo 與文字綁定 */
+        .anim-custom-icon-emoji::after { content: "🏫"; animation: customIconEmoji 12s infinite; }
+        .anim-custom-brand-text::after { content: "YOUR BRAND"; animation: customBrandText 12s infinite; }
+
         /* ========================================= */
         /* 🚀 擴充區塊：場景、權威、方案、FAQ */
         /* ========================================= */
@@ -1059,8 +1063,33 @@
                 </div>
                 <div class="feature-visual reveal-left">
                     <div class="mock-ui-box" style="justify-content: center; background: radial-gradient(circle at center, rgba(255,255,255,0.05), transparent);">
-                        <div class="mock-nfc-card anim-custom-card">
-                            <div class="anim-custom-logo"></div>
+                        <div class="mock-nfc-card anim-custom-card" style="overflow: hidden;">
+                            
+                            <div style="position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 35%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.3) 100%); z-index: 1;"></div>
+                            <div style="position: absolute; width: 140px; height: 140px; background: rgba(255,255,255,0.06); border-radius: 50%; top: -50px; right: -40px; z-index: 1;"></div>
+                            <div style="position: absolute; width: 80px; height: 80px; background: rgba(0,0,0,0.08); border-radius: 50%; bottom: -20px; left: 30px; z-index: 1;"></div>
+                            
+                            <div style="position: absolute; inset: 0; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; z-index: 5; box-sizing: border-box;">
+                                
+                                <div style="display: flex; justify-content: flex-start; align-items: flex-start; height: 20px;">
+                                    <div style="display: flex; gap: 4px; opacity: 0.6;">
+                                        <div style="width: 4px; height: 4px; border-radius: 50%; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.5);"></div>
+                                        <div style="width: 4px; height: 4px; border-radius: 50%; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.5);"></div>
+                                        <div style="width: 4px; height: 4px; border-radius: 50%; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.5);"></div>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: -5px;">
+                                    <div class="anim-custom-icon-emoji" style="font-size: 26px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));"></div>
+                                    <div class="anim-custom-brand-text" style="font-size: 14px; font-weight: 900; letter-spacing: 1px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.6);"></div>
+                                </div>
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                                    <div class="mock-nfc-chip" style="position: static; margin: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.5); opacity: 0.9;"></div>
+                                    <div style="font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.7); letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">ID 889427</div>
+                                </div>
+                                
+                            </div>
                         </div>
                     </div>
                 </div>
