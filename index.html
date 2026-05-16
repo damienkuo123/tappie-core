@@ -935,7 +935,12 @@
             <img src="/assets/logo.webp" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
             Tappie
         </div>
-        <div class="nav-btn" onclick="alert('請聯繫總部申請校區代碼')">分校加盟申請</div>
+        <nav>
+        <div class="nav-logo">
+            <img src="/assets/logo.webp" alt="Tappie Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23f1c40f\'/></svg>'">
+            Tappie
+        </div>
+        <div class="nav-btn" onclick="document.getElementById('pricing-section').scrollIntoView({ behavior: 'smooth' })">加入Tappie</div>
     </nav>
 
     <section class="section">
@@ -1498,7 +1503,7 @@
             </div>
         </section>
 
-        <section class="section" style="padding-top: 80px; padding-bottom: 120px; min-height: auto; text-align: center;">
+        <section class="section" id="pricing-section" style="padding-top: 80px; padding-bottom: 120px; min-height: auto; text-align: center;">
             <span style="color: var(--marian-gold); font-weight: 900; letter-spacing: 3px; font-size: 14px; text-transform: uppercase;" class="reveal-up">Pricing Configurator</span>
             <h2 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin: 15px 0 40px; color: #fff;" class="reveal-up">打造貴校的專屬方案</h2>
             
